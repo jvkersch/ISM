@@ -1,0 +1,13 @@
+# Principal component analysis
+
+## Introduction
+
+## Derivation of the principal components
+
+## Use in linear regression
+
+## A worked-out example
+
+## When PCA fails
+
+## Partial least squares regression

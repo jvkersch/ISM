@@ -8,7 +8,9 @@ book:
   chapters:
     - index.qmd
     - intro.qmd
-    - summary.qmd
+    - regression.qmd
+    - pca.qmd
+    - nonlinear.qmd
     - references.qmd
 
 bibliography: references.bib
