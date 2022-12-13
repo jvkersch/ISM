@@ -1,5 +1,14 @@
 # Preface {.unnumbered}
 
-This is a Quarto book.
+Most of the figures in this book are generated with R. If you are reading this book online, you can view the source code for each figure by clicking the little triangle next to the word "Code" above the figure. In the PDF version of this book the code is listed inline with the figure.
 
-To learn more about Quarto books visit <https://quarto.org/docs/books>.
+```{r}
+#| label: fig-iris-demo
+#| fig-cap: Length and width of the sepal petal of 150 Iris plants.
+library(ggplot2)
+ggplot(data=iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+ geom_point(aes(color=Species, shape=Species)) +
+ xlab("Sepal Length") +
+ ylab("Sepal Width")
+```
+

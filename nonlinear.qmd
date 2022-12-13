@@ -1,1 +1,21 @@
 # Nonlinear modelling
+
+## Examples of nonlinear models
+
+## The cost function
+
+## Finding optimal parameters
+
+1. How to go about this (find approximate parameter values by hand, use R optimizer to refine, always make a drawing to confirm that initial estimates are correct, add example to show that blindly trusting the optimizer can lead to wrong results)
+2. Short discussion of optimization methods (gradient descent, nelder-mead, brute-force, stochastic). Maybe defer to appendix
+3. Worked out example: Streater Phelps
+
+## Sensitivity analysis
+
+## Uncertainty analysis
+
+Not sure of whether to include this. Is there a practical on this?
+
+## Model selection
+
+## Optimal experiment design

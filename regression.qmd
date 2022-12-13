@@ -1,1 +1,18 @@
 # Linear regression
+
+## Introduction
+
+## Simple linear regression
+
+## Multiple linear regression
+
+## Outliers
+
+## Predictivity, collinearity, and diagnostics
+
+Note: this structure is not right. These topics were lumped together to fit the slides. Use the structure from the "book"
+
+Maybe move categorical variables before this, so that we can end with VIF and then move straight into PCA.
+
+## Incorporating categorical variables
+
