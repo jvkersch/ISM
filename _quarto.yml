@@ -2,8 +2,8 @@ project:
   type: book
 
 book:
-  title: "book"
-  author: "Jane Doe"
+  title: "Introduction to Statistical Modelling"
+  author: "Joris Vankerschaver"
   date: "12/14/2022"
   chapters:
     - index.qmd
@@ -20,6 +20,3 @@ format:
     theme: cosmo
   pdf:
     documentclass: scrreprt
-
-
-
