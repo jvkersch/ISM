@@ -1,13 +1,158 @@
 # Principal component analysis
 
-## Introduction
+In the previous chapter we’ve encountered multiple regression models in which the predictors were collinear,
 
-## Derivation of the principal components
 
-## Use in linear regression
+To remove extraneous components, we have a number of options. For starters, we can look for the directions in which the data are _most variable_. If we retain only the components in the data along those directions, then it feels like we should 
 
-## A worked-out example
 
-## When PCA fails
 
-## Partial least squares regression
+
+## Principal components: intuition
+
+Before diving into the mathematical details, it is good to develop an understanding of what principal component analysis does. As we can't visualize data sets in more than 2 or 3 dimensions, we'll 
+
+To this end, we generate a dataset consisting of 200 observations in two dimensions. These observations are drawn from a two-dimensional Gaussian distribution, with mean and covariance given by
+$$
+    \mu = \begin{bmatrix}
+        1 \\
+        1
+            \end{bmatrix} \quad \text{and} \quad
+    \Sigma = \begin{bmatrix}
+        5 & 2 \\
+        2 & 2
+    \end{bmatrix}.
+$$
+
+This dataset is plotted below. Judging from the figure, it looks like there is a positive correlation between $x$ and $y$, and that the data vary mostly along the first bisector. Later on, we will see that principal component analysis allows us to make these statements more precise.
+
+```{r}
+#| label: fig-2d-data
+#| fig-cap: 200 data points from a multivariate Gaussian distribution. The data look like they vary mostly along the first bisector.
+set.seed(1234)
+
+library(mvtnorm)
+library(ggplot2)
+
+U <- matrix(c(2, -1, 1, 2), nrow = 2, byrow = TRUE) / 5
+D <- diag(c(6, 1))
+mean <- c(1, 1)
+sigma <- U %*% D %*% solve(U)
+data <- rmvnorm(200, mean = mean, sigma = sigma)
+df <- as.data.frame(data)
+colnames(df) <- c("x", "y")
+
+p <- ggplot(df) + 
+  geom_point(aes(x=x, y=y))
+print(p)
+```
+
+Now assume that we have to reduce this two-dimensional dataset to one dimension. In other words, we would like to reduce each data point to a single number. There are many ways in which we could do this: we can throw away the $x$-coordinate, the $y$-coordinate, or we can choose to retain some linear combination of $x$ and $y$. Which way is best?
+
+To find an answer to this question, let's try to find a direction that **maximizes the amount of retained variation**. What we mean by this is that 
+
+
+
+Another way ... (minimize reconstruction error).
+
+
+It can be shown that both methods give the same results (see @bishopPatternRecognitionMachine2006, section 12). In this course, we will develop the first method further.
+
+## Mathematical derivation
+
+To make the intuition from the previous section more concrete, let's assume that we have $N$ observations $\mathbf{x}^{(i)}$, where each $\mathbf{x}^{(i)}$ is a column vector in $\mathbb{R}^D$. We assemble these observations into a _data matrix_ $X$, where each row of $X$ is an observation $\mathbf{x}^{(i)}$:
+$$
+    X = \begin{bmatrix}
+        (\mathbf{x}^{(1)})^T \\
+        (\mathbf{x}^{(2)})^T \\
+        \cdots \\
+        (\mathbf{x}^{(N)})^T \\
+    \end{bmatrix}.
+$$
+The matrix $X$ has $N$ rows and $D$ columns.
+
+### The first principal component
+
+As we've seen before, the first principal component corresponds to the direction in which the data varies the most. In other words, we should look for a vector $\mathbf{v}$ so that the variance of the data, after projection onto $\mathbf{v}$, is the largest. To make the problem manageable, we will assume that $\mathbf{v}$ has unit length: $\mathbf{v}^T \mathbf{v} = 1$. Otherwise, we could increase the amount of retained variation just by increasing the norm of $\mathbf{v}$.
+
+Let's first recall what we mean by "projecting the data onto $\mathbf{v}$". Any vector $\mathbf{x}$ can be decomposed as a part along $\mathbf{v}$ and a part $\mathbf{v}_\perp$ that is perpendicular to $\mathbf{v}$, given by
+$$
+    \mathbf{x} = (\mathbf{x}^T \mathbf{v}) \mathbf{v} + \mathbf{v}_\perp.
+$$
+The first part, $(\mathbf{x}^T \mathbf{v}) \mathbf{v}$, is the part along $\mathbf{v}$ and it is this part that we are most interested in. Its norm is 
+
+The mean of the projected data points is given by
+$$
+    \mu = \frac{1}{N} \sum_{i = 1}^N (\mathbf{x}^{(i)})^T \mathbf{v} = \mathbf{\bar{x}}^T \mathbf{v}.
+$$
+In other words, the mean of the projected data is just the mean $\mathbf{\bar{x}}$ of the original data points, projected onto $\mathbf{v}$.
+
+The variance of the projected data points is given by
+$$
+    \sigma^2  = 
+    \frac{1}{N} \sum_{i = 1}^N\left( (\mathbf{x}^{(i)})^T \mathbf{v} - 
+        \mathbf{\bar{x}}^T \mathbf{v}\right)^2 = \mathbf{v}^T S \mathbf{v},
+$$ {#eq-projected-variance}
+where $S$ is the covariance matrix, given by
+$$
+    S = \frac{1}{N} \sum_{i = 1}^N \left(\mathbf{x}^{(i)} (\mathbf{x}^{(i)})^T - \mathbf{\bar{x}}(\mathbf{\bar{x}})^T \right).
+$$ {#eq-cov-matrix}
+Note that $S$ is a $D$-by-$D$ matrix.
+
+This quantity, $\sigma^2$, is precisely what we want to maximize through our choice of $\mathbf{v}$. But keep in mind that $\mathbf{v}$ must have unit length. In other words we want to solve the following constrained optimization problem:
+$$
+    \text{Find $\mathbf{v}$ that maximizes $\mathbf{v}^T S \mathbf{v}$, such that $\mathbf{v}^T \mathbf{v} = 1$}.
+$$
+
+The second condition is a constraint, which we can add to our function to optimize through a Lagrange multiplier. The $\mathbf{v}$ that we look forward is then the one that maximizes the following function:
+$$
+    L(\mathbf{v}) = \mathbf{v}^T S \mathbf{v} - \lambda( \mathbf{v}^T \mathbf{v} - 1).
+$$
+
+A necessary condition for a maximum of a multivariate function is that the gradient vanishes. 
+Taking the gradient of $L$ with respect to $\mathbf{v}$ and setting the resulting expression equal to zero gives
+$$
+    S \mathbf{v} = \lambda \mathbf{v}.
+$$ {#eq-ev-pca}
+This is a very important result: it tells us that the $\mathbf{v}$ we are looking for is an **eigenvector** of the matrix $S$, with corresponding **eigenvalue** $\lambda$. This will hold true generally, not just for the first principal component: finding the principal components of a data set will involve solving an eigenvalue problem, and selecting the largest eigenvalues.
+
+The next that we have to do is to find the Lagrange multiplier $\lambda$. This can be done by multiplying @eq-ev-pca from the left by $\mathbf{v}^T$ to get
+$$
+    \mathbf{v}^T S \mathbf{v} = \lambda \mathbf{v}^T \mathbf{v} = \lambda,
+$$
+where we have used the fact that the length of $\mathbf{v}$ is one. We see that the Lagrange multiplier $\lambda$ is equal to the retained variance that we computed in @eq-projected-variance. in order to maximize the retained variance, we must therefore take the largest eigenvalue of $S$.
+
+Putting these insights together, we arrive at the following recipe to compute the first principal component, the direction in which most variability is retained:
+
+1. Compute the covariance matrix $S$ using @eq-cov-matrix.
+2. Determine the eigenvalues $\lambda_i$ of $S$ together with their eigenvectors $\mathbf{v}_i$. Make sure these eigenvectors are normalized (i.e. their norm is one).
+3. Rank the eigenvalues from largest to smallest: $\lambda_1 \ge \lambda_2 \ge \cdots \ge \lambda_D$.
+4. Select the eigenvector $\mathbf{v}_1$ corresponding to the largest eigenvalue $\lambda_1$. This is the first principal component.
+
+There are a few loose ends still to tie up. First, you may wonder if we can always find a largest eigenvalue. The answer is yes: as the matrix $S$ is symmetric, it is diagonalizable, meaning that it always has $D$ eigenvalues. Some of these eigenvalues may coincide, however, so that the corresponding unit-length eigenvector is not unique (up to sign). In that case, you can just select any unit-length eigenvector corresponding to the largest eigenvalue.
+
+Secondly, it seems somehow wasteful to compute all eigenvalues and eigenvectors, just to select only one. It will turn out, however, that the next eigenvalues $\lambda_2, \ldots, \lambda_D$ and their corresponding eigenvectors are important for the computation of the remaining principal components, as we will now see.
+
+### The remaining principal components
+
+Now that we've computed the first principal component, how do we compute the others? It probably won't surprise you that $\mathbf{v}_2$, the next principal component, is the unit-length eigenvector corresponding to the second-largest eigenvalue $\lambda_2$, and so on for $\mathbf{v}_3$ to $\mathbf{v}_D$, but the proof of this statement is a bit involved.
+
+We will construct a proof by mathematical induction to show this. We assume that the first $M$ ...
+
+
+### Algorithm 
+
+(description of the algorithm once more)
+
+(application of the algorithm to some data)
+
+
+## Applications of principal component analysis
+
+
+## Other methods for dimensionality reduction
+
+The assumptions that go into principal component analysis are ….
+(Discussion t-she and UMAP)
+
+Mention ICA, kernel PCA?

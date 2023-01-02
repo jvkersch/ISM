@@ -1,6 +1,10 @@
 # Linear regression
 
+Note: redo chapter structure using the structure from "the book"
+
 ## Introduction
+
+
 
 ## Simple linear regression
 

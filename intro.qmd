@@ -1,5 +1,12 @@
 # Introduction
 
-This is a book created from markdown and executable code.
+## Simple linear regression
 
-See @knuth84 for additional discussion of literate programming.
+During the academic year 2021-22, 26 students in the Probability and Statistics course recorded their height (in centimeter)
+
+## Multiple linear regression
+
+## Principal component analysis
+
+## Nonlinear regression
+
