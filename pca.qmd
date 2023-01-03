@@ -147,7 +147,97 @@ We will construct a proof by mathematical induction to show this. We assume that
 (application of the algorithm to some data)
 
 
+Dump somewhere: principal components are linear combinations of original features. PCs are uncorrelated. 
+
 ## Applications of principal component analysis
+
+### A low-dimensional example
+
+For this example, we will calculate the principal components in three different ways. We will first compute the principal components by hand, by finding the eigenvalues and eigenvectors. This is possible because the data are three-dimensional, so that diagonalizing the covariance matrix is not that much work. For data sets in high dimensional spaces it is of course not much fun to 
+
+
+
+We take a dataset consisting of 100 observations, where each observation has three components. The dataset is shown below and has been carefully constructed so that the covariance matrix is nice and easy: 
+$$
+    S = 
+        \begin{bmatrix}
+            5 & 2 & 0 \\
+            2 & 2 & 0 \\
+            0 & 0 & 3
+        \end{bmatrix}.
+$$
+
+```{r}
+#| warning: false
+
+set.seed(1234)
+
+library(mvtnorm)
+library(ggplot2)
+library(GGally)
+
+S <- matrix(c(5, 2, 0, 
+              2, 2, 0, 
+              0, 0, 3), byrow = TRUE, nrow = 3)
+
+adjust_cov_mean <- function(z, mean, sigma) {
+  # Adjust NxD matrix z so that sample mean and sample 
+  # covariance are exactly `mean` and `sigma`
+  
+  # whiten the z's
+  z_mean <- colMeans(z)
+  z <- t(apply(z, 1, function(row) row - z_mean))
+  R <- chol(cov(z))
+  z <- t(solve(t(R), t(z)))
+
+  # impose desired covariance, mean
+  R <- chol(S)
+  z <- t(apply(z %*% R, 1, function(row) row + mean))
+  z
+}
+
+z <- rmvnorm(200, mean = c(0, 0, 0))
+z <- adjust_cov_mean(z, c(1, 1, 1), S)
+df <- as.data.frame(z)
+colnames(df) <- c("X", "Y", "Z")
+ggpairs(df)
+```
+
+To compute the principal components, we have to find the eigenvalues and eigenvectors of $S$. This can be done "by hand", for example by computing the characteristic polynomial. Ordered from largest to smallest, the eigenvalues are given by
+$$
+    \lambda_1 = 6, \quad \lambda_2 = 3, \quad \lambda_3 = 1,
+$$
+with eigenvectors
+$$
+    \mathbf{v}_1 = \frac{1}{\sqrt{5}} \begin{bmatrix}
+        2 \\ 1 \\ 0
+    \end{bmatrix}, \quad
+    \mathbf{v}_2 = \begin{bmatrix}
+        0 \\ 0 \\ 1
+    \end{bmatrix}, \quad
+    \mathbf{v}_3 = \frac{1}{\sqrt{5}} \begin{bmatrix}
+        -1 \\ 2 \\ 0
+    \end{bmatrix}.
+$$
+
+(talk about explained variance)
+
+R can also compute the eigenvalues and eigenvectors for us via the `eigen` command. The return value is a list with the computed eigenvalues and eigenvectors. We get the same result as via the manual calculation above.
+
+```{r}
+#| echo: true
+eigen(S)
+```
+
+To compute the principal components directly via R, we can use the `prcomp` command, as shown below. This is generally the preferred option over computing the eigenvalue decomposition: `prcomp` is more flexible (allowing one, for example, to whiten the data) and is also numerically more stable. For our simple dataset, however, the end result is the same:
+
+```{r}
+#| echo: true
+prcomp(z)
+```
+
+Note that `prcomp` returns the standard deviations, which are the square roots of the variances (eigenvalues).
+
 
 
 ## Other methods for dimensionality reduction
@@ -156,3 +246,10 @@ The assumptions that go into principal component analysis are ….
 (Discussion t-she and UMAP)
 
 Mention ICA, kernel PCA?
+
+
+## Misc
+
+Terminology: what exactly are the PC?
+
+PC loadings, PC 
