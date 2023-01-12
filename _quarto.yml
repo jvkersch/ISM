@@ -12,6 +12,9 @@ book:
     - pca.qmd
     - nonlinear.qmd
     - references.qmd
+  appendices:
+    - datasets.qmd
+    
 
 bibliography: references.bib
 
