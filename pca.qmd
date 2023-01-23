@@ -1,184 +1,229 @@
 # Principal component analysis
 
-In the previous chapter we’ve encountered multiple regression models in which the predictors were collinear,
-
-
-To remove extraneous components, we have a number of options. For starters, we can look for the directions in which the data are _most variable_. If we retain only the components in the data along those directions, then it feels like we should 
-
-
-
-
-## Principal components: intuition
-
-Before diving into the mathematical details, it is good to develop an understanding of what principal component analysis does. As we can't visualize data sets in more than 2 or 3 dimensions, we'll 
-
-To this end, we generate a dataset consisting of 200 observations in two dimensions. These observations are drawn from a two-dimensional Gaussian distribution, with mean and covariance given by
-$$
-    \mu = \begin{bmatrix}
-        1 \\
-        1
-            \end{bmatrix} \quad \text{and} \quad
-    \Sigma = \begin{bmatrix}
-        5 & 2 \\
-        2 & 2
-    \end{bmatrix}.
-$$
-
-This dataset is plotted below. Judging from the figure, it looks like there is a positive correlation between $x$ and $y$, and that the data vary mostly along the first bisector. Later on, we will see that principal component analysis allows us to make these statements more precise.
-
 ```{r}
-#| label: fig-2d-data
-#| fig-cap: 200 data points from a multivariate Gaussian distribution. The data look like they vary mostly along the first bisector.
+#| include: false
 set.seed(1234)
 
-library(mvtnorm)
 library(ggplot2)
-
-U <- matrix(c(2, -1, 1, 2), nrow = 2, byrow = TRUE) / 5
-D <- diag(c(6, 1))
-mean <- c(1, 1)
-sigma <- U %*% D %*% solve(U)
-data <- rmvnorm(200, mean = mean, sigma = sigma)
-df <- as.data.frame(data)
-colnames(df) <- c("x", "y")
-
-p <- ggplot(df) + 
-  geom_point(aes(x=x, y=y))
-print(p)
+library(GGally)
+library(gridExtra)
 ```
 
-Now assume that we have to reduce this two-dimensional dataset to one dimension. In other words, we would like to reduce each data point to a single number. There are many ways in which we could do this: we can throw away the $x$-coordinate, the $y$-coordinate, or we can choose to retain some linear combination of $x$ and $y$. Which way is best?
+In the previous chapter we built a linear model to predict the amount of body fat, given measurements of the thickness of the triceps skin fold, the thigh circumference, and the midarm circumference. We saw that the dataset used for this model suffers from multicollinearity, meaning that some of the predictors (or linear combinations of predictors) are correlated with one another. Intuitively speaking, multicollinearity means that some variables don't contribute much to the expressivity of the data: we could omit them and end up with a dataset that is almost as informative as the original one.
 
-To find an answer to this question, let's try to find a direction that **maximizes the amount of retained variation**. What we mean by this is that 
+To find out which combinations of variables contribute most to the variability of our data, we will turn to _principal component analysis_, one of the mainstays of statistical data analysis. Principal component analysis will allow us to identify the main sources of variability in our dataset, and will tell us which combinations of variables can be omitted with only little impact on the data itself. This allows us to reduce the number of features in the dataset, and makes principal component analysis into what is called a technique for _dimensionality reduction_. This is useful for a number of reasons:
 
+- As a pre-processing technique: Many statistical techniques, such as multiple linear regression, do not perform well in the presence of highly correlated features. They either fail to converge outright, or they give unreliable results (for example, model coefficients and predictions that change drastically when the data is slightly perturbed).
+- To save on computational processing time: analyzing superfluous variables comes with a cost, which can often scale drastically with the number of features. (XXX we will see a couple of examples of this XXX)
+- To prepare the data for visualization: for datasets with a limited number of features, we can use a scatter matrix to view the features and their relations with one another. Scatter matrices become uninformative, however, as soon as you have more than 4 or 5 features. Moreover, scatter matrices may hide correlations that occur between different linear combinations of variables, as we have seen in the previous chapter.
 
+## Intuition
 
-Another way ... (minimize reconstruction error).
+Principal component analysis (PCA) finds a low-dimensional approximation to the dataset which retains as much as possible the variability of the original dataset. To understand what is meant by this, let's revisit the body fat dataset of chapter 1. In this dataset, the features are the measurements of the thickness of the triceps skin fold, the thigh circumference, and the midarm circumference. The total body fat is the outcome, but we will not consider it for the time being.
 
+```{r}
+#| warning: false
+#| fig-cap: Correlations between the different variables in the body fat dataset. The variable `triceps.skinfold.thickness` is strongly correlated with the other two variables in the dataset and hence carries less information.
+#| fig-align: center
+bodyfat <- read.csv("datasets/02-PCA/bodyfatNKNW.txt", sep = " ")
+bodyfat_predictors <- bodyfat[,c("triceps.skinfold.thickness", "thigh.circumference", "midarm.circumference")]
 
-It can be shown that both methods give the same results (see @bishopPatternRecognitionMachine2006, section 12). In this course, we will develop the first method further.
+library(GGally)
+ggpairs(bodyfat_predictors)
+```
 
-## Mathematical derivation
+From the scatter matrix, we see that `triceps.skinfold.thickness` and `thigh.circumference` are highly correlated: if you know one, you can predict the other one reasonably well. This makes it feel like a waste to analyze both: since they carry the same information, we can just as well throw one or the other away, or replace both by a linear combination. Let's do the latter, and introduce a new variable `z1` which is the sum of both. In terms of this variable and `midarm.circumference`, which we leave unchanged, the dataset has only two features that are mildly correlated, as shown on the scatter plot below.
 
-To make the intuition from the previous section more concrete, let's assume that we have $N$ observations $\mathbf{x}^{(i)}$, where each $\mathbf{x}^{(i)}$ is a column vector in $\mathbb{R}^D$. We assemble these observations into a _data matrix_ $X$, where each row of $X$ is an observation $\mathbf{x}^{(i)}$:
+```{r}
+p <- with(bodyfat_predictors, {
+  z1 <- triceps.skinfold.thickness + thigh.circumference
+  df <- data.frame(
+    z1 = z1, midarm.circumference = midarm.circumference
+  )
+  ggpairs(df)
+})
+p
+```
+
+We have succeeded in our aim to reduce the number of features in our dataset, but a number of questions immediately pop up:
+
+1. What is the meaning of the `z1` variable, and can we find it without looking at a scatter plot?
+2. How much information do we lose by considering two variables instead of three? Will the conclusions from the reduced dataset still be valid for the full dataset?
+
+It will turn out that the variable `z1`, which we constructed in an ad-hoc way, is remarkably close to the first principal component of the dataset, and we will discover a way to compute all principal components. We will also see that by discarding more or fewer principal components, as much variability of the original dataset can be retained as is needed.
+
+## Derivation of the PCA algorithm
+
+PCA works by making linear combinations of the original variables so that the total amount of variation is maximal. There is another way of computing principal components, by minimizing the reconstruction error, and it can be shown that both approaches give the same principal components (@bishopPatternRecognitionMachine2006, section 12). In this course, we will develop the first method further.
+
+We assume that we have $N$ observations $\mathbf{x}_{i}$, where each $\mathbf{x}_i$ is a column vector in $\mathbb{R}^D$. We assemble these observations into an $N \times D$ _data matrix_ $\mathbf{X}$, where each row of $\mathbf{X}$ is an observation $\mathbf{x}_i$:
 $$
-    X = \begin{bmatrix}
-        (\mathbf{x}^{(1)})^T \\
-        (\mathbf{x}^{(2)})^T \\
+    \mathbf{X} = \begin{bmatrix}
+        \mathbf{x}_1^T \\
+        \mathbf{x}_2^T \\
         \cdots \\
-        (\mathbf{x}^{(N)})^T \\
+        \mathbf{x}_N^T \\
     \end{bmatrix}.
 $$
-The matrix $X$ has $N$ rows and $D$ columns.
+Keep in mind that the columns of $\mathbf{X}$ are the features (also referred to as independent variables or predictors) of the dataset. In the case of the body fat dataset, $\mathbf{X}$ is a $20 \times 3$ matrix, since there are 20 observations, with 3 features for each observation. We will refer to the $j$th column of $\mathbf{X}$ by the notation $\mathbf{X}_j$, where $j = 1, \ldots, D$. Note that $\mathbf{X}_j$ is a column vector, with $N$ entries, and there are $D$ such columns. For the body fat dataset, the columns correspond to the following features:
+
+- $\mathbf{X}_1$: `triceps.skinfold.thickness`
+- $\mathbf{X}_2$: `thigh.circumference`
+- $\mathbf{X}_3$: `midarm.circumference`
 
 ### The first principal component
 
-As we've seen before, the first principal component corresponds to the direction in which the data varies the most. In other words, we should look for a vector $\mathbf{v}$ so that the variance of the data, after projection onto $\mathbf{v}$, is the largest. To make the problem manageable, we will assume that $\mathbf{v}$ has unit length: $\mathbf{v}^T \mathbf{v} = 1$. Otherwise, we could increase the amount of retained variation just by increasing the norm of $\mathbf{v}$.
+The first principal component, $\mathbf{Z}_1$ is a linear combination of the features, so that the amount of variation in $\mathbf{Z}_1$ is maximized. Let's unpack these ideas one at a time. The fact that $\mathbf{Z}_1$ is a linear combination means that it can be written as
+$$
+  \mathbf{Z}_1 = v_1 \mathbf{X}_1 + \cdots + v_D \mathbf{X}_D = \sum_{j = 1}^D v_j \mathbf{X}_j.
+$$
+where the $v_j$ are coefficients that we have to determine. These coefficients are sometimes referred to as the principal component **loadings**, since $v_j$ expresses how much of $\mathbf{X}_j$ is added ("loaded") to the principal component.
 
-Let's first recall what we mean by "projecting the data onto $\mathbf{v}$". Any vector $\mathbf{x}$ can be decomposed as a part along $\mathbf{v}$ and a part $\mathbf{v}_\perp$ that is perpendicular to $\mathbf{v}$, given by
+We can write this expression for $\mathbf{Z}_1$ in a compact way by assembling all the coefficients $v_j$ into a vector $\mathbf{v}$, called the **loadings vector**:
 $$
-    \mathbf{x} = (\mathbf{x}^T \mathbf{v}) \mathbf{v} + \mathbf{v}_\perp.
+  \mathbf{v} = 
+    \begin{bmatrix}
+      v_1 \\
+      v_2 \\
+      \cdots \\
+      v_D
+    \end{bmatrix}.
 $$
-The first part, $(\mathbf{x}^T \mathbf{v}) \mathbf{v}$, is the part along $\mathbf{v}$ and it is this part that we are most interested in. Its norm is 
+With this expression, $\mathbf{Z}_1$ can be written as
+$$
+  \mathbf{Z}_1 = \mathbf{X} \mathbf{v}.
+$$ {#eq-first-pc}
+We will often use this way of expressing $\mathbf{Z}_1$ as a matrix-vector product, since it makes subsequent calculations easier.
 
-The mean of the projected data points is given by
+Before we go on to determine the loadings $v_j$, let's focus on the geometry behind @eq-first-pc. Each component of $\mathbf{Z}_1$ can written as 
 $$
-    \mu = \frac{1}{N} \sum_{i = 1}^N (\mathbf{x}^{(i)})^T \mathbf{v} = \mathbf{\bar{x}}^T \mathbf{v}.
+  (\mathbf{Z}_1)_i = \mathbf{x}_i^T \mathbf{v}.
 $$
-In other words, the mean of the projected data is just the mean $\mathbf{\bar{x}}$ of the original data points, projected onto $\mathbf{v}$.
+This is the dot product of the $i$th observation $\mathbf{x}_i$ with the loadings vector $\mathbf{v}$. This dot product tells us how much of the vector $\mathbf{x}_i$ is parallel to $\mathbf{v}$, as shown in @fig-orthogonal-projection. For example, a data point that is at right angles to $\mathbf{v}$ will have dot product 0 (no component at all along $\mathbf{v}$), while one that is parallel to $\mathbf{v}$ will have a dot product that is maximal in magnitude. 
 
-The variance of the projected data points is given by
+![The $i$th component of the first principal component $\mathbf{Z}_1$ is the length of the orthogonal projection of $\mathbf{x}_i$ onto the line in the direction of $\mathbf{v}$.](./images/02-PCA/projection){#fig-orthogonal-projection}
+
+In other words, we obtain $\mathbf{Z}_1$ by taking a fixed vector $\mathbf{v}$ and projecting all of our data points on the line through the origin in the direction of $\mathbf{v}$. If we choose another vector, $\mathbf{w}$, we obtain a different projection, as indicated on @fig-max-variance-projection.
+
+![Different loadings vectors $\mathbf{v}$ and $\mathbf{w}$ give rise to different projections (indicated in blue and red, respectively).](./images/02-PCA/max-variance-projection){#fig-max-variance-projection}
+
+Our goal is now to find the loadings vector $\mathbf{v}$ so that the variance of the projected dataset is maximal. To make this problem well-posed, we will assume that $\mathbf{v}$ has unit norm:
 $$
-    \sigma^2  = 
-    \frac{1}{N} \sum_{i = 1}^N\left( (\mathbf{x}^{(i)})^T \mathbf{v} - 
-        \mathbf{\bar{x}}^T \mathbf{v}\right)^2 = \mathbf{v}^T S \mathbf{v},
+  \mathbf{v}^T \mathbf{v} = 1.
+$$ {#eq-unit-length}
+Otherwise we could increase the amount of variance simply by scaling $\mathbf{v}$.
+
+The mean of the projected data is given by
+$$
+  E[\mathbf{Z}_1] = \frac{1}{N}\sum_{j=1}^N (\mathbf{Z}_1)_j
+         = \frac{1}{N}\sum_{j=1}^N \mathbf{x}_j^T \mathbf{v} 
+         = \mathbf{\bar{x}}^T \mathbf{v},
+$$
+where $\mathbf{\bar{x}}$ is the (sample) mean of the original data points. In other words, the mean of $\mathbf{Z}_1$ is just the mean of the data points $\mathbf{x}_i$, projected onto $\mathbf{v}$.
+
+The variance of the projected data is given by
+$$
+    \sigma^2
+    = 
+    \frac{1}{N} \sum_{i=1}^N\left( 
+      (\mathbf{Z}_1)_i - E[\mathbf{Z}_1]\right)^2 
+     = \frac{1}{N} \sum_{i = 1}^N\left(
+        \mathbf{x}_i^T \mathbf{v} - 
+        \mathbf{\bar{x}}^T \mathbf{v}\right)^2.
+$$
+This expression can be rewritten as a matrix product:
+$$
+  \sigma^2 = \mathbf{v}^T \mathbf{S} \mathbf{v},
 $$ {#eq-projected-variance}
-where $S$ is the covariance matrix, given by
+where $\mathbf{S}$ is the covariance matrix, given by
 $$
-    S = \frac{1}{N} \sum_{i = 1}^N \left(\mathbf{x}^{(i)} (\mathbf{x}^{(i)})^T - \mathbf{\bar{x}}(\mathbf{\bar{x}})^T \right).
+    \mathbf{S} = \frac{1}{N} 
+      \sum_{i = 1}^N \left(
+      \mathbf{x}_i \mathbf{x}_i^T - 
+      \mathbf{\bar{x}}\mathbf{\bar{x}}^T \right).
 $$ {#eq-cov-matrix}
-Note that $S$ is a $D$-by-$D$ matrix.
 
-This quantity, $\sigma^2$, is precisely what we want to maximize through our choice of $\mathbf{v}$. But keep in mind that $\mathbf{v}$ must have unit length. In other words we want to solve the following constrained optimization problem:
+We are now ready to translate our problem into a mathematical form, so that we can solve it. To find the first principal component $\mathbf{Z}_1$, we want to find a loadings vector $\mathbf{v}$ so that the projected variance $\sigma^2$, given in @eq-projected-variance, is maximized. In addition, we want $\mathbf{v}$ to have unit length, as in @eq-unit-length. In mathematical terms:
 $$
-    \text{Find $\mathbf{v}$ that maximizes $\mathbf{v}^T S \mathbf{v}$, such that $\mathbf{v}^T \mathbf{v} = 1$}.
-$$
-
-The second condition is a constraint, which we can add to our function to optimize through a Lagrange multiplier. The $\mathbf{v}$ that we look forward is then the one that maximizes the following function:
-$$
-    L(\mathbf{v}) = \mathbf{v}^T S \mathbf{v} - \lambda( \mathbf{v}^T \mathbf{v} - 1).
+  \mathbf{v} = \operatorname{argmax} \mathbf{v}^T \mathbf{S} \mathbf{v}, \quad
+  \text{such that $\mathbf{v}^T \mathbf{v} = 1$}.
 $$
 
-A necessary condition for a maximum of a multivariate function is that the gradient vanishes. 
-Taking the gradient of $L$ with respect to $\mathbf{v}$ and setting the resulting expression equal to zero gives
+We can solve this optimization problem using the theory of Lagrange multipliers. If we introduce a Lagrange multiplier $\lambda$ for the unit-length constraint, then the desired vector $\mathbf{v}$ is given by
 $$
-    S \mathbf{v} = \lambda \mathbf{v}.
+  \mathbf{v} = \operatorname{argmax} L(\mathbf{v})
+$$
+where $L$ is given by
+$$
+    L(\mathbf{v}) = \mathbf{v}^T \mathbf{S} \mathbf{v} - \lambda( \mathbf{v}^T\mathbf{v} - 1).
+$$
+
+A necessary condition for $\mathbf{v}$ to be a maximum of $L$ is that the gradient vanishes at $\mathbf{v}$. Taking the gradient of $L$ with respect to $\mathbf{v}$ and setting the resulting expression equal to zero gives
+$$
+    S v = \lambda v.
 $$ {#eq-ev-pca}
-This is a very important result: it tells us that the $\mathbf{v}$ we are looking for is an **eigenvector** of the matrix $S$, with corresponding **eigenvalue** $\lambda$. This will hold true generally, not just for the first principal component: finding the principal components of a data set will involve solving an eigenvalue problem, and selecting the largest eigenvalues.
+This is a very important result: it tells us that the $\mathbf{v}$ we are looking for is an **eigenvector** of the matrix $\mathbf{S}$, with corresponding **eigenvalue** $\lambda$. This will hold true generally, not just for the first principal component: finding the principal components of a data set will involve solving an eigenvalue problem, and selecting the largest eigenvalues.
 
-The next that we have to do is to find the Lagrange multiplier $\lambda$. This can be done by multiplying @eq-ev-pca from the left by $\mathbf{v}^T$ to get
+Last, we have to find the Lagrange multiplier $\lambda$. This can be done by multiplying @eq-ev-pca from the left by $\mathbf{v}^T$ to get
 $$
-    \mathbf{v}^T S \mathbf{v} = \lambda \mathbf{v}^T \mathbf{v} = \lambda,
+    \mathbf{v}^T \mathbf{S} \mathbf{v} = \lambda \mathbf{v}^T \mathbf{v} = \lambda,
 $$
-where we have used the fact that the length of $\mathbf{v}$ is one. We see that the Lagrange multiplier $\lambda$ is equal to the retained variance that we computed in @eq-projected-variance. in order to maximize the retained variance, we must therefore take the largest eigenvalue of $S$.
+where we have used the unit-length constraint @eq-unit-length.
 
-Putting these insights together, we arrive at the following recipe to compute the first principal component, the direction in which most variability is retained:
+We see that the Lagrange multiplier $\lambda$ is precisely the variance $\sigma^2$ of the first principal component $\mathbf{Z}_1$. For this reason, we will refer to the eigenvalue $\lambda$ as the amount of _retained variance_, since it expresses how much variance there is left in our dataset if we replace all features by the first principal component.
 
-1. Compute the covariance matrix $S$ using @eq-cov-matrix.
-2. Determine the eigenvalues $\lambda_i$ of $S$ together with their eigenvectors $\mathbf{v}_i$. Make sure these eigenvectors are normalized (i.e. their norm is one).
-3. Rank the eigenvalues from largest to smallest: $\lambda_1 \ge \lambda_2 \ge \cdots \ge \lambda_D$.
-4. Select the eigenvector $\mathbf{v}_1$ corresponding to the largest eigenvalue $\lambda_1$. This is the first principal component.
+To sum up, the first principal component $\mathbf{Z}_1$ is a linear combination of the original features (columns) of our dataset, chosen so that the variance of $\mathbf{Z}_1$ is maximal. We can find $\mathbf{Z}_1$ by looking for the largest eigenvalue $\lambda$ of the covariance matrix, with unit length eigenvector $\mathbf{v}$, and projecting the data matrix $\mathbf{X}$ onto $\mathbf{v}$.
 
-There are a few loose ends still to tie up. First, you may wonder if we can always find a largest eigenvalue. The answer is yes: as the matrix $S$ is symmetric, it is diagonalizable, meaning that it always has $D$ eigenvalues. Some of these eigenvalues may coincide, however, so that the corresponding unit-length eigenvector is not unique (up to sign). In that case, you can just select any unit-length eigenvector corresponding to the largest eigenvalue.
-
-Secondly, it seems somehow wasteful to compute all eigenvalues and eigenvectors, just to select only one. It will turn out, however, that the next eigenvalues $\lambda_2, \ldots, \lambda_D$ and their corresponding eigenvectors are important for the computation of the remaining principal components, as we will now see.
 
 ### The remaining principal components
 
-Now that we've computed the first principal component, how do we compute the others? It probably won't surprise you that $\mathbf{v}_2$, the next principal component, is the unit-length eigenvector corresponding to the second-largest eigenvalue $\lambda_2$, and so on for $\mathbf{v}_3$ to $\mathbf{v}_D$, but the proof of this statement is a bit involved.
+Now that we've computed the first principal component, how do we compute the others? It probably won't come as a  surprise that the next principal components, $\mathbf{Z}_2$, $\mathbf{Z}_3$, and so on, involve the amount of variation that is left in the data after $\mathbf{Z}_1$ has been removed, and that they involve the second, third, ... largest eigenvalues.
 
-We will construct a proof by mathematical induction to show this. We assume that the first $M$ ...
+Assuming that we have computed $\mathbf{Z}_1$ as in the previous section, and denote the loadings vector by $\mathbf{v}_1$. Recall that $\mathbf{v}_1$ points in the direction of the largest variance.
 
-
-### Algorithm 
-
-(description of the algorithm once more)
-
-(application of the algorithm to some data)
-
-
-Dump somewhere: principal components are linear combinations of original features. PCs are uncorrelated. 
-
-## Applications of principal component analysis
-
-### A low-dimensional example
-
-For this example, we will calculate the principal components in three different ways. We will first compute the principal components by hand, by finding the eigenvalues and eigenvectors. This is possible because the data are three-dimensional, so that diagonalizing the covariance matrix is not that much work. For data sets in high dimensional spaces it is of course not much fun to 
-
-
-
-We take a dataset consisting of 100 observations, where each observation has three components. The dataset is shown below and has been carefully constructed so that the covariance matrix is nice and easy: 
+To find the next principal component, we consider the variability in the dataset that is not already accounted for by $\mathbf{Z}_1$. More precisely, we look for a loadings vector $\mathbf{v}_2$ which is orthogonal to $\mathbf{v}_1$, has unit length, and maximizes the amount of variability $\mathbf{v}_2^T \mathbf{S} \mathbf{v}_2$. By a similar reasoning as in the previous section, one can show that this $\mathbf{v}_2$ is an eigenvector associated with the second largest eigenvalue of $\mathbf{S}$. The projection of the dataset onto this loadings vector then gives us the second principal component:
 $$
-    S = 
+  \mathbf{Z}_2 = \mathbf{X}\mathbf{v}_2.
+$$
+This procedure can be applied to find all $D$ principal components and results in the following algorithm for PCA:
+
+1. Compute the sample covariance matrix $\mathbf{S}$ using @eq-cov-matrix.
+1. Compute the eigenvalues of $\mathbf{S}$ and order them from largest to smallest: $\lambda_1 \ge \lambda_2 \ge \cdots \ge \lambda_D$. 
+1. Find the corresponding eigenvectors $\mathbf{v}_1, \mathbf{v}_2, \ldots, \mathbf{v}_D$ and normalize them to unit length, if necessary. These vectors are the loading vectors and they point in the directions of highest variance.
+1. Project the dataset onto the loading vectors to obtain the principal components $\mathbf{Z}_1, \mathbf{Z}_2, \ldots, \mathbf{Z}_D$.
+
+Typically, we do not have to compute the principal components by hand: most data analysis packages will do this for us, either via a builtin command, such as in [R](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/prcomp) or [minitab](https://support.minitab.com/en-us/minitab/21/help-and-how-to/statistical-modeling/multivariate/how-to/principal-components/before-you-start/example/), or via an extra package, such as [scikit-learn (Python)](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html) or [xlstat (Excel)](https://help.xlstat.com/6776-principal-component-analysis-pca-excel). It is instructive, however, to know the principles behind PCA, so that you can interpret and understand the results.
+
+::: {.callout-note}
+Software packages that compute the principal components of a dataset typically do not compute the eigenvalues and eigenvectors of the covariance matrix, despite our derivation above. Instead, they rely on the so-called _singular value decomposition_ (SVD) of the data matrix (after centering). The SVD is typically more accurate and easier to compute, and the principal components obtained in this way agree with the ones computed using the eigendecomposition (to within roundoff).
+:::
+
+### Worked-out example
+
+For this example, we will calculate the principal components in two different ways. We will first compute the principal components by hand, by solving an eigenvalue problem. This is possible because the data are two-dimensional, and solving the characteristic equation for a two- or three-dimensional matrix can be done by hand. This is not practical for real-world datasets, which often contains dozens, thousands, or millions of features, and we will therefore also cover computing the principal components using R.
+
+Our dataset consists of 100 observations, where each observation has two components. The dataset is shown below and has been carefully constructed so that the covariance matrix $\mathbf{S}$ and mean $\mathbf{\bar{x}}$ are exactly equal to
+$$
+    \mathbf{S} = 
         \begin{bmatrix}
-            5 & 2 & 0 \\
-            2 & 2 & 0 \\
-            0 & 0 & 3
+            5 & 2 \\
+            2 & 2 \\
+        \end{bmatrix},
+      \quad \text{and} \quad
+      \mathbf{\bar{x}} = 
+        \begin{bmatrix}
+          1 \\
+          1
         \end{bmatrix}.
-$$
+$$ {#eq-cov-2x2}
 
 ```{r}
 #| warning: false
 
-set.seed(1234)
-
 library(mvtnorm)
-library(ggplot2)
-library(GGally)
 
-S <- matrix(c(5, 2, 0, 
-              2, 2, 0, 
-              0, 0, 3), byrow = TRUE, nrow = 3)
+S <- matrix(c(5, 2,  
+              2, 2), byrow = TRUE, nrow = 2)
 
 adjust_cov_mean <- function(z, mean, sigma) {
   # Adjust NxD matrix z so that sample mean and sample 
@@ -196,29 +241,148 @@ adjust_cov_mean <- function(z, mean, sigma) {
   z
 }
 
-z <- rmvnorm(200, mean = c(0, 0, 0))
-z <- adjust_cov_mean(z, c(1, 1, 1), S)
+z <- rmvnorm(100, mean = c(0, 0))
+z <- adjust_cov_mean(z, c(1, 1), S)
 df <- as.data.frame(z)
-colnames(df) <- c("X", "Y", "Z")
-ggpairs(df)
+colnames(df) <- c("X", "Y")
+
+ggplot(df, aes(x = X, y = Y)) +
+  geom_point()
 ```
+To find the loading vectors, we must find the eigenvalues of $\mathbf{S}$, which we can do via the characteristic equation:
+$$
+  \det(\mathbf{S} - \lambda \mathbf{I}) = 0.
+$$  
+Substituting the expression given in @eq-cov-2x2 for the covariance matrix and expanding the determinant gives
+$$
+  \det \begin{bmatrix}
+            5 - \lambda & 2 \\
+            2 & 2 - \lambda \\
+        \end{bmatrix} = (5 - \lambda)(2 - \lambda) - 4 = 0.
+$$
+The roots of this equation are $\lambda_1 = 6$ and $\lambda_2 = 1$. The corresponding eigenvectors are
+$$
+    \mathbf{v}_1 = \frac{1}{\sqrt{5}} \begin{bmatrix}
+        2 \\ 1
+    \end{bmatrix}, \quad
+    \mathbf{v}_2 = \frac{1}{\sqrt{5}} \begin{bmatrix}
+        -1 \\ 2
+    \end{bmatrix}.
+$$
+These are our loading vectors, and they indicate the direction in which the data varies the most (for $\mathbf{v}_1$) and the "second-most" (for $\mathbf{v}_2$). Figure @fig-2d-dataset-pc shows the dataset again, now with the two loading vectors superimposed. Each loading vector has been rescaled by multiplying it with the square root of the corresponding eigenvalue. Why the square root? The eigenvalue itself represents the _variance_ in that direction, the square root the standard deviation. 
+
+```{r}
+#| fig-cap: The dataset with the first loading vector (blue) and the second loading vector (orange) superimposed. Each loading vector has been rescaled by the square root of the corresponding eigenvalue, to give an indication of the variability in that direction.
+#| label: fig-2d-dataset-pc
+
+vx <- 2/5^0.5
+vy <- 1/5^0.5
+segment <- function(lx, ly, color = "cornflowerblue") {
+  geom_segment(aes(x=1, y=1, xend=1 + lx, yend=1 + ly), 
+               arrow = arrow(length=unit(0.5, 'cm')),
+               color = color, lwd = 1.5, alpha = 0.8, 
+               lineend = "round")
+}
+
+l1_sqrt <- 6**0.5
+l2_sqrt <- 1
+
+ggplot() +
+  geom_point(data = df, aes(x = X, y = Y)) +
+  segment(l1_sqrt*vx, l1_sqrt*vy, color = "cornflowerblue") +
+  segment(-l2_sqrt*vy, l2_sqrt*vx, color = "chocolate")
+
+```
+
+To compute the principal components directly via R, we can use the `prcomp` command, as shown below. This is generally the preferred option over computing the eigenvalue decomposition: `prcomp` is more flexible (allowing one, for example, to whiten the data) and is also numerically more stable. For our simple dataset, however, the end result is the same:
+
+```{r}
+#| echo: true
+prcomp(df)
+```
+
+::: {.callout-warning}
+Note that `prcomp` returns (among other things) the standard deviations, which are the square roots of the variances (eigenvalues). To compare the output of `prcomp` with the results of the eigenvalue analysis, make sure to take the square of the standard deviations.
+:::
+
+## Interpreting the PCA results
+
+### XYZ
+
+interpreting the coefficients of the PCs.
+
+### Selecting the appropriate number of principal components
+
+We now know how to calculate the $D$ principal components for a given $D$-dimensional dataset, and we've seen that the principal components correspond to the directions in which the dataset varies the most. The real power of PCA, and the reason why it is so ubiquitous in data analysis, is that we can now selectively discard principal components that are not informative. By doing this, we obtain a dataset with fewer features, which is hence easier to analyze, but where the discarded features do not contribute much to the expressivity of the data. This is what makes PCA into a _dimensionality reduction_ method.
+
+The question remains what principal components to discard. There are no universally accepted rules for this, but there are a couple of rules of thumb that can help us make an informed choice. Most of these rules take into account the total amount of variance retained by the first $K$ principal components, defined as 
+$$
+  S_K = \frac{\sum_{i=1}^K\lambda_i}{\sum_{j=1}^D \lambda_j},
+$$
+The number $K$ can be chosen so that a fixed amount of variance (for example, 95%) is retained. 
+
+To see this idea in action, let's revisit the body fat dataset and perform a principal component analysis:
+
+```{r}
+#| echo: true
+pc <- prcomp(bodyfat_predictors)
+pc
+```
+The relative amount of variance explained by each principal component can then be calculated as follows:
+```{r}
+#| echo: true
+var_explained <- pc$sdev^2 / sum(pc$sdev^2)
+var_explained
+```
+and the total amount of variance explained cumulatively by
+```{r}
+#| echo: true
+total_var <- cumsum(var_explained)
+total_var
+```
+
+We see that the first two principal components explain 78.7% and 21.3% of the total variance, respectively, and together they explain more than 99.97% of variance in the dataset. It therefore seems reasonable to discard the last principal component.
+
+For datasets with many features, a _scree plot_ or _elbow plot_ can be helpful to identify high-variance principal components. In a scree plot, the amounts of variance are plotted in descending order, so that one can identify at a glance the amount of variability contributed by each principal component. Some scree plots also include the total amount of variability, $S_K$, as a function of $K$. 
+
+Figure @fig-scree-bodyfat displays a scree plot for the body fat dataset. Note that there is no one-line command in R to make a scree plot, you'll have to make your own. This can be a bit fiddly...
+
+```{r}
+#| fig-cap: A scree plot for the body fat dataset confirms that the first two principal components explain almost all of the variance in the data.
+#| label: fig-scree-bodyfat
+
+n <- seq(1, length(var_explained))
+df_var <- data.frame(n = n, v = var_explained, t = total_var)
+ggplot(df_var) +
+  geom_line(aes(x = n, y = v, color = "Per PC")) + 
+  geom_point(aes(x = n, y = v, color = "Per PC")) + 
+  geom_line(aes(x = n, y = t, color = "Cumulative")) +
+  geom_point(aes(x = n, y = t, color = "Cumulative")) +
+  ylim(c(0, 1)) +
+  scale_color_manual(
+    name = "Explained variance",
+    breaks = c("Per PC", "Cumulative"),
+    values = c("Per PC" = "cornflowerblue",
+               "Cumulative" = "chocolate")
+  ) + 
+  scale_x_continuous(breaks = n) +
+  xlab("Principal component") +
+  ylab("Percentage of variance explained")
+```
+
+Scree plots are often also referred to as "elbow plots", since the plot typically (but not always) shows an "elbow" where the explained variance levels off. However, spotting the exact location of the elbow is very subjective, and it is typically more appropriate to take the point where the remaining principal components only contribute some small percentage of variation, for example 5%.
+
+
+## Applications of principal component analysis
+
+### A low-dimensional example
+
 
 To compute the principal components, we have to find the eigenvalues and eigenvectors of $S$. This can be done "by hand", for example by computing the characteristic polynomial. Ordered from largest to smallest, the eigenvalues are given by
 $$
     \lambda_1 = 6, \quad \lambda_2 = 3, \quad \lambda_3 = 1,
 $$
 with eigenvectors
-$$
-    \mathbf{v}_1 = \frac{1}{\sqrt{5}} \begin{bmatrix}
-        2 \\ 1 \\ 0
-    \end{bmatrix}, \quad
-    \mathbf{v}_2 = \begin{bmatrix}
-        0 \\ 0 \\ 1
-    \end{bmatrix}, \quad
-    \mathbf{v}_3 = \frac{1}{\sqrt{5}} \begin{bmatrix}
-        -1 \\ 2 \\ 0
-    \end{bmatrix}.
-$$
 
 (talk about explained variance)
 
@@ -229,14 +393,6 @@ R can also compute the eigenvalues and eigenvectors for us via the `eigen` comma
 eigen(S)
 ```
 
-To compute the principal components directly via R, we can use the `prcomp` command, as shown below. This is generally the preferred option over computing the eigenvalue decomposition: `prcomp` is more flexible (allowing one, for example, to whiten the data) and is also numerically more stable. For our simple dataset, however, the end result is the same:
-
-```{r}
-#| echo: true
-prcomp(z)
-```
-
-Note that `prcomp` returns the standard deviations, which are the square roots of the variances (eigenvalues).
 
 
 
@@ -253,3 +409,13 @@ Mention ICA, kernel PCA?
 Terminology: what exactly are the PC?
 
 PC loadings, PC 
+
+where to put partial least squares. 
+
+
+## Linear regression with PCA
+
+(Working title)
+
+In chapter 1 (example 1.14) we encountered a study in which three different body measurements were taken for a group of 20 healthy women between the age of 25 and 34. The aim of the study was to ascertain whether these measurements could be used to predict the amount of body fat in a person. The three measurements taken were the  thickness of the triceps skin fold, the thigh circumference, and the midarm circumference. We found that these predictors are highly correlated, as shown on the scatter plot below, and this made it difficult to build a reliable regression model. We are now in a position to remedy this. 
+

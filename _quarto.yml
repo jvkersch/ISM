@@ -22,5 +22,9 @@ format:
   html:
     theme: cosmo
     code-fold: true
+    default-image-extension: svg
   pdf:
     documentclass: scrreprt
+    default-image-extension: pdf
+    execute:
+      echo: false
