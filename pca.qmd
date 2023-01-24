@@ -307,11 +307,32 @@ Note that `prcomp` returns (among other things) the standard deviations, which a
 
 ## Interpreting the PCA results
 
-### XYZ
+### The coefficients of the principal components
 
 interpreting the coefficients of the PCs.
 
-### Selecting the appropriate number of principal components
+profile plot
+
+```{r}
+#| fig-cap: The profile plot for the bodyfat datasets shows that the first principal component consists of ...
+library(tidyr)
+library(tibble)
+
+pc <- prcomp(bodyfat_predictors)
+df <- as.data.frame(pc$rotation) %>%
+  rownames_to_column(var = "Variable") %>%
+  pivot_longer(c("PC1", "PC2", "PC3"), names_to = "Component", 
+               values_to = "Loading")
+
+df$Variable <- as.factor(df$Variable)
+ggplot(df, aes(x = Variable, y = Loading, 
+               group = Component, color = Component)) +
+  geom_line()
+```
+
+
+
+### The number of principal components
 
 We now know how to calculate the $D$ principal components for a given $D$-dimensional dataset, and we've seen that the principal components correspond to the directions in which the dataset varies the most. The real power of PCA, and the reason why it is so ubiquitous in data analysis, is that we can now selectively discard principal components that are not informative. By doing this, we obtain a dataset with fewer features, which is hence easier to analyze, but where the discarded features do not contribute much to the expressivity of the data. This is what makes PCA into a _dimensionality reduction_ method.
 
