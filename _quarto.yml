@@ -28,3 +28,5 @@ format:
     default-image-extension: pdf
     execute:
       echo: false
+    fig-height: 2.5
+    fig-width: 4.5
