@@ -274,6 +274,7 @@ These are our loading vectors, and they indicate the direction in which the data
 ```{r}
 #| fig-cap: The dataset with the first loading vector (blue) and the second loading vector (orange) superimposed. Each loading vector has been rescaled by the square root of the corresponding eigenvalue, to give an indication of the variability in that direction.
 #| label: fig-2d-dataset-pc
+#| warning: false
 
 vx <- 2/5^0.5
 vy <- 1/5^0.5
@@ -296,7 +297,7 @@ ggplot() +
 
 To compute the principal components directly via R, we can use the `prcomp` command, as shown below. This is generally the preferred option over computing the eigenvalue decomposition: `prcomp` is more flexible (allowing one, for example, to whiten the data) and is also numerically more stable.[^1] For our simple dataset, however, the end result is the same:
 
-[^1] R has two commands to compute the principal components: `prcomp` and `princomp`. The former computes principal components using the so-called singular value decomposition (SVD) and is preferred for numerical stability. The latter, `princomp`, uses the eigenvalue decomposition as is provided for backwards compatibility with SAS. 
+[^1]: R has two commands to compute the principal components: `prcomp` and `princomp`. The former computes principal components using the so-called singular value decomposition (SVD) and is preferred for numerical stability. The latter, `princomp`, uses the eigenvalue decomposition as is provided for backwards compatibility with SAS. 
 
 ```{r}
 #| echo: true
@@ -309,7 +310,12 @@ Note that `prcomp` returns (among other things) the standard deviations, which a
 
 ## Interpreting the PCA results
 
-### The coefficients of the principal components
+### The score plot
+
+XXX
+
+
+### The loadings
 
 A **loadings plot** shows the relations of the original variables
 and the principal components. This is often a useful visualization to see how each variable contributes to the principal components. Moreover, one can show that the loadings are proportional to the Pearson correlations between the principal components and the variables. Hence, if a loading is positive (negative), that variable will be positively (negatively) correlated with that principal component.[^1]
@@ -341,7 +347,7 @@ ggplot(df, aes(x = as.factor(Variable), y = Loading,
 
 ### The number of principal components
 
-We now know how to calculate the $D$ principal components for a given $D$-dimensional dataset, and we've seen that the principal components correspond to the directions in which the dataset varies the most. The real power of PCA, and the reason why it is so ubiquitous in data analysis, is that we can now selectively discard principal components that are not informative. By doing this, we obtain a dataset with fewer features, which is hence easier to analyze, but where the discarded features do not contribute much to the expressivity of the data. This is what makes PCA into a _dimensionality reduction_ method.
+We now know how to calculate the $D$ principal components for a given $D$-dimensional dataset, and we've seen that the principal components correspond to the directions in which the dataset varies the most. The real power of PCA, and the reason why it is so ubiquitous in data analysis, is that we can now selectively discard principal components that are not informative. By doing this, we obtain a dataset with fewer features, which is hence easier to analyze, and where the discarded features do not contribute too much to the expressivity of the data. This is what makes PCA into a _dimensionality reduction_ method.
 
 The question remains what principal components to discard. There are no universally accepted rules for this, but there are a couple of rules of thumb that can help us make an informed choice. Most of these rules take into account the total amount of variance retained by the first $K$ principal components, defined as 
 $$
@@ -387,47 +393,97 @@ With a bit more work, you can build your own scree plot, which is often preferab
 #| fig-cap: A scree plot for the body fat dataset confirms that the first two principal components explain almost all of the variance in the data.
 #| label: fig-scree-bodyfat
 
-n <- seq(1, length(var_explained))
-df_var <- data.frame(n = n, v = var_explained, t = total_var)
-ggplot(df_var) +
-  geom_line(aes(x = n, y = v, color = "Per component")) + 
-  geom_point(aes(x = n, y = v, color = "Per component")) + 
-  geom_line(aes(x = n, y = t, color = "Cumulative")) +
-  geom_point(aes(x = n, y = t, color = "Cumulative")) +
-  ylim(c(0, 1)) +
-  scale_color_manual(
-    name = "Explained variance",
-    breaks = c("Per component", "Cumulative"),
-    values = c("Per component" = "cornflowerblue",
-               "Cumulative" = "chocolate")
-  ) + 
-  scale_x_continuous(breaks = n) +
-  xlab("Principal component") +
-  ylab("Explained variance (%)")
+gg_screeplot <- function(pc, n = length(pc$sdev)) {
+  sdev = pc$sdev[1:n]
+  var_explained <- sdev^2 / sum(sdev^2)
+  total_var <- cumsum(var_explained)
+  df_var <- data.frame(
+    n = seq(1, n), v = var_explained, t = total_var)
+  ggplot(df_var) +
+    geom_line(aes(x = n, y = v, color = "Per component")) + 
+    geom_point(aes(x = n, y = v, color = "Per component")) + 
+    geom_line(aes(x = n, y = t, color = "Cumulative")) +
+    geom_point(aes(x = n, y = t, color = "Cumulative")) +
+    ylim(c(0, 1)) +
+    scale_color_manual(
+      name = "Explained variance",
+      breaks = c("Per component", "Cumulative"),
+      values = c("Per component" = "cornflowerblue",
+                 "Cumulative" = "chocolate")
+    ) + 
+    scale_x_continuous(breaks = n) +
+    xlab("Principal component") +
+    ylab("Explained variance (%)")
+}
 
+gg_screeplot(pc)
 ```
 
 Scree plots are often also referred to as "elbow plots", since the plot typically (but not always) shows an "elbow" where the explained variance levels off. However, spotting the exact location of the elbow is very subjective, and it is typically more appropriate to take the point where the remaining principal components only contribute some small percentage of variation, for example 5%.
 
+### Biplots 
 
-## Applications of principal component analysis
-
-### A low-dimensional example
-
-
-To compute the principal components, we have to find the eigenvalues and eigenvectors of $S$. This can be done "by hand", for example by computing the characteristic polynomial. Ordered from largest to smallest, the eigenvalues are given by
-$$
-    \lambda_1 = 6, \quad \lambda_2 = 3, \quad \lambda_3 = 1,
-$$
-with eigenvectors
-
-(talk about explained variance)
-
-R can also compute the eigenvalues and eigenvectors for us via the `eigen` command. The return value is a list with the computed eigenvalues and eigenvectors. We get the same result as via the manual calculation above.
+The **biplot** consists of a loading plot overlaid on a score plot. By default, it shows the first two principal components as a scatter plot, together with a set of vectors, one for each original variable, showing the contribution of that variable to the first two principal components.
 
 ```{r}
 #| echo: true
-eigen(S)
+#| fig-cap: The biplot provides information about the transformed data and the loadings.
+#| label: fig-biplot-R
+biplot(pc)
+```
+
+It is possible to produce biplots using ggplot-aware packages. As biplots are relatively complex, it is not recommended to create your own. Here we use the experimental [ggbiplot](https://github.com/vqv/ggbiplot) package, but there are many other options.
+```{r}
+#| echo: true
+#| fig-cap: A biplot made with the `ggbiplot` package. Note that the data and loadings vectors appear the same as in @fig-biplot-R, but the axes have different scales due to the use of _standardized_ principal components.
+#| label: fig-biplot-gg
+library(ggbiplot)
+ggbiplot(pc, varname.adjust = 1.2) +
+  xlim(c(-2.5, 3))
+
+```
+
+## Applications of principal component analysis
+
+### Eigenfaces
+
+```{r}
+library(loon.data)
+data(faces)
+#faces <- t(faces)  # Needed for PCA
+dim(faces)
+```
+
+```{r}
+#| fig-cap: Six faces from the Olivetti dataset.
+#| label: fig-olivetti-faces
+show_image <- function(imgdata) {
+  m <- matrix(imgdata, nrow = 64, ncol = 64, byrow = F)
+  m <- t(apply(m, 2, rev))
+  image(m, axes = FALSE, col=grey(seq(0,1,length=256)))
+}
+
+par(mfrow=c(2, 3), mar=c(1, 1, 1, 1))
+for (i in 1:6) {
+  show_image(faces[,10*i])
+}
+
+```
+
+```{r}
+pc_olivetti <- prcomp(faces)
+```
+
+```{r}
+gg_screeplot(pc_olivetti, n = 50)
+```
+
+```{r}
+par(mfrow=c(2, 3), mar=c(1, 1, 1, 1))
+for (i in 1:6) {
+  show_image(pc_olivetti$x[,i])
+}
+
 ```
 
 
