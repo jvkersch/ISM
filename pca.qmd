@@ -294,7 +294,9 @@ ggplot() +
 
 ```
 
-To compute the principal components directly via R, we can use the `prcomp` command, as shown below. This is generally the preferred option over computing the eigenvalue decomposition: `prcomp` is more flexible (allowing one, for example, to whiten the data) and is also numerically more stable. For our simple dataset, however, the end result is the same:
+To compute the principal components directly via R, we can use the `prcomp` command, as shown below. This is generally the preferred option over computing the eigenvalue decomposition: `prcomp` is more flexible (allowing one, for example, to whiten the data) and is also numerically more stable.[^1] For our simple dataset, however, the end result is the same:
+
+[^1] R has two commands to compute the principal components: `prcomp` and `princomp`. The former computes principal components using the so-called singular value decomposition (SVD) and is preferred for numerical stability. The latter, `princomp`, uses the eigenvalue decomposition as is provided for backwards compatibility with SAS. 
 
 ```{r}
 #| echo: true
@@ -309,27 +311,32 @@ Note that `prcomp` returns (among other things) the standard deviations, which a
 
 ### The coefficients of the principal components
 
-interpreting the coefficients of the PCs.
+A **loadings plot** shows the relations of the original variables
+and the principal components. This is often a useful visualization to see how each variable contributes to the principal components. Moreover, one can show that the loadings are proportional to the Pearson correlations between the principal components and the variables. Hence, if a loading is positive (negative), that variable will be positively (negatively) correlated with that principal component.[^1]
 
-profile plot
+[^1]: There is a closely related plot type, the profile plot, which differs from the loadings plot in that it has the Pearson correlations on the $y$-axis. Otherwise the two plot types are identical.
+
+At the beginning of this chapter we hypothesized that the variables `thigh.circumference` and `triceps.skinfold.thickness`  would contribute about equally to the first principal component. From @fig-pca-loadings we see that this is indeed the case: those two variables have loadings approximately equal to $0.7$. We also see that the second principal component is mostly made up of the variable `midarm.circumference`. Unfortunately there is no command in base R or ggplot to create a loadings plot -- you have to make one yourself.
 
 ```{r}
-#| fig-cap: The profile plot for the bodyfat datasets shows that the first principal component consists of ...
+#| fig-cap: The loadings plot shows how the original variables are related to the principal components.
+#| label: fig-pca-loadings
 library(tidyr)
 library(tibble)
 
 pc <- prcomp(bodyfat_predictors)
 df <- as.data.frame(pc$rotation) %>%
   rownames_to_column(var = "Variable") %>%
-  pivot_longer(c("PC1", "PC2", "PC3"), names_to = "Component", 
+  pivot_longer(c("PC1", "PC2", "PC3"),
+               names_to = "Component", 
                values_to = "Loading")
 
-df$Variable <- as.factor(df$Variable)
-ggplot(df, aes(x = Variable, y = Loading, 
+ggplot(df, aes(x = as.factor(Variable), y = Loading, 
                group = Component, color = Component)) +
-  geom_line()
+  geom_line() +
+  geom_point() + 
+  xlab("Variable")
 ```
-
 
 
 ### The number of principal components
@@ -364,9 +371,17 @@ total_var
 
 We see that the first two principal components explain 78.7% and 21.3% of the total variance, respectively, and together they explain more than 99.97% of variance in the dataset. It therefore seems reasonable to discard the last principal component.
 
-For datasets with many features, a _scree plot_ or _elbow plot_ can be helpful to identify high-variance principal components. In a scree plot, the amounts of variance are plotted in descending order, so that one can identify at a glance the amount of variability contributed by each principal component. Some scree plots also include the total amount of variability, $S_K$, as a function of $K$. 
+For datasets with many features, a **scree plot** or **elbow plot** can be helpful to identify high-variance principal components. In a scree plot, the amounts of variance are plotted in descending order, so that one can identify at a glance the amount of variability contributed by each principal component. Some scree plots also include the total amount of variability, $S_K$, as a function of $K$. 
 
-Figure @fig-scree-bodyfat displays a scree plot for the body fat dataset. Note that there is no one-line command in R to make a scree plot, you'll have to make your own. This can be a bit fiddly...
+R can make a pretty basic scree plot for you, via the [screeplot](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/screeplot.html) command. 
+
+```{r}
+#| fig-cap: A scree plot made with the base R `screeplot` command.
+#| lab: fig-scree-base
+#| echo: true
+screeplot(pc, main = "Principal components", type = "lines")
+```
+With a bit more work, you can build your own scree plot, which is often preferable if you want to customize the plot, to include for example the cumulative variance, or to obtain a publication-ready plot, as in figure @fig-scree-bodyfat.
 
 ```{r}
 #| fig-cap: A scree plot for the body fat dataset confirms that the first two principal components explain almost all of the variance in the data.
@@ -375,20 +390,21 @@ Figure @fig-scree-bodyfat displays a scree plot for the body fat dataset. Note t
 n <- seq(1, length(var_explained))
 df_var <- data.frame(n = n, v = var_explained, t = total_var)
 ggplot(df_var) +
-  geom_line(aes(x = n, y = v, color = "Per PC")) + 
-  geom_point(aes(x = n, y = v, color = "Per PC")) + 
+  geom_line(aes(x = n, y = v, color = "Per component")) + 
+  geom_point(aes(x = n, y = v, color = "Per component")) + 
   geom_line(aes(x = n, y = t, color = "Cumulative")) +
   geom_point(aes(x = n, y = t, color = "Cumulative")) +
   ylim(c(0, 1)) +
   scale_color_manual(
     name = "Explained variance",
-    breaks = c("Per PC", "Cumulative"),
-    values = c("Per PC" = "cornflowerblue",
+    breaks = c("Per component", "Cumulative"),
+    values = c("Per component" = "cornflowerblue",
                "Cumulative" = "chocolate")
   ) + 
   scale_x_continuous(breaks = n) +
   xlab("Principal component") +
-  ylab("Percentage of variance explained")
+  ylab("Explained variance (%)")
+
 ```
 
 Scree plots are often also referred to as "elbow plots", since the plot typically (but not always) shows an "elbow" where the explained variance levels off. However, spotting the exact location of the elbow is very subjective, and it is typically more appropriate to take the point where the remaining principal components only contribute some small percentage of variation, for example 5%.
@@ -432,6 +448,12 @@ Terminology: what exactly are the PC?
 PC loadings, PC 
 
 where to put partial least squares. 
+
+Where to find PCA software/visualization tools
+- ggfortify
+- PCAtools
+- Seurat
+
 
 
 ## Linear regression with PCA
