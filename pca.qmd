@@ -310,17 +310,47 @@ Note that `prcomp` returns (among other things) the standard deviations, which a
 
 ## Interpreting the PCA results
 
+In this section we will discuss a number of useful results that follow from PCA. We will use the bodyfat dataset as an illustration throughout.
+
+```{r}
+#| echo: true
+
+pc <- prcomp(bodyfat_predictors)
+pc
+```
+
+
 ### The score plot
 
-XXX
+Perhaps the most useful visualization of the PCA is the so-called **score plot**, which is nothing but a scatter plot of the first two principal components. It often happens that the score plot is sufficient to discern patterns in the data, such as clusters.
+
+Figure @fig-score-plot shows a score plot for the bodyfat dataset. While no obvious patterns in this dataset stand out, the plot does show that the principal components are uncorrelated, and this is a good confirmation of what we already know on theoretical grounds.
+
+```{r}
+#| label: fig-score-plot
+#| fig-cap: Score plot for the body fat dataset.
+
+# Explained variation for first and second component
+total_var <- sum(pc$sdev^2)
+pct_var_1 <- pc$sdev[1]^2 / total_var
+pct_var_2 <- pc$sdev[2]^2 / total_var
+
+df <- data.frame(PC1 = pc$x[,1], PC2 = pc$x[,2])
+ggplot(df, aes(x = PC1, y = PC2)) +
+  geom_point() +
+  xlab(paste0("PC1 (", pct_var_1, "% var. explained)")) +
+  ylab(paste0("PC2 (", pct_var_2, "% var. explained)"))
+
+```
+TODO: Fix plot labels to show percentages, correctly rounded
 
 
 ### The loadings
 
 A **loadings plot** shows the relations of the original variables
-and the principal components. This is often a useful visualization to see how each variable contributes to the principal components. Moreover, one can show that the loadings are proportional to the Pearson correlations between the principal components and the variables. Hence, if a loading is positive (negative), that variable will be positively (negatively) correlated with that principal component.[^1]
+and the principal components. This is often a useful visualization to see how each variable contributes to the principal components. Moreover, one can show that the loadings are proportional to the Pearson correlations between the principal components and the variables. Hence, if a loading is positive (negative), that variable will be positively (negatively) correlated with that principal component.[^2]
 
-[^1]: There is a closely related plot type, the profile plot, which differs from the loadings plot in that it has the Pearson correlations on the $y$-axis. Otherwise the two plot types are identical.
+[^2]: There is a closely related plot type, the profile plot, which differs from the loadings plot in that it has the Pearson correlations on the $y$-axis. Otherwise the two plot types are identical.
 
 At the beginning of this chapter we hypothesized that the variables `thigh.circumference` and `triceps.skinfold.thickness`  would contribute about equally to the first principal component. From @fig-pca-loadings we see that this is indeed the case: those two variables have loadings approximately equal to $0.7$. We also see that the second principal component is mostly made up of the variable `midarm.circumference`. Unfortunately there is no command in base R or ggplot to create a loadings plot -- you have to make one yourself.
 
@@ -355,7 +385,7 @@ $$
 $$
 The number $K$ can be chosen so that a fixed amount of variance (for example, 95%) is retained. 
 
-To see this idea in action, let's revisit the body fat dataset and perform a principal component analysis:
+To see this idea in action, let's revisit the body fat dataset and perform a principal component analysis: XXX this needs to be updated since we're already working with the BFD XXX
 
 ```{r}
 #| echo: true
