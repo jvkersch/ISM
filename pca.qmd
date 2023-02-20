@@ -13,9 +13,9 @@ In the previous chapter we built a linear model to predict the amount of body fa
 
 To find out which combinations of variables contribute most to the variability of our data, we will turn to _principal component analysis_, one of the mainstays of statistical data analysis. Principal component analysis will allow us to identify the main sources of variability in our dataset, and will tell us which combinations of variables can be omitted with only little impact on the data itself. This allows us to reduce the number of features in the dataset, and makes principal component analysis into what is called a technique for _dimensionality reduction_. This is useful for a number of reasons:
 
-- As a pre-processing technique: Many statistical techniques, such as multiple linear regression, do not perform well in the presence of highly correlated features. They either fail to converge outright, or they give unreliable results (for example, model coefficients and predictions that change drastically when the data is slightly perturbed).
-- To save on computational processing time: analyzing superfluous variables comes with a cost, which can often scale drastically with the number of features. (XXX we will see a couple of examples of this XXX)
-- To prepare the data for visualization: for datasets with a limited number of features, we can use a scatter matrix to view the features and their relations with one another. Scatter matrices become uninformative, however, as soon as you have more than 4 or 5 features. Moreover, scatter matrices may hide correlations that occur between different linear combinations of variables, as we have seen in the previous chapter.
+- As a *pre-processing technique*: Many statistical techniques, such as multiple linear regression, do not perform well in the presence of highly correlated features. They either fail to converge outright, or they give unreliable results (for example, model coefficients and predictions that change drastically when the data is slightly perturbed). This is even more of an issue when there are more predictors than data points, a situation that often occurs when analysing gene expression data or spectroscopy data.
+- To save on *computational processing time*: analyzing superfluous variables comes with a cost, which can often increase drastically with the number of features. We will see an example of this phenomenon in @sec-eigenfaces, where the data points are vectors with 4096 components. After principal component reduction, the dimensionality of the dataset can be reduced to 50-100 components, a reduction by more than 98%. 
+- To *visualize* the data: for datasets with a limited number of features, we can use a scatter matrix to view the distribution of the features and their relations with one another. Scatter matrices become uninformative, however, as soon as there are more than 4 or 5 features. Moreover, scatter matrices may hide correlations that occur between different linear combinations of variables, as we have seen in the chapter on linear modeling.
 
 ## Intuition
 
@@ -45,7 +45,7 @@ p <- with(bodyfat_predictors, {
 p
 ```
 
-We have succeeded in our aim to reduce the number of features in our dataset, but a number of questions immediately pop up:
+We have succeeded in our aim to reduce the number of features in our dataset from 3 to 2, but a number of questions immediately pop up:
 
 1. What is the meaning of the `z1` variable, and can we find it without looking at a scatter plot?
 2. How much information do we lose by considering two variables instead of three? Will the conclusions from the reduced dataset still be valid for the full dataset?
@@ -89,7 +89,7 @@ $$
       v_D
     \end{bmatrix}.
 $$
-With this expression, $\mathbf{Z}_1$ can be written as
+With this expression, $\mathbf{Z}_1$ can be written as a matrix-vector product:
 $$
   \mathbf{Z}_1 = \mathbf{X} \mathbf{v}.
 $$ {#eq-first-pc}
@@ -105,28 +105,28 @@ This is the dot product of the $i$th observation $\mathbf{x}_i$ with the loading
 
 In other words, we obtain $\mathbf{Z}_1$ by taking a fixed vector $\mathbf{v}$ and projecting all of our data points on the line through the origin in the direction of $\mathbf{v}$. If we choose another vector, $\mathbf{w}$, we obtain a different projection, as indicated on @fig-max-variance-projection.
 
-![Different loadings vectors $\mathbf{v}$ and $\mathbf{w}$ give rise to different projections (indicated in blue and red, respectively).](./images/02-PCA/max-variance-projection){#fig-max-variance-projection}
+![Two different projections, onto the loadings vector $\mathbf{v}$ (blue) and $\mathbf{w}$ (red).](./images/02-PCA/max-variance-projection){#fig-max-variance-projection}
 
 Our goal is now to find the loadings vector $\mathbf{v}$ so that the variance of the projected dataset is maximal. To make this problem well-posed, we will assume that $\mathbf{v}$ has unit norm:
 $$
   \mathbf{v}^T \mathbf{v} = 1.
 $$ {#eq-unit-length}
-Otherwise we could increase the amount of variance simply by scaling $\mathbf{v}$.
+If we did not impose this constraint, we could increase the amount of variance simply by making $\mathbf{v}$ longer.
 
 The mean of the projected data is given by
 $$
-  E[\mathbf{Z}_1] = \frac{1}{N}\sum_{j=1}^N (\mathbf{Z}_1)_j
+  \bar{\mathbf{Z}}_1 = \frac{1}{N}\sum_{j=1}^N (\mathbf{Z}_1)_j
          = \frac{1}{N}\sum_{j=1}^N \mathbf{x}_j^T \mathbf{v} 
          = \mathbf{\bar{x}}^T \mathbf{v},
 $$
-where $\mathbf{\bar{x}}$ is the (sample) mean of the original data points. In other words, the mean of $\mathbf{Z}_1$ is just the mean of the data points $\mathbf{x}_i$, projected onto $\mathbf{v}$.
+where $\mathbf{\bar{x}}$ is the (sample) mean of the original data points. In other words, the mean $\bar{\mathbf{Z}}_1$ is just the mean $\bar{\mathbf{x}}$ of the data points, projected onto $\mathbf{v}$.
 
 The variance of the projected data is given by
 $$
     \sigma^2
     = 
     \frac{1}{N} \sum_{i=1}^N\left( 
-      (\mathbf{Z}_1)_i - E[\mathbf{Z}_1]\right)^2 
+      (\mathbf{Z}_1)_i - \bar{\mathbf{Z}}_1\right)^2 
      = \frac{1}{N} \sum_{i = 1}^N\left(
         \mathbf{x}_i^T \mathbf{v} - 
         \mathbf{\bar{x}}^T \mathbf{v}\right)^2.
@@ -160,7 +160,7 @@ $$
 
 A necessary condition for $\mathbf{v}$ to be a maximum of $L$ is that the gradient vanishes at $\mathbf{v}$. Taking the gradient of $L$ with respect to $\mathbf{v}$ and setting the resulting expression equal to zero gives
 $$
-    S v = \lambda v.
+    \mathbf{S} \mathbf{v} = \lambda \mathbf{v}.
 $$ {#eq-ev-pca}
 This is a very important result: it tells us that the $\mathbf{v}$ we are looking for is an **eigenvector** of the matrix $\mathbf{S}$, with corresponding **eigenvalue** $\lambda$. This will hold true generally, not just for the first principal component: finding the principal components of a data set will involve solving an eigenvalue problem, and selecting the largest eigenvalues.
 
@@ -170,7 +170,7 @@ $$
 $$
 where we have used the unit-length constraint @eq-unit-length.
 
-We see that the Lagrange multiplier $\lambda$ is precisely the variance $\sigma^2$ of the first principal component $\mathbf{Z}_1$. For this reason, we will refer to the eigenvalue $\lambda$ as the amount of _retained variance_, since it expresses how much variance there is left in our dataset if we replace all features by the first principal component.
+We see that the Lagrange multiplier $\lambda$ is precisely the variance $\sigma^2$ of the first principal component $\mathbf{Z}_1$. For this reason, we will refer to the eigenvalue $\lambda$ as the amount of _retained variance_, since it expresses how much variance is captured by projecting the entire dataset onto the direction $\mathbf{v}$.
 
 To sum up, the first principal component $\mathbf{Z}_1$ is a linear combination of the original features (columns) of our dataset, chosen so that the variance of $\mathbf{Z}_1$ is maximal. We can find $\mathbf{Z}_1$ by looking for the largest eigenvalue $\lambda$ of the covariance matrix, with unit length eigenvector $\mathbf{v}$, and projecting the data matrix $\mathbf{X}$ onto $\mathbf{v}$.
 
@@ -185,17 +185,17 @@ To find the next principal component, we consider the variability in the dataset
 $$
   \mathbf{Z}_2 = \mathbf{X}\mathbf{v}_2.
 $$
-This procedure can be applied to find all $D$ principal components and results in the following algorithm for PCA:
+This procedure can be applied to find all $D$ principal components and results in the following algorithm to compute the principal components:
 
 1. Compute the sample covariance matrix $\mathbf{S}$ using @eq-cov-matrix.
 1. Compute the eigenvalues of $\mathbf{S}$ and order them from largest to smallest: $\lambda_1 \ge \lambda_2 \ge \cdots \ge \lambda_D$. 
 1. Find the corresponding eigenvectors $\mathbf{v}_1, \mathbf{v}_2, \ldots, \mathbf{v}_D$ and normalize them to unit length, if necessary. These vectors are the loading vectors and they point in the directions of highest variance.
 1. Project the dataset onto the loading vectors to obtain the principal components $\mathbf{Z}_1, \mathbf{Z}_2, \ldots, \mathbf{Z}_D$.
 
-Typically, we do not have to compute the principal components by hand: most data analysis packages will do this for us, either via a builtin command, such as in [R](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/prcomp) or [minitab](https://support.minitab.com/en-us/minitab/21/help-and-how-to/statistical-modeling/multivariate/how-to/principal-components/before-you-start/example/), or via an extra package, such as [scikit-learn (Python)](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html) or [xlstat (Excel)](https://help.xlstat.com/6776-principal-component-analysis-pca-excel). It is instructive, however, to know the principles behind PCA, so that you can interpret and understand the results.
+Typically, we do not have to compute the principal components by hand: most data analysis packages will do this for us, either via a builtin command, such as in [R (prcomp)](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/prcomp) or [minitab](https://support.minitab.com/en-us/minitab/21/help-and-how-to/statistical-modeling/multivariate/how-to/principal-components/before-you-start/example/), or via an extra package, such as [scikit-learn (Python)](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html) or [xlstat (Excel)](https://help.xlstat.com/6776-principal-component-analysis-pca-excel). It is instructive, however, to know the principles behind PCA, so that you can interpret and understand the results.
 
 ::: {.callout-note}
-Software packages that compute the principal components of a dataset typically do not compute the eigenvalues and eigenvectors of the covariance matrix, despite our derivation above. Instead, they rely on the so-called _singular value decomposition_ (SVD) of the data matrix (after centering). The SVD is typically more accurate and easier to compute, and the principal components obtained in this way agree with the ones computed using the eigendecomposition (to within roundoff).
+Software packages that compute the principal components of a dataset typically do not compute the eigenvalues and eigenvectors of the covariance matrix, despite our derivation above. Instead, they rely on the so-called _singular value decomposition_ (SVD) of the data matrix (after centering). The SVD is typically more accurate and easier to compute, and the principal components obtained in this way agree with the ones computed using the eigendecomposition (to within numerical roundoff).
 :::
 
 ### Worked-out example
@@ -273,6 +273,8 @@ These are our loading vectors, and they indicate the direction in which the data
 
 ```{r}
 #| fig-cap: The dataset with the first loading vector (blue) and the second loading vector (orange) superimposed. Each loading vector has been rescaled by the square root of the corresponding eigenvalue, to give an indication of the variability in that direction.
+#| fig-width: 11
+#| fig-height: 7
 #| label: fig-2d-dataset-pc
 #| warning: false
 
@@ -291,22 +293,33 @@ l2_sqrt <- 1
 ggplot() +
   geom_point(data = df, aes(x = X, y = Y)) +
   segment(l1_sqrt*vx, l1_sqrt*vy, color = "cornflowerblue") +
-  segment(-l2_sqrt*vy, l2_sqrt*vx, color = "chocolate")
+  segment(-l2_sqrt*vy, l2_sqrt*vx, color = "chocolate") + 
+  xlim(c(-5, 6)) + ylim(c(-2.5, 4.5))
 
 ```
 
-To compute the principal components directly via R, we can use the `prcomp` command, as shown below. This is generally the preferred option over computing the eigenvalue decomposition: `prcomp` is more flexible (allowing one, for example, to whiten the data) and is also numerically more stable.[^1] For our simple dataset, however, the end result is the same:
+To compute the principal components directly via R, we can use the `prcomp` command, as shown below. This is generally the preferred option over computing the eigenvalue decomposition by hand: `prcomp` is more flexible (allowing one, for example, to scale the data before computing the principal components) and is also numerically more stable.[^1] For our simple dataset, the end result is the same:
 
 [^1]: R has two commands to compute the principal components: `prcomp` and `princomp`. The former computes principal components using the so-called singular value decomposition (SVD) and is preferred for numerical stability. The latter, `princomp`, uses the eigenvalue decomposition as is provided for backwards compatibility with SAS. 
 
 ```{r}
 #| echo: true
-prcomp(df)
+#| code-fold: false
+pca <- prcomp(df)
+pca
 ```
 
 ::: {.callout-warning}
-Note that `prcomp` returns (among other things) the standard deviations, which are the square roots of the variances (eigenvalues). To compare the output of `prcomp` with the results of the eigenvalue analysis, make sure to take the square of the standard deviations.
+Note that `prcomp` returns (among other things) the standard deviations, which are the square roots of the variances (eigenvalues). To compare the output of `prcomp` with the results of the eigenvalue analysis, **make sure to take the square of the standard deviations**, and you will see the eigenvalues appear:
+
+```{r}
+#| echo: true
+#| code-fold: false
+pca$sdev^2
+```
 :::
+
+
 
 ## Interpreting the PCA results
 
@@ -314,17 +327,27 @@ In this section we will discuss a number of useful results that follow from PCA.
 
 ```{r}
 #| echo: true
+#| code-fold: false
 
 pc <- prcomp(bodyfat_predictors)
 pc
 ```
+
+We can also ask R to print a summary of the principal component analysis for us. This will give us a table with the proportion of variance explained by each principal component, as well as the cumulative proportion (the amount of variance retained by that principal component and all previous ones).
+
+```{r}
+#| echo: true
+#| code-fold: false
+summary(pc)
+```
+
 
 
 ### The score plot
 
 Perhaps the most useful visualization of the PCA is the so-called **score plot**, which is nothing but a scatter plot of the first two principal components. It often happens that the score plot is sufficient to discern patterns in the data, such as clusters.
 
-Figure @fig-score-plot shows a score plot for the bodyfat dataset. While no obvious patterns in this dataset stand out, the plot does show that the principal components are uncorrelated, and this is a good confirmation of what we already know on theoretical grounds.
+@fig-score-plot shows a score plot for the bodyfat dataset. While no obvious patterns in this dataset stand out, the plot does show that the principal components are uncorrelated, and this is a good confirmation of what we already know on theoretical grounds. It is customary to put the percentages of variance explained on the axis labels of the score plot, so that the person interpreting it can have an idea of how well the first two principal components describe the data.
 
 ```{r}
 #| label: fig-score-plot
@@ -338,21 +361,29 @@ pct_var_2 <- pc$sdev[2]^2 / total_var
 df <- data.frame(PC1 = pc$x[,1], PC2 = pc$x[,2])
 ggplot(df, aes(x = PC1, y = PC2)) +
   geom_point() +
-  xlab(paste0("PC1 (", pct_var_1, "% var. explained)")) +
-  ylab(paste0("PC2 (", pct_var_2, "% var. explained)"))
+  xlab(paste0("PC1 (", round(pct_var_1 * 100, 2), "% var. explained)")) +
+  ylab(paste0("PC2 (", round(pct_var_2 * 100, 2), "% var. explained)"))
 
 ```
-TODO: Fix plot labels to show percentages, correctly rounded
 
+As an aside, above we noted that the principal components are uncorrelated with one another. We can also verify that this is the case numerically. The result is not exactly zero, but it is very small:
 
-### The loadings
+```{r}
+#| echo: true
+#| code-fold: false
+cov(pc$x[,1], pc$x[,2])
+```
+
+### The loadings plot
 
 A **loadings plot** shows the relations of the original variables
 and the principal components. This is often a useful visualization to see how each variable contributes to the principal components. Moreover, one can show that the loadings are proportional to the Pearson correlations between the principal components and the variables. Hence, if a loading is positive (negative), that variable will be positively (negatively) correlated with that principal component.[^2]
 
 [^2]: There is a closely related plot type, the profile plot, which differs from the loadings plot in that it has the Pearson correlations on the $y$-axis. Otherwise the two plot types are identical.
 
-At the beginning of this chapter we hypothesized that the variables `thigh.circumference` and `triceps.skinfold.thickness`  would contribute about equally to the first principal component. From @fig-pca-loadings we see that this is indeed the case: those two variables have loadings approximately equal to $0.7$. We also see that the second principal component is mostly made up of the variable `midarm.circumference`. Unfortunately there is no command in base R or ggplot to create a loadings plot -- you have to make one yourself.
+At the beginning of this chapter we hypothesized that the variables `thigh.circumference` and `triceps.skinfold.thickness`  would contribute about equally to the first principal component. From @fig-pca-loadings we see that this is indeed the case: both variables have loadings approximately equal to $0.7$, when we consider the first principal component. We also see that the second principal component is mostly made up of the variable `midarm.circumference`. 
+
+Unfortunately there is no command in base R or ggplot to create a loadings plot -- you have to make one yourself.
 
 ```{r}
 #| fig-cap: The loadings plot shows how the original variables are related to the principal components.
@@ -383,29 +414,32 @@ The question remains what principal components to discard. There are no universa
 $$
   S_K = \frac{\sum_{i=1}^K\lambda_i}{\sum_{j=1}^D \lambda_j},
 $$
-The number $K$ can be chosen so that a fixed amount of variance (for example, 95%) is retained. 
-
-To see this idea in action, let's revisit the body fat dataset and perform a principal component analysis: XXX this needs to be updated since we're already working with the BFD XXX
+Recall that the total amount of variance can be computed directly within R by using the `summary` command (and look for the "Cumulative Proportion" row):
 
 ```{r}
 #| echo: true
-pc <- prcomp(bodyfat_predictors)
-pc
+#| code-fold: false
+summary(pc)
 ```
-The relative amount of variance explained by each principal component can then be calculated as follows:
+
+The number $K$ of principal components can be chosen so that a fixed amount of variance (for example, 95%) is retained. To see this idea in action, let's apply it to the body fat dataset. The relative amount of variance explained by each principal component can then be calculated as follows:
+
 ```{r}
 #| echo: true
+#| code-fold: false
 var_explained <- pc$sdev^2 / sum(pc$sdev^2)
 var_explained
 ```
 and the total amount of variance explained cumulatively by
 ```{r}
 #| echo: true
+#| code-fold: false
 total_var <- cumsum(var_explained)
 total_var
 ```
+Note that these numbers agree with the output of the `summary` command. For what follows, it will be easier to have access to these quantities as straightforward R vectors.
 
-We see that the first two principal components explain 78.7% and 21.3% of the total variance, respectively, and together they explain more than 99.97% of variance in the dataset. It therefore seems reasonable to discard the last principal component.
+We see that the first two principal components explain 78.7% and 21.3% of the total variance, respectively, and together they explain more than 99.97% of variance in the dataset. It therefore seems reasonable to discard the last principal component, which contributes less than 0.03% of variance.
 
 For datasets with many features, a **scree plot** or **elbow plot** can be helpful to identify high-variance principal components. In a scree plot, the amounts of variance are plotted in descending order, so that one can identify at a glance the amount of variability contributed by each principal component. Some scree plots also include the total amount of variability, $S_K$, as a function of $K$. 
 
@@ -415,9 +449,10 @@ R can make a pretty basic scree plot for you, via the [screeplot](https://stat.e
 #| fig-cap: A scree plot made with the base R `screeplot` command.
 #| lab: fig-scree-base
 #| echo: true
+#| code-fold: false
 screeplot(pc, main = "Principal components", type = "lines")
 ```
-With a bit more work, you can build your own scree plot, which is often preferable if you want to customize the plot, to include for example the cumulative variance, or to obtain a publication-ready plot, as in figure @fig-scree-bodyfat.
+With a bit more work, you can build your own scree plot, which is often preferable if you want to customize the plot, to include for example the cumulative variance, as in figure @fig-scree-bodyfat.
 
 ```{r}
 #| fig-cap: A scree plot for the body fat dataset confirms that the first two principal components explain almost all of the variance in the data.
@@ -453,42 +488,46 @@ Scree plots are often also referred to as "elbow plots", since the plot typicall
 
 ### Biplots 
 
-The **biplot** consists of a loading plot overlaid on a score plot. By default, it shows the first two principal components as a scatter plot, together with a set of vectors, one for each original variable, showing the contribution of that variable to the first two principal components.
+The **biplot** consists of a loadings plot overlaid on a score plot. By default, it shows the first two principal components as a scatter plot, together with a set of vectors, one for each original variable, showing the contribution of that variable to the first two principal components. Biplots are relatively complex, but it is worth understanding what they encode.
 
 ```{r}
 #| echo: true
+#| code-fold: false
 #| fig-cap: The biplot provides information about the transformed data and the loadings.
 #| label: fig-biplot-R
 biplot(pc)
 ```
 
-It is possible to produce biplots using ggplot-aware packages. As biplots are relatively complex, it is not recommended to create your own. Here we use the experimental [ggbiplot](https://github.com/vqv/ggbiplot) package, but there are many other options.
-```{r}
-#| echo: true
-#| fig-cap: A biplot made with the `ggbiplot` package. Note that the data and loadings vectors appear the same as in @fig-biplot-R, but the axes have different scales due to the use of _standardized_ principal components.
-#| label: fig-biplot-gg
-library(ggbiplot)
-ggbiplot(pc, varname.adjust = 1.2) +
-  xlim(c(-2.5, 3))
+The numbers on the plot represent the data points from the original dataset, expressed relative to the first two principal components. This is the part of the biplot that is like a score plot. The red arrows, on the other hand, represent the original variables in the dataset (as shown by the labels attached to them) and are expressed on the top and right-most axis, which show how much each variable contributes to the first two principal components. The red arrows carry the same information as a loadings plot (in a different form), when you consider only the first two principal component.
 
-```
+At one glance, we see that `triceps.skinfold` and `thigh.circumference` are the most important contributors to the first principal component, and that the second principal component is almost entirely made up by `midarm.circumference`. This confirms our intuition from the beginning of this chapter, as well as the conclusions that we drew from the loadings plot.
+
 
 ## Applications of principal component analysis
 
-### Eigenfaces
+### Principal component regression
+
+### Partial least squares regression
+
+### Eigenfaces {#sec-eigenfaces}
 
 Our last example is not life sciences based, but serves as an illustration to show that PCA is a powerful technique in data analysis, which can be used to reduce the number of degrees of freedom in a large dataset.
 
-We use the Olivetti dataset of human faces, which contains 400 photographs of faces. Each face is a grayscale image of 64 by 64 pixels, where the intensity of each pixel is a value between 0 (completely black) to 255 (completely white). Each image can be represented as a $64 \times 64$ matrix, but it will be more convenient to take the columns of this matrix and lay them out one after the other to obtain a vector with $64 \times 64 = 4096$ entries, as in @fig-image-unroll.
+We use the Olivetti dataset of human faces, which contains 400 frontal photographs of human faces. Each face is a grayscale image of 64 by 64 pixels, where the intensity of each pixel is a value between 0 (completely black) to 255 (completely white). Each image can be represented as a $64 \times 64$ matrix, but it will be more convenient to take the columns of this matrix and lay them out one after the other to obtain a vector with $64 \times 64 = 4096$ entries, as in @fig-image-unroll.
 
 ![An image that is $N$ pixels high and $M$ pixels wide can be viewed as a matrix with $N$ rows and $M$ columns, or as a vector with $N \times M$ elements. Here, $N$ and $M$ are both equal to 3.](images/02-PCA/image-unroll){#fig-image-unroll}
 
+First, we load the dataset. Note that the dataset comes as a data matrix with 4096 rows and 400 columns.
+
 ```{r}
+#| echo: true
+#| code-fold: false
 library(loon.data)
 data(faces)
-#faces <- t(faces)  # Needed for PCA
 dim(faces)
 ```
+
+Each column in the data matrix represents a face, laid out as a column vector with 4096 as in @fig-image-unroll. We can assemble these vectors back into images and visualize them. This requires some R commands that we haven't covered; you don't have to understand what this code does.
 
 ```{r}
 #| fig-cap: Six faces from the Olivetti dataset.
@@ -507,15 +546,26 @@ for (i in 1:8) {
 
 ```
 
+Doing a principal component analysis is a simple matter of running `prcomp`. Despite the size of the dataset, this component should not take more than a second to run.
+
 ```{r}
+#| echo: true
+#| code-fold: false
 pc_olivetti <- prcomp(faces)
 ```
 
+Note that there are 400 principal components in this dataset. We can visualize their relative importance via a scree plot, which we limit to the first 50 components for clarity, since the remaining 350 components contribute almost no variance. This indicates that we can probably discard most of the principal components without losing much of the expressivity of our dataset. We will see further down that this is indeed the case!
+
 ```{r}
+#| warning: false
 gg_screeplot(pc_olivetti, n = 50)
 ```
 
+One of the advantages of the faces dataset is that the principal components can be represented graphically, and that we can reason about them. @fig-olivetti-pc shows the first 8 principal components, represented as images. How should we interpret these images? Each principal component represents a particular *pattern* in the dataset of all faces: the first principal component, for example, captures the overall structure of a human face, while the second represents the illumination from right to left. Probably there were some photos in the dataset that were illuminated from the left or the right. Principal component three does the same for the top-down illumination, and principal components four through eight capture particular patterns involving the eyes or the eyebrows. *By selectively "mixing" all 400 principal components, we can recreate any face in the dataset.*
+
 ```{r}
+#| fig-cap: The first 8 principal components of the Olivetti dataset represent particularly expressive patterns in the dataset.
+#| label: fig-olivetti-pc
 normalize <- function(x) {
   # ensure that PC components are between 0 and 255,
   # for visualization
@@ -551,35 +601,10 @@ show_image(project_data(pc_olivetti, 80)[,80], "80 PCs")
 
 ```
 
-
 It is worth realizing the amount of data compression realized by using PCA. The original images had 4096 degrees of freedom, whereas the rightmost versions in @fig-pca-reduced are described by 80 loadings, more than a 50-fold reduction in degrees of freedom! Clearly there are some visual artifacts that appear in the compressed versions, but the faces are clearly distinguishable, and it seems very reasonable at this point that a machine learning algorithm (for example, to classify the faces, or to do segmentation) could take these compressed images as input and still perform well.
 
 ## Other methods for dimensionality reduction
 
-The assumptions that go into principal component analysis are ….
-(Discussion t-she and UMAP)
+### Multidimensional scaling (MDS)
 
-Mention ICA, kernel PCA?
-
-
-## Misc
-
-Terminology: what exactly are the PC?
-
-PC loadings, PC 
-
-where to put partial least squares. 
-
-Where to find PCA software/visualization tools
-- ggfortify
-- PCAtools
-- Seurat
-
-
-
-## Linear regression with PCA
-
-(Working title)
-
-In chapter 1 (example 1.14) we encountered a study in which three different body measurements were taken for a group of 20 healthy women between the age of 25 and 34. The aim of the study was to ascertain whether these measurements could be used to predict the amount of body fat in a person. The three measurements taken were the  thickness of the triceps skin fold, the thigh circumference, and the midarm circumference. We found that these predictors are highly correlated, as shown on the scatter plot below, and this made it difficult to build a reliable regression model. We are now in a position to remedy this. 
-
+### t-SNE and UMAP
