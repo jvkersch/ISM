@@ -7,7 +7,7 @@ book:
   date: "12/14/2022"
   chapters:
     - index.qmd
-    - intro.qmd
+    #- intro.qmd
     #- regression.qmd
     - pca.qmd
     #- nonlinear.qmd
