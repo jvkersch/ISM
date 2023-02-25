@@ -4,7 +4,7 @@ project:
 book:
   title: "Introduction to Statistical Modelling"
   author: "Joris Vankerschaver"
-  date: "12/14/2022"
+  date: "25/02/2023"
   chapters:
     - index.qmd
     #- intro.qmd
