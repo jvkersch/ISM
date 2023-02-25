@@ -8,14 +8,13 @@ book:
   chapters:
     - index.qmd
     - intro.qmd
-    - regression.qmd
+    #- regression.qmd
     - pca.qmd
-    - nonlinear.qmd
+    #- nonlinear.qmd
     - references.qmd
   appendices:
     - datasets.qmd
     
-
 bibliography: references.bib
 
 format:
@@ -28,5 +27,5 @@ format:
     default-image-extension: pdf
     execute:
       echo: false
-    fig-height: 2.5
-    fig-width: 4.5
+    #fig-height: 2.5
+    #fig-width: 4.5
