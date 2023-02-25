@@ -4,18 +4,19 @@ project:
 book:
   title: "Introduction to Statistical Modelling"
   author: "Joris Vankerschaver"
-  date: "12/14/2022"
+  date: "2023/02/25"
   chapters:
     - index.qmd
-    - intro.qmd
-    - regression.qmd
+    #- intro.qmd
+    #- regression.qmd
     - pca.qmd
-    - nonlinear.qmd
+    #- nonlinear.qmd
     - references.qmd
   appendices:
     - datasets.qmd
+  body-footer: |
+    These coures notes are made available under the [Creative Commons BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license.
     
-
 bibliography: references.bib
 
 format:
@@ -28,5 +29,5 @@ format:
     default-image-extension: pdf
     execute:
       echo: false
-    fig-height: 2.5
-    fig-width: 4.5
+    #fig-height: 2.5
+    #fig-width: 4.5
