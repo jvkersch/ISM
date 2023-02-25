@@ -4,14 +4,14 @@
     "href": "index.html",
     "title": "Introduction to Statistical Modelling",
     "section": "",
-    "text": "These coures notes are made available under the Creative Commons BY-NC-SA 4.0."
+    "text": "These coures notes are made available under the Creative Commons BY-NC-SA 4.0 license."
   },
   {
     "objectID": "pca.html",
     "href": "pca.html",
     "title": "1  Principal component analysis",
     "section": "",
-    "text": "In the previous chapter we built a linear model to predict the amount of body fat, given measurements of the thickness of the triceps skin fold, the thigh circumference, and the midarm circumference. We saw that the dataset used for this model suffers from multicollinearity, meaning that some of the predictors (or linear combinations of predictors) are correlated with one another. Intuitively speaking, multicollinearity means that some variables don’t contribute much to the expressivity of the data: we could omit them and end up with a dataset that is almost as informative as the original one.\nTo find out which combinations of variables contribute most to the variability of our data, we will turn to principal component analysis, one of the mainstays of statistical data analysis. Principal component analysis will allow us to identify the main sources of variability in our dataset, and will tell us which combinations of variables can be omitted with only little impact on the data itself. This allows us to reduce the number of features in the dataset, and makes principal component analysis into what is called a technique for dimensionality reduction. This is useful for a number of reasons:\nThese coures notes are made available under the Creative Commons BY-NC-SA 4.0."
+    "text": "In the previous chapter we built a linear model to predict the amount of body fat, given measurements of the thickness of the triceps skin fold, the thigh circumference, and the midarm circumference. We saw that the dataset used for this model suffers from multicollinearity, meaning that some of the predictors (or linear combinations of predictors) are correlated with one another. Intuitively speaking, multicollinearity means that some variables don’t contribute much to the expressivity of the data: we could omit them and end up with a dataset that is almost as informative as the original one.\nTo find out which combinations of variables contribute most to the variability of our data, we will turn to principal component analysis, one of the mainstays of statistical data analysis. Principal component analysis will allow us to identify the main sources of variability in our dataset, and will tell us which combinations of variables can be omitted with only little impact on the data itself. This allows us to reduce the number of features in the dataset, and makes principal component analysis into what is called a technique for dimensionality reduction. This is useful for a number of reasons:\nThese coures notes are made available under the Creative Commons BY-NC-SA 4.0 license."
   },
   {
     "objectID": "pca.html#intuition",
@@ -53,13 +53,13 @@
     "href": "references.html",
     "title": "References",
     "section": "",
-    "text": "These coures notes are made available under the Creative Commons BY-NC-SA 4.0."
+    "text": "These coures notes are made available under the Creative Commons BY-NC-SA 4.0 license."
   },
   {
     "objectID": "datasets.html",
     "href": "datasets.html",
     "title": "Appendix A — Datasets",
     "section": "",
-    "text": "These coures notes are made available under the Creative Commons BY-NC-SA 4.0."
+    "text": "These coures notes are made available under the Creative Commons BY-NC-SA 4.0 license."
   }
 ]
