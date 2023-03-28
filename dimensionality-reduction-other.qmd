@@ -1,0 +1,5 @@
+# Other methods for dimensionality reduction
+
+## Multidimensional scaling (MDS)
+
+## t-SNE and UMAP

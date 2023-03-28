@@ -1,0 +1,362 @@
+# Applications of principal component analysis
+
+```{r}
+#| include: false
+set.seed(1234)
+
+library(ggplot2)
+library(GGally)
+library(gridExtra)
+library(tidyverse)
+
+# From previous chapter -- move this to utility module?
+gg_screeplot <- function(pc, n = length(pc$sdev)) {
+  sdev = pc$sdev[1:n]
+  var_explained <- sdev^2 / sum(sdev^2)
+  total_var <- cumsum(var_explained)
+  df_var <- data.frame(
+    n = seq(1, n), v = var_explained, t = total_var)
+  ggplot(df_var) +
+    geom_line(aes(x = n, y = v, color = "Per component")) + 
+    geom_point(aes(x = n, y = v, color = "Per component")) + 
+    geom_line(aes(x = n, y = t, color = "Cumulative")) +
+    geom_point(aes(x = n, y = t, color = "Cumulative")) +
+    ylim(c(0, 1)) +
+    scale_color_manual(
+      name = "Explained variance",
+      breaks = c("Per component", "Cumulative"),
+      values = c("Per component" = "cornflowerblue",
+                 "Cumulative" = "chocolate")
+    ) + 
+    scale_x_continuous(breaks = n) +
+    xlab("Principal component") +
+    ylab("Explained variance (%)")
+}
+
+
+```
+
+## Adulteration of olive oil
+
+section outline:
+
+- Problem description
+- Plot of spectra for adulterated versus pure, indicate that spectra look difficult but that it's not easy to tell them apart based on some numbers
+- PC plot, loadings, % variance explained
+- PCR/PLS to predict adulteration
+
+Principal component analysis is often a necessary first step when there are a large number of independent variables that need to be  analyze simultaneously. Many devices in a modern lab produce this kind of high-dimensional data: for example, a reading for a single sample obtained via gas chromatography-mass spectrometry (GC-MS) or hyperspectral imagining (HSI) is a vector with 100s of entries, and with the number of samples often running in the 100s as well, we need a technique like PCA to find the needle in the haystack.
+
+In this section, we look at one such example. Prof. Van Haute of the Centre for Food Chemistry and Technology at GUGC provided us with a dataset of HSI readings for different kinds of olive oils and vegetable oils (see [@2023-malavi-HyperspectralImagingChemometrics] for more details and a much more extensive analysis). 
+
+
+
+
+
+*Can hyperspectral imaging be used to detect whether olive oil has been adulterated with other kinds of oils? If so, can the amount of adulteration be quantified accurately?*
+
+
+
+The dataset contains HSI readings from 183 different kinds of food oil, with 13 kinds of extra-virgin olive oils, and the 
+
+
+
+
+::: {#fig-hsi layout-ncol=2 align="center"}
+
+![](./images/02-PCA/hyperspectral.png)
+
+![](./images/02-PCA/hsi-spectra.png)
+
+Hyperspectral imaging system (left) and typical output spectra (right). Figure source: @2023-malavi-HyperspectralImagingChemometrics. 
+:::
+
+
+The 
+
+```{r}
+#| warning: false
+
+library(readxl)
+
+# The dataset contains in the first column a description
+# of the kind of adulteration with th
+# create_mixture <- function(fullname) {
+#   if (!grepl('/', fullname, fixed = TRUE)) {
+#     return(fullname)
+#   }
+#   items <- strsplit(fullname, ' +')[[1]]
+#   paste(items[-length(items)], collapse = " ")
+# }
+
+oils <- read_excel("./datasets/02-pca/HSI.xlsx")
+
+# Names of the spectra
+cols <- colnames(oils)
+spectra <- cols[5:length(cols)]
+
+oils_long <- oils %>%
+  pivot_longer(cols = spectra, 
+               names_to = "wavelength", 
+               values_to = "intensity") %>%
+  mutate(wavelength = as.numeric(wavelength))
+
+head(oils)
+
+```
+
+Trace plot for adulterated oils, with EVOO superimposed
+
+```{r}
+pure_non_pure <- oils_long %>%
+  filter(Classification == "Olive") %>%
+  mutate(pure = `% Adulteration` == 0)
+
+ggplot(
+  data = pure_non_pure,
+  aes(x = wavelength, y = intensity, color = pure,
+             group = interaction(`Sample ID/Wavelength`, Sample))) +
+  geom_line(data = subset(pure_non_pure, pure == FALSE)) +
+  geom_line(data = subset(pure_non_pure, pure == TRUE)) +
+  labs(x = "Wavelength", y = "Intensity", color = "Type of oil") +
+  scale_color_discrete(labels = c("Adulterated", "Pure"))
+
+```
+
+
+Compute principal components
+```{r}
+pca_oils <- oils %>%
+  select(all_of(spectra)) %>%
+  prcomp(scale = FALSE)
+
+```
+
+Percentage of variance explained
+```{r}
+pca_oils %>%
+  broom::tidy(matrix = "eigenvalues") %>%
+  head(n = 9) %>%
+  ggplot(aes(PC, percent)) +
+  geom_col(fill = "#56B4E9", alpha = 0.8) +
+  scale_x_continuous(breaks = 1:9) +
+  scale_y_continuous(
+    labels = scales::percent_format(),
+    expand = expansion(mult = c(0, 0.01))
+  ) +
+  labs(y = "Percentage of variance explained")
+```
+
+
+
+
+Plot of the first few loadings vectors
+```{r}
+loadings <- as.data.frame(pca_oils$rotation)
+loadings$wavelength <- as.numeric(rownames(loadings))
+rownames(loadings) <- 1:nrow(loadings)
+
+loadings %>%
+  select(wavelength, PC1, PC2) %>%
+  pivot_longer(cols = c(PC1, PC2)) %>%
+  ggplot() +
+    geom_line(aes(x = wavelength, y = value, color = name), linewidth = 1.0) +
+  labs(x = "Wavelength", y = "", color = "Component")
+
+```
+
+Plot first two PCs
+```{r}
+pdata <- pca_oils %>%
+  broom::augment(oils) %>%
+  filter(`% Adulteration` < 100) %>%
+  mutate(adulterated = `% Adulteration` > 0)
+
+pct_var_explained <- 100*pca_oils$sdev^2/sum(pca_oils$sdev^2)
+xlabel <- paste0("PC 1 (", round(pct_var_explained[[1]], 2), "% var. explained)")
+ylabel <- paste0("PC 2 (", round(pct_var_explained[[2]], 2), "% var. explained)")
+
+ggplot(
+  pdata,
+  aes(.fittedPC1, .fittedPC2,
+      color = `% Adulteration`, shape = adulterated)) +
+  geom_point(size = 2) +
+  labs(x = xlabel, y = ylabel, shape = "Type of oil") +
+  scale_shape_discrete(labels = c("Pure", "Adulterated"))
+
+```
+
+```{r}
+# for the adulterated oils, predict the percentage of adulteration
+adulterated <- oils %>%
+  filter(`% Adulteration` > 0, `% Adulteration` <= 20) %>%
+  select(-`Sample ID/Wavelength`,
+         -Sample,
+         -Classification)
+
+# Set aside some test data
+train_no <- round(0.8 * nrow(adulterated))
+train_idxs <- sample(1:nrow(adulterated), train_no)
+adulterated_train <- adulterated[train_idxs, ]
+adulterated_test <- adulterated[-train_idxs, ]
+
+```
+
+```{r}
+library(pls)
+
+# Run a PCR analysis first
+pcr_model <- pcr(
+  `% Adulteration` ~ .,
+  data = adulterated_train,
+  scale = FALSE, validation = "CV"
+)
+# Do a PLS secondly
+
+pls_model <- plsr(
+  `% Adulteration` ~ .,
+  data = adulterated_train,
+  scale = FALSE, validation = "CV"
+)
+
+```
+
+```{r}
+ncomp <- 5
+pcr_pred <- predict(pcr_model, adulterated_test, ncomp = ncomp)
+pls_pred <- predict(pls_model, adulterated_test, ncomp = ncomp)
+```
+
+```{r}
+# Plot both results together
+df <- data.frame(
+  measured = adulterated_test$`% Adulteration`,
+  PLS = unlist(as.list(pls_pred)),
+  PCR = unlist(as.list(pcr_pred))
+) %>% pivot_longer(cols = c("PLS", "PCR"))
+
+jitter_x <- position_jitter(w = 0.15, h = 0)
+ggplot(df) +
+  geom_abline(alpha = 0.3) +
+  geom_point(aes(x = measured, y = value, color = name),
+             alpha = 1.0, position = jitter_x) +
+  labs(color = "Method", x = "Measured", y = "Predicted")
+
+```
+
+```{r}
+# Evaluate RMSE as a function of number of components on test dataset
+
+rmse <- function(ncomp, model) {
+  pred <- predict(model, adulterated_test, ncomp = ncomp)
+  mean((pred - adulterated_test$`% Adulteration`)^2)^0.5
+}
+
+ncomps <- seq(3, 15)
+rmse_data <- data.frame(
+  ncomps = ncomps,
+  PCR = map_dbl(ncomps, rmse, model = pcr_model),
+  PLS = map_dbl(ncomps, rmse, model = pls_model)
+) %>% pivot_longer(cols = c("PCR", "PLS"))
+
+ggplot(rmse_data) +
+  geom_line(aes(x = ncomps, y = value, color = name)) +
+  labs(color = "Method", x = "Number of components", y = "RMSE")
+
+
+```
+
+
+## Eigenfaces {#sec-eigenfaces}
+
+Our last example is not life sciences based, but serves as an illustration to show that PCA is a powerful technique in data analysis, which can be used to reduce the number of degrees of freedom in a large dataset.
+
+We use the Olivetti dataset of human faces, which contains 400 frontal photographs of human faces. Each face is a grayscale image of 64 by 64 pixels, where the intensity of each pixel is a value between 0 (completely black) to 255 (completely white). Each image can be represented as a $64 \times 64$ matrix, but it will be more convenient to take the columns of this matrix and lay them out one after the other to obtain a vector with $64 \times 64 = 4096$ entries, as in @fig-image-unroll.
+
+![An image that is $N$ pixels high and $M$ pixels wide can be viewed as a matrix with $N$ rows and $M$ columns, or as a vector with $N \times M$ elements. Here, $N$ and $M$ are both equal to 3.](images/02-PCA/image-unroll){#fig-image-unroll}
+
+First, we load the dataset. Note that the dataset comes as a data matrix with 4096 rows and 400 columns.
+
+```{r}
+#| echo: true
+#| code-fold: false
+library(loon.data)
+data(faces)
+dim(faces)
+```
+
+Each column in the data matrix represents a face, laid out as a column vector with 4096 as in @fig-image-unroll. We can assemble these vectors back into images and visualize them. This requires some R commands that we haven't covered; you don't have to understand what this code does.
+
+```{r}
+#| fig-cap: Six faces from the Olivetti dataset.
+#| label: fig-olivetti-faces
+show_image <- function(imgdata, title = NULL) {
+  m <- matrix(imgdata, nrow = 64, ncol = 64, byrow = F)
+  m <- t(apply(m, 2, rev))
+  image(m, axes = FALSE, col=grey(seq(0,1,length=256)),
+        main = title)
+}
+
+par(mfrow=c(2, 4), mar=c(1, 1, 1, 1))
+for (i in 1:8) {
+  show_image(faces[,10*i], paste0("Face #", 10*i))
+}
+
+```
+
+Doing a principal component analysis is a simple matter of running `prcomp`. Despite the size of the dataset, this component should not take more than a second to run.
+
+```{r}
+#| echo: true
+#| code-fold: false
+pc_olivetti <- prcomp(faces)
+```
+
+Note that there are 400 principal components in this dataset. We can visualize their relative importance via a scree plot, which we limit to the first 50 components for clarity, since the remaining 350 components contribute almost no variance. This indicates that we can probably discard most of the principal components without losing much of the expressivity of our dataset. We will see further down that this is indeed the case!
+
+```{r}
+#| warning: false
+gg_screeplot(pc_olivetti, n = 50)
+```
+
+One of the advantages of the faces dataset is that the principal components can be represented graphically, and that we can reason about them. @fig-olivetti-pc shows the first 8 principal components, represented as images. How should we interpret these images? Each principal component represents a particular *pattern* in the dataset of all faces: the first principal component, for example, captures the overall structure of a human face, while the second represents the illumination from right to left. Probably there were some photos in the dataset that were illuminated from the left or the right. Principal component three does the same for the top-down illumination, and principal components four through eight capture particular patterns involving the eyes or the eyebrows. *By selectively "mixing" all 400 principal components, we can recreate any face in the dataset.*
+
+```{r}
+#| fig-cap: The first 8 principal components of the Olivetti dataset represent particularly expressive patterns in the dataset.
+#| label: fig-olivetti-pc
+normalize <- function(x) {
+  # ensure that PC components are between 0 and 255,
+  # for visualization
+  255 * (x - min(x)) / (max(x) - min(x))
+}
+par(mfrow=c(2, 4), mar=c(1, 1, 1, 1))
+for (i in 1:8) {
+  show_image(normalize(pc_olivetti$x[,i]), 
+             paste0("PC ", i))
+}
+
+```
+
+To finish, let's also investigate how well PCA performs as a data reduction method. By retaining only a limited number of principal components, we can build "reduced" versions of the images that involve only a number of principal components. @fig-pca-reduced shows two original faces from the dataset (left), together with compressed versions involving the first 10, 40, and 80 most significant principal components. The version that uses only 10 components is quite generic and it is difficult even to distinguish the male and female face. The version with 80 components, on the other hand, is very close to the original.
+
+```{r}
+#| fig-cap: Original images (left), and 3 PCA-reduced images with increasing numbers of principal components. 
+#| label: fig-pca-reduced
+project_data <- function(pc, n_retain) {
+  t(t(pc$x[,1:n_retain] %*% t(pc$rotation)[1:n_retain,]) + pc$center)
+}
+
+par(mfrow=c(2, 4), mar=c(1, 1, 1, 1))
+show_image(faces[,70], "Original")
+show_image(project_data(pc_olivetti, 10)[,70], "10 PCs")
+show_image(project_data(pc_olivetti, 40)[,70], "40 PCs")
+show_image(project_data(pc_olivetti, 80)[,70], "80 PCs")
+
+show_image(faces[,80], "Original")
+show_image(project_data(pc_olivetti, 10)[,80], "10 PCs")
+show_image(project_data(pc_olivetti, 40)[,80], "40 PCs")
+show_image(project_data(pc_olivetti, 80)[,80], "80 PCs")
+
+```
+
+It is worth realizing the amount of data compression realized by using PCA. The original images had 4096 degrees of freedom, whereas the rightmost versions in @fig-pca-reduced are described by 80 loadings, more than a 50-fold reduction in degrees of freedom! Clearly there are some visual artifacts that appear in the compressed versions, but the faces are clearly distinguishable, and it seems very reasonable at this point that a machine learning algorithm (for example, to classify the faces, or to do segmentation) could take these compressed images as input and still perform well.
