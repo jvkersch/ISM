@@ -7,6 +7,7 @@ set.seed(1234)
 library(ggplot2)
 library(GGally)
 library(gridExtra)
+library(tidyverse)
 ```
 
 In the previous chapter we built a linear model to predict the amount of body fat, given measurements of the thickness of the triceps skin fold, the thigh circumference, and the midarm circumference. We saw that the dataset used for this model suffers from multicollinearity, meaning that some of the predictors (or linear combinations of predictors) are correlated with one another. Intuitively speaking, multicollinearity means that some variables don't contribute much to the expressivity of the data: we could omit them and end up with a dataset that is almost as informative as the original one.
@@ -528,9 +529,205 @@ At one glance, we see that `triceps.skinfold` and `thigh.circumference` are the 
 
 ## Applications of principal component analysis
 
-### Principal component regression
+### Adulteration of olive oil
 
-### Partial least squares regression
+section outline:
+
+- Problem description
+- Plot of spectra for adulterated versus pure, indicate that spectra look difficult but that it's not easy to tell them apart based on some numbers
+- PC plot, loadings, % variance explained
+- PCR/PLS to predict adulteration
+
+```{r}
+#| warning: false
+
+library(readxl)
+
+# The dataset contains in the first column a description
+# of the kind of adulteration with th
+# create_mixture <- function(fullname) {
+#   if (!grepl('/', fullname, fixed = TRUE)) {
+#     return(fullname)
+#   }
+#   items <- strsplit(fullname, ' +')[[1]]
+#   paste(items[-length(items)], collapse = " ")
+# }
+
+oils <- read_excel("./datasets/02-pca/HSI.xlsx")
+
+# Names of the spectra
+cols <- colnames(oils)
+spectra <- cols[5:length(cols)]
+
+oils_long <- oils %>%
+  pivot_longer(cols = spectra, 
+               names_to = "wavelength", 
+               values_to = "intensity") %>%
+  mutate(wavelength = as.numeric(wavelength))
+
+```
+
+Trace plot for adulterated oils, with EVOO superimposed
+
+```{r}
+pure_non_pure <- oils_long %>%
+  filter(Classification == "Olive") %>%
+  mutate(pure = `% Adulteration` == 0)
+
+ggplot(
+  data = pure_non_pure,
+  aes(x = wavelength, y = intensity, color = pure,
+             group = interaction(`Sample ID/Wavelength`, Sample))) +
+  geom_line(data = subset(pure_non_pure, pure == FALSE)) +
+  geom_line(data = subset(pure_non_pure, pure == TRUE)) +
+  labs(x = "Wavelength", y = "Intensity", color = "Type of oil") +
+  scale_color_discrete(labels = c("Adulterated", "Pure"))
+
+```
+
+
+Compute principal components
+```{r}
+pca_oils <- oils %>%
+  select(all_of(spectra)) %>%
+  prcomp(scale = FALSE)
+
+```
+
+Percentage of variance explained
+```{r}
+pca_oils %>%
+  broom::tidy(matrix = "eigenvalues") %>%
+  head(n = 9) %>%
+  ggplot(aes(PC, percent)) +
+  geom_col(fill = "#56B4E9", alpha = 0.8) +
+  scale_x_continuous(breaks = 1:9) +
+  scale_y_continuous(
+    labels = scales::percent_format(),
+    expand = expansion(mult = c(0, 0.01))
+  ) +
+  labs(y = "Percentage of variance explained")
+```
+
+
+
+
+Plot of the first few loadings vectors
+```{r}
+loadings <- as.data.frame(pca_oils$rotation)
+loadings$wavelength <- as.numeric(rownames(loadings))
+rownames(loadings) <- 1:nrow(loadings)
+
+loadings %>%
+  select(wavelength, PC1, PC2) %>%
+  pivot_longer(cols = c(PC1, PC2)) %>%
+  ggplot() +
+    geom_line(aes(x = wavelength, y = value, color = name), linewidth = 1.0) +
+  labs(x = "Wavelength", y = "", color = "Component")
+
+```
+
+Plot first two PCs
+```{r}
+pdata <- pca_oils %>%
+  broom::augment(oils) %>%
+  filter(`% Adulteration` < 100) %>%
+  mutate(adulterated = `% Adulteration` > 0)
+
+pct_var_explained <- 100*pca_oils$sdev^2/sum(pca_oils$sdev^2)
+xlabel <- paste0("PC 1 (", round(pct_var_explained[[1]], 2), "% var. explained)")
+ylabel <- paste0("PC 2 (", round(pct_var_explained[[2]], 2), "% var. explained)")
+
+ggplot(
+  pdata,
+  aes(.fittedPC1, .fittedPC2,
+      color = `% Adulteration`, shape = adulterated)) +
+  geom_point(size = 2) +
+  labs(x = xlabel, y = ylabel, shape = "Type of oil") +
+  scale_shape_discrete(labels = c("Pure", "Adulterated"))
+
+```
+
+```{r}
+# for the adulterated oils, predict the percentage of adulteration
+adulterated <- oils %>%
+  filter(`% Adulteration` > 0, `% Adulteration` <= 20) %>%
+  select(-`Sample ID/Wavelength`,
+         -Sample,
+         -Classification)
+
+# Set aside some test data
+train_no <- round(0.8 * nrow(adulterated))
+train_idxs <- sample(1:nrow(adulterated), train_no)
+adulterated_train <- adulterated[train_idxs, ]
+adulterated_test <- adulterated[-train_idxs, ]
+
+```
+
+```{r}
+library(pls)
+
+# Run a PCR analysis first
+pcr_model <- pcr(
+  `% Adulteration` ~ .,
+  data = adulterated_train,
+  scale = FALSE, validation = "CV"
+)
+# Do a PLS secondly
+
+pls_model <- plsr(
+  `% Adulteration` ~ .,
+  data = adulterated_train,
+  scale = FALSE, validation = "CV"
+)
+
+```
+
+```{r}
+ncomp <- 5
+pcr_pred <- predict(pcr_model, adulterated_test, ncomp = ncomp)
+pls_pred <- predict(pls_model, adulterated_test, ncomp = ncomp)
+```
+
+```{r}
+# Plot both results together
+df <- data.frame(
+  measured = adulterated_test$`% Adulteration`,
+  PLS = unlist(as.list(pls_pred)),
+  PCR = unlist(as.list(pcr_pred))
+) %>% pivot_longer(cols = c("PLS", "PCR"))
+
+jitter_x <- position_jitter(w = 0.15, h = 0)
+ggplot(df) +
+  geom_abline(alpha = 0.3) +
+  geom_point(aes(x = measured, y = value, color = name),
+             alpha = 1.0, position = jitter_x) +
+  labs(color = "Method", x = "Measured", y = "Predicted")
+
+```
+
+```{r}
+# Evaluate RMSE as a function of number of components on test dataset
+
+rmse <- function(ncomp, model) {
+  pred <- predict(model, adulterated_test, ncomp = ncomp)
+  mean((pred - adulterated_test$`% Adulteration`)^2)^0.5
+}
+
+ncomps <- seq(3, 15)
+rmse_data <- data.frame(
+  ncomps = ncomps,
+  PCR = map_dbl(ncomps, rmse, model = pcr_model),
+  PLS = map_dbl(ncomps, rmse, model = pls_model)
+) %>% pivot_longer(cols = c("PCR", "PLS"))
+
+ggplot(rmse_data) +
+  geom_line(aes(x = ncomps, y = value, color = name)) +
+  labs(color = "Method", x = "Number of components", y = "RMSE")
+
+
+```
+
 
 ### Eigenfaces {#sec-eigenfaces}
 
