@@ -538,6 +538,35 @@ section outline:
 - PC plot, loadings, % variance explained
 - PCR/PLS to predict adulteration
 
+Principal component analysis is often a necessary first step when there are a large number of independent variables that need to be  analyze simultaneously. Many devices in a modern lab produce this kind of high-dimensional data: for example, a reading for a single sample obtained via gas chromatography-mass spectrometry (GC-MS) or hyperspectral imagining (HSI) is a vector with 100s of entries, and with the number of samples often running in the 100s as well, we need a technique like PCA to find the needle in the haystack.
+
+In this section, we look at one such example. Prof. Van Haute of the Centre for Food Chemistry and Technology at GUGC provided us with a dataset of HSI readings for different kinds of olive oils and vegetable oils (see [@2023-malavi-HyperspectralImagingChemometrics] for more details and a much more extensive analysis). 
+
+
+
+
+
+*Can hyperspectral imaging be used to detect whether olive oil has been adulterated with other kinds of oils? If so, can the amount of adulteration be quantified accurately?*
+
+
+
+The dataset contains HSI readings from 183 different kinds of food oil, with 13 kinds of extra-virgin olive oils, and the 
+
+
+
+
+::: {#fig-hsi layout-ncol=2 align="center"}
+
+![](./images/02-PCA/hyperspectral.png)
+
+![](./images/02-PCA/hsi-spectra.png)
+
+Hyperspectral imaging system (left) and typical output spectra (right). Figure source: @2023-malavi-HyperspectralImagingChemometrics. 
+:::
+
+
+The 
+
 ```{r}
 #| warning: false
 
@@ -564,6 +593,8 @@ oils_long <- oils %>%
                names_to = "wavelength", 
                values_to = "intensity") %>%
   mutate(wavelength = as.numeric(wavelength))
+
+head(oils)
 
 ```
 
