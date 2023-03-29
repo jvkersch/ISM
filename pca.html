@@ -235,6 +235,7 @@ div.csl-indent {
   <li><a href="#the-number-of-principal-components" id="toc-the-number-of-principal-components" class="nav-link" data-scroll-target="#the-number-of-principal-components"><span class="toc-section-number">1.3.3</span>  The number of principal components</a></li>
   <li><a href="#biplots" id="toc-biplots" class="nav-link" data-scroll-target="#biplots"><span class="toc-section-number">1.3.4</span>  Biplots</a></li>
   </ul></li>
+  <li><a href="#principal-component-regression" id="toc-principal-component-regression" class="nav-link" data-scroll-target="#principal-component-regression"><span class="toc-section-number">1.4</span>  Principal component regression</a></li>
   </ul>
 </nav>
     </div>
@@ -770,14 +771,118 @@ Cumulative Proportion  0.7872 0.9997 1.00000</code></pre>
 </div>
 <p>The numbers on the plot represent the data points from the original dataset, expressed relative to the first two principal components. This is the part of the biplot that is like a score plot. The red arrows, on the other hand, represent the original variables in the dataset (as shown by the labels attached to them) and are expressed on the top and right-most axis, which show how much each variable contributes to the first two principal components. The red arrows carry the same information as a loadings plot (in a different form), when you consider only the first two principal component.</p>
 <p>At one glance, we see that <code>triceps.skinfold</code> and <code>thigh.circumference</code> are the most important contributors to the first principal component, and that the second principal component is almost entirely made up by <code>midarm.circumference</code>. This confirms our intuition from the beginning of this chapter, as well as the conclusions that we drew from the loadings plot.</p>
+</section>
+</section>
+<section id="principal-component-regression" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="principal-component-regression"><span class="header-section-number">1.4</span> Principal component regression</h2>
+<p>Once we have performed PCA, we can build a linear model using the principal components that we have chosen to retain. This is known as <em>principal component regression</em>. Let’s see this in action for the bodyfat dataset. We start from a model where we include the first principal component only:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>pc1 <span class="ot">&lt;-</span> pc<span class="sc">$</span>x[, <span class="st">"PC1"</span>]</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>outcome <span class="ot">&lt;-</span> bodyfat<span class="sc">$</span>bodyfat</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>model_1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(outcome <span class="sc">~</span> pc1)</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = outcome ~ pc1)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-5.1357 -1.8821  0.2682  1.7107  3.4992 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept) 20.19500    0.58688  34.411  &lt; 2e-16 ***
+pc1          0.61366    0.08358   7.343 8.13e-07 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 2.625 on 18 degrees of freedom
+Multiple R-squared:  0.7497,    Adjusted R-squared:  0.7358 
+F-statistic: 53.91 on 1 and 18 DF,  p-value: 8.128e-07</code></pre>
+</div>
+</div>
+<p>Adding the second principal component results in a bigger model, but the coefficient of the second principal component is not significant. We therefore do not include it in our final model and we stay with <code>model_1</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>pc2 <span class="ot">&lt;-</span> pc<span class="sc">$</span>x[, <span class="st">"PC2"</span>]</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>model_12 <span class="ot">&lt;-</span> <span class="fu">lm</span>(outcome <span class="sc">~</span> pc1 <span class="sc">+</span> pc2)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_12)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = outcome ~ pc1 + pc2)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-3.9876 -1.8822  0.2562  1.3209  4.0285 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept) 20.19500    0.56604  35.678  &lt; 2e-16 ***
+pc1          0.61366    0.08061   7.613 7.12e-07 ***
+pc2         -0.23785    0.15514  -1.533    0.144    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 2.531 on 17 degrees of freedom
+Multiple R-squared:  0.7801,    Adjusted R-squared:  0.7542 
+F-statistic: 30.15 on 2 and 17 DF,  p-value: 2.564e-06</code></pre>
+</div>
+</div>
+<p>In this way, we obtain a simple least squares model, with one predictor and one outcome. Quite a simplification from our original linear model, which had three predictors and suffered from multi-collinearity. This reduction from 3 to 1 predictors may not seem like a big deal, but in the next chapter we will see examples of how PCA can be used to reduce datasets with many hundreds of variables to just 2-3 components, while maintaining the essential information in the dataset.</p>
+<p>In this section we have built the linear model “by hand”, but in reality you would probably not want to do this, for two reasons:</p>
+<ol type="1">
+<li>Testing each predictor at a time when there are many hundreds of candidates to choose from is impractical.</li>
+<li>Using the forward model building procedure, as we did above, comes with significant multiple-testing issues.</li>
+</ol>
+<p>Luckily, there are R packages that will do the PCA, select the optimal number of components, and build the regression model all for us. Here we use the <code>pls</code> package. We tell it to consider all principal components, and to assess the error through cross-validation. The details of this will be discussed in class, but the important line in the output is labeled <code>RMSEP</code>. This shows a measure of error in function of the number of components taken into account. We see that this error is the lowest when only the first principal component is considered.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pls)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>pcr_model <span class="ot">&lt;-</span> <span class="fu">pcr</span>(bodyfat <span class="sc">~</span> ., <span class="at">data =</span> bodyfat, <span class="at">validation =</span> <span class="st">"CV"</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(pcr_model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Data:   X dimension: 20 3 
+    Y dimension: 20 1
+Fit method: svdpc
+Number of components considered: 3
+
+VALIDATION: RMSEP
+Cross-validated using 10 random segments.
+       (Intercept)  1 comps  2 comps  3 comps
+CV           5.239    2.612    2.597    2.681
+adjCV        5.239    2.602    2.583    2.656
+
+TRAINING: % variance explained
+         1 comps  2 comps  3 comps
+X          78.72    99.97   100.00
+bodyfat    74.97    78.01    80.14</code></pre>
+</div>
+</div>
+<p>There are various rules to select the optimal number of components to consider. One such rule is the “1-sigma rule” <span class="citation" data-cites="hastie2009elements">(<a href="references.html#ref-hastie2009elements" role="doc-biblioref">Hastie, Tibshirani, and Friedman 2009</a>)</span> which considers the model with the least number of components whose cross-validation error is at most one standard deviation away from the optimal model. In our case, this again results in a model with only one predictor.</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">selectNcomp</span>(pcr_model, <span class="at">method =</span> <span class="st">"onesigma"</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="pca_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1</code></pre>
+</div>
+</div>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography" style="display: none">
 <div id="ref-bishopPatternRecognitionMachine2006" class="csl-entry" role="doc-biblioentry">
 Bishop, Christopher M. 2006. <em>Pattern Recognition and Machine Learning</em>. Vol. 2. Information <span>Science</span> and <span>Statistics</span>. <span>Springer, New York</span>.
 </div>
+<div id="ref-hastie2009elements" class="csl-entry" role="doc-biblioentry">
+Hastie, T., R. Tibshirani, and J. H. Friedman. 2009. <em>The Elements of Statistical Learning: <span>Data</span> Mining, Inference, and Prediction</em>. Springer Series in Statistics. <span>Springer</span>.
 </div>
-</section>
+</div>
 </section>
 <section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr>
