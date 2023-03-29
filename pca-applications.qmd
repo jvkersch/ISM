@@ -287,11 +287,16 @@ ggplot(df) +
 
 ### A cautionary note
 
-In building the models above, we have glossed over many details that may impact the accuracy and even the validity of our model. 
+In our model building procedure we have glossed over a few critical steps that may cause doubt on the validity of the model or the conclusions that we can draw from our analysis. 
 
-- 
+- Chiefly among these is the splitting into training and test data. We did that correctly to train our model, but everything that came before it (including the exploratory data analysis) used the entire data set. To build an appropriate model, you should set aside some data to serve as test data at the beginning of your analysis, and then use only the training data to determine the appropriate number principal components, to classify oils into adulterated and pure, and so on.
 
-- Determining the optio
+- We have trained and evaluated our model only on adulterated oils. In reality, however, we will present the model with unknown oil samples, which may or may not be adulterated, and the performance on such samples is an open question. A better model could be built by including EVOO samples in our dataset, or by first classifying oils into adulterated/pure. Each approach comes with a number of complications which would lead us too far here.
+
+- Our model willfully ignores a number of important variables in the dataset. For example, we don't take into account the kind of vegetable oil that was used to adulterate a sample. By distinguishing the type of adulterant, we could presumably build a better model, but this too would lead us too far.
+
+A more complete model that addresses all of these concerns (and more) can be found in [@2023-malavi-HyperspectralImagingChemometrics].
+
 
 ## Eigenfaces {#sec-eigenfaces}
 
