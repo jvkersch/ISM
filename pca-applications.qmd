@@ -60,7 +60,7 @@ In our case study we want to determine whether hyperspectral imaging can be used
 1. *Can hyperspectral imaging be used to detect whether olive oil has been adulterated with other kinds of oils?*
 1. *If so, can the amount of adulteration be quantified (e.g. as a percentage)?*
 
-To investigate these research questions, @2023-malavi-HyperspectralImagingChemometrics acquired readings from 13 different kinds of unadulterated EVOO, together with readings from 42 adulterated mixtures. Each adulterated mixture was prepared by taking olive oil and adding one of 6 different vegetable oils to it, at 7 different percentages (ranging from 1% to 20% adulterant). Each sample was prepared and imagined in triplicate, resulting in 183 spectra. Each spectra is a vector of length 224, describing the reflectance at equally distributed wavelengths from 700 to 1800 nm.
+To investigate these research questions, @2023-malavi-HyperspectralImagingChemometrics acquired readings from 13 different kinds of unadulterated EVOO, together with readings from 42 adulterated mixtures. Each adulterated mixture was prepared by taking olive oil and adding one of 6 different vegetable oils at 7 different percentages (ranging from 1% to 20% adulterant). Each sample was prepared and imagined in triplicate, resulting in 183 spectra. Each spectrum is a vector of length 224, describing the reflectance at 224 equally distributed wavelengths from 700 to 1800 nm.
 
 ::: {#fig-hsi layout-ncol=2 align="center" layout-valign="center"}
 
@@ -71,7 +71,7 @@ To investigate these research questions, @2023-malavi-HyperspectralImagingChemom
 Hyperspectral imaging system (left) and typical output spectra (right). Figure source: @2023-malavi-HyperspectralImagingChemometrics. 
 :::
 
-Below, we read in the dataset and we print out a random sample of 10 rows from it. Note that the dataset has 228 columns: 4 of these are metadata variables described below and the remaining 224 columns describe the spectrum for each sample. The metadata variables are:
+Below, we read in the dataset and we print out a random sample of 10 rows from it (the full dataset is too large to display in its entirety). Note that the dataset has 228 columns: 4 of these are metadata variables described below and the remaining 224 columns describe the spectrum for each sample. The metadata variables are:
 
 - `Sample ID/Wavelength`: The name of the oil or mixture, and the mixture ratio (if applicable)
 - `Sample`: A unique integer identifying each sample. Not used in the subsequent analysis.
@@ -144,6 +144,7 @@ We are now in a position to compute the principal components, and to figure out 
 
 ```{r}
 #| echo: true
+#| code-fold: false
 pca_oils <- oils %>%
   select(all_of(spectra)) %>%
   prcomp(scale = FALSE)
@@ -186,9 +187,9 @@ loadings %>%
 
 ```
 
-We started this section with the observation that there are minute differences between the spectra of different oils, but we admitted that it would be quite difficult to tell two spectra apart just by eye. We are now in a position where we can solve this issue: by considering only the first few principal components we get a number of variables that (hopefully) can be used to tell the spectra apart.
+We started this section with the observation that there are minute differences between the spectra of different oils, but we admitted that it would be quite difficult to tell two spectra apart just by eye. We are now in a position where we can solve this issue: by considering only the first few principal components we get a reduced number of variables that (hopefully) can be used to tell the spectra apart.
 
-Below we have a scatterplot of the first two principal components. The EVOO samples are round dots, and the adulterated oils are triangles colored by the percentage of adulteration. The EVOO samples are clearly distinct from the adulterated oils (they are separated by the second principal component). This answers our first research question with a "yes": we can tell pure and adulterated oils apart.
+Below we have a scatterplot of the first two principal components. The EVOO samples are round dots, and the adulterated oils are triangles colored by the percentage of adulteration. The EVOO samples are clearly distinct from the adulterated oils (they are separated by the second principal component). This answers our first research question with a "yes": we can clearly tell pure and adulterated oils apart.
 
 
 ```{r}
@@ -217,7 +218,7 @@ ggplot(
 
 Now that we are able to tell EVOO and adulterated samples apart, it is time to consider our second research question: given an adulterated oil sample, can we predict the percentage of vegetable oil that was added? Looking at @fig-pc-plot-oils, it looks like we'll need more than two principal components: we see no clear pattern in the percentage adulteration that we or a linear model could exploit.
 
-Before building some models, we need to do some data preparation. We select from our dataset only those rows that contain adulterated oils, and we split the resulting dataset into a *training dataset* (containing 80% of the data) and a *test dataset* (containing the remaining 20%). The idea is that we set apart the test dataset and build our model using only the training dataset. The test dataset is used to evaluate how well the model performs on data that it has never seen before. Using the full dataset to build the model and evaluate it would result in an overly optimistic estimate of the predictive capabilities of our model.
+Before building our model, we need to do some data preparation. We select from our dataset only those rows that contain adulterated oils, and we split the resulting dataset into a *training dataset* (containing 80% of the data) and a *test dataset* (containing the remaining 20%). The idea is that we set apart the test dataset and build our model using only the training dataset. The test dataset is used to evaluate how well the model performs on data that it has never seen before. Using the full dataset to build the model and evaluate it would result in an overly optimistic estimate of the predictive capabilities of our model.
 
 ```{r}
 # for the adulterated oils, predict the percentage of adulteration
@@ -289,11 +290,11 @@ ggplot(df) +
 
 In our model building procedure we have glossed over a few critical steps that may cause doubt on the validity of the model or the conclusions that we can draw from our analysis. 
 
-- Chiefly among these is the splitting into training and test data. We did that correctly to train our model, but everything that came before it (including the exploratory data analysis) used the entire data set. To build an appropriate model, you should set aside some data to serve as test data at the beginning of your analysis, and then use only the training data to determine the appropriate number principal components, to classify oils into adulterated and pure, and so on.
+- Chiefly among these is the splitting into training and test data. We did that correctly to train our model, but everything that came before it (including the exploratory data analysis) used the entire data set. To build a model that is not overly optimistic, you should set aside some data to serve as test data at the beginning of your analysis, and then use only the training data to determine the appropriate number principal components, to classify oils into adulterated and pure, and so on. *Your model should never "see" the test data, until the very end.*
 
-- We have trained and evaluated our model only on adulterated oils. In reality, however, we will present the model with unknown oil samples, which may or may not be adulterated, and the performance on such samples is an open question. A better model could be built by including EVOO samples in our dataset, or by first classifying oils into adulterated/pure. Each approach comes with a number of complications which would lead us too far here.
+- We have trained and evaluated our model only on adulterated oils. In reality, however, we will present the model with unknown oil samples, which may or may not be adulterated, and the performance on such samples is an open question. A better model could be built by including EVOO samples in our dataset, or by first classifying oils into adulterated/pure. Each approach comes with a number of complications that would lead us too far.
 
-- Our model willfully ignores a number of important variables in the dataset. For example, we don't take into account the kind of vegetable oil that was used to adulterate a sample. By distinguishing the type of adulterant, we could presumably build a better model, but this too would lead us too far.
+- Our model willfully ignores a number of important variables in the dataset. For example, we don't take into account the kind of vegetable oil that was used to adulterate a sample. By distinguishing the type of adulterant, we could presumably build a better model, but this too would make the analysis significantly more complex.
 
 A more complete model that addresses all of these concerns (and more) can be found in [@2023-malavi-HyperspectralImagingChemometrics].
 
