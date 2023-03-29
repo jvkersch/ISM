@@ -7,6 +7,7 @@ set.seed(1234)
 library(ggplot2)
 library(GGally)
 library(gridExtra)
+library(tidyverse)
 ```
 
 In the previous chapter we built a linear model to predict the amount of body fat, given measurements of the thickness of the triceps skin fold, the thigh circumference, and the midarm circumference. We saw that the dataset used for this model suffers from multicollinearity, meaning that some of the predictors (or linear combinations of predictors) are correlated with one another. Intuitively speaking, multicollinearity means that some variables don't contribute much to the expressivity of the data: we could omit them and end up with a dataset that is almost as informative as the original one.
@@ -325,24 +326,15 @@ Prior to doing principal component analysis, the data are often standardized by 
 $$
   \mathbf{Y}_i = \frac{\mathbf{X}_i - \bar{\mathbf{X}}_i}{\sqrt{S^2_i}},
 $$
-where $S^2_i$ is the variance of $\mathbf{X}_i$. If we put all of these variances $S_i^2$ into a diagonal matrix $\mathbf{V}$ given by
-$$
-  \mathbf{V} = \begin{bmatrix}
-    \sqrt{S_1^2} & 0 & \ldots & 0 \\
-    0 & \sqrt{S_2^2} & \ldots & 0 \\
-    \vdots & \vdots & \ddots & \vdots \\
-    0 & 0 & \ldots & \sqrt{S_D^2}
-  \end{bmatrix}
-$$
-then it can be shown that the covariance matrix $\mathbf{R}$ of the $\mathbf{Y}$ variables is related to the covariance matrix $\mathbf{S}$ of the original $\mathbf{X}$ variables by
-$$
-  \mathbf{...}
-$$
+where $S^2_i$ is the variance of $\mathbf{X}_i$. The resulting variables $\mathbf{Y}_i$ will have mean 0 and variance 1.
 
+Standardizing the predictors means that they will be comparable in magnitude: variables whose variance is small will gain in importance and large variables will decrease in importance, roughly speaking. This may change the PCA output significantly!
 
-This standardization often has a profound effect on the principal component analysis.
+As a rule of thumb, you should standardize variables that are measured in different units (e.g. seconds, meters, Watt, ...), since the unit can be rescaled without affecting the physical meaning of the variable, or its relation to other variables (e.g., rescaling a variable expressed in meters by a factor of 1000 is the same as expressing that variable in kilometers). By contrast, variables that are measured in the same units or that are unitless should not be rescaled (or should be rescaled collectively). 
 
+For an example of the latter, think about pixel intensities in an image dataset (such a dataset is in fact analyzed in @sec-eigenfaces). Pixels near the edge of the image presumably are part of the background, don't vary that much, and are relatively unimportant, whereas pixels in the center are likely to be part of the image subject, vary a lot, and carry a lot of information. Standardizing the pixels would make the pixels near the edge just as variable as the pixels in the center, which would greatly amplify the noise in the image at the expense of the useful information in it!
 
+Standardizing the predictors is also referred to as *scaling*.
 
 ## Interpreting the PCA results
 
@@ -525,109 +517,55 @@ The numbers on the plot represent the data points from the original dataset, exp
 
 At one glance, we see that `triceps.skinfold` and `thigh.circumference` are the most important contributors to the first principal component, and that the second principal component is almost entirely made up by `midarm.circumference`. This confirms our intuition from the beginning of this chapter, as well as the conclusions that we drew from the loadings plot.
 
+## Principal component regression
 
-## Applications of principal component analysis
-
-### Principal component regression
-
-### Partial least squares regression
-
-### Eigenfaces {#sec-eigenfaces}
-
-Our last example is not life sciences based, but serves as an illustration to show that PCA is a powerful technique in data analysis, which can be used to reduce the number of degrees of freedom in a large dataset.
-
-We use the Olivetti dataset of human faces, which contains 400 frontal photographs of human faces. Each face is a grayscale image of 64 by 64 pixels, where the intensity of each pixel is a value between 0 (completely black) to 255 (completely white). Each image can be represented as a $64 \times 64$ matrix, but it will be more convenient to take the columns of this matrix and lay them out one after the other to obtain a vector with $64 \times 64 = 4096$ entries, as in @fig-image-unroll.
-
-![An image that is $N$ pixels high and $M$ pixels wide can be viewed as a matrix with $N$ rows and $M$ columns, or as a vector with $N \times M$ elements. Here, $N$ and $M$ are both equal to 3.](images/02-PCA/image-unroll){#fig-image-unroll}
-
-First, we load the dataset. Note that the dataset comes as a data matrix with 4096 rows and 400 columns.
+Once we have performed PCA, we can build a linear model using the principal components that we have chosen to retain. This is known as *principal component regression*. Let's see this in action for the bodyfat dataset. We start from a model where we include the first principal component only: 
 
 ```{r}
 #| echo: true
 #| code-fold: false
-library(loon.data)
-data(faces)
-dim(faces)
+
+pc1 <- pc$x[, "PC1"]
+outcome <- bodyfat$bodyfat
+
+model_1 <- lm(outcome ~ pc1)
+summary(model_1)
 ```
 
-Each column in the data matrix represents a face, laid out as a column vector with 4096 as in @fig-image-unroll. We can assemble these vectors back into images and visualize them. This requires some R commands that we haven't covered; you don't have to understand what this code does.
-
-```{r}
-#| fig-cap: Six faces from the Olivetti dataset.
-#| label: fig-olivetti-faces
-show_image <- function(imgdata, title = NULL) {
-  m <- matrix(imgdata, nrow = 64, ncol = 64, byrow = F)
-  m <- t(apply(m, 2, rev))
-  image(m, axes = FALSE, col=grey(seq(0,1,length=256)),
-        main = title)
-}
-
-par(mfrow=c(2, 4), mar=c(1, 1, 1, 1))
-for (i in 1:8) {
-  show_image(faces[,10*i], paste0("Face #", 10*i))
-}
-
-```
-
-Doing a principal component analysis is a simple matter of running `prcomp`. Despite the size of the dataset, this component should not take more than a second to run.
+Adding the second principal component results in a bigger model, but the coefficient of the second principal component is not significant. We therefore do not include it in our final model and we stay with `model_1`.
 
 ```{r}
 #| echo: true
 #| code-fold: false
-pc_olivetti <- prcomp(faces)
+
+pc2 <- pc$x[, "PC2"]
+model_12 <- lm(outcome ~ pc1 + pc2)
+summary(model_12)
+
 ```
 
-Note that there are 400 principal components in this dataset. We can visualize their relative importance via a scree plot, which we limit to the first 50 components for clarity, since the remaining 350 components contribute almost no variance. This indicates that we can probably discard most of the principal components without losing much of the expressivity of our dataset. We will see further down that this is indeed the case!
+In this way, we obtain a simple least squares model, with one predictor and one outcome. Quite a simplification from our original linear model, which had three predictors and suffered from multi-collinearity. This reduction from 3 to 1 predictors may not seem like a big deal, but in the next chapter we will see examples of how PCA can be used to reduce datasets with many hundreds of variables to just 2-3 components, while maintaining the essential information in the dataset.
+
+In this section we have built the linear model "by hand", but in reality you would probably not want to do this, for two reasons:
+
+1. Testing each predictor at a time when there are many hundreds of candidates to choose from is impractical.
+1. Using the forward model building procedure, as we did above, comes with significant multiple-testing issues.
+
+Luckily, there are R packages that will do the PCA, select the optimal number of components, and build the regression model all for us. Here we use the `pls` package. We tell it to consider all principal components, and to assess the error through cross-validation. The details of this will be discussed in class, but the important line in the output is labeled `RMSEP`. This shows a measure of error in function of the number of components taken into account. We see that this error is the lowest when only the first principal component is considered.
 
 ```{r}
 #| warning: false
-gg_screeplot(pc_olivetti, n = 50)
+#| echo: true
+#| code-fold: false
+
+library(pls)
+
+pcr_model <- pcr(bodyfat ~ ., data = bodyfat, validation = "CV")
+summary(pcr_model)
 ```
 
-One of the advantages of the faces dataset is that the principal components can be represented graphically, and that we can reason about them. @fig-olivetti-pc shows the first 8 principal components, represented as images. How should we interpret these images? Each principal component represents a particular *pattern* in the dataset of all faces: the first principal component, for example, captures the overall structure of a human face, while the second represents the illumination from right to left. Probably there were some photos in the dataset that were illuminated from the left or the right. Principal component three does the same for the top-down illumination, and principal components four through eight capture particular patterns involving the eyes or the eyebrows. *By selectively "mixing" all 400 principal components, we can recreate any face in the dataset.*
+There are various rules to select the optimal number of components to consider. One such rule is the "1-sigma rule" [@hastie2009elements] which considers the model with the least number of components whose cross-validation error is at most one standard deviation away from the optimal model. In our case, this again results in a model with only one predictor.
 
 ```{r}
-#| fig-cap: The first 8 principal components of the Olivetti dataset represent particularly expressive patterns in the dataset.
-#| label: fig-olivetti-pc
-normalize <- function(x) {
-  # ensure that PC components are between 0 and 255,
-  # for visualization
-  255 * (x - min(x)) / (max(x) - min(x))
-}
-par(mfrow=c(2, 4), mar=c(1, 1, 1, 1))
-for (i in 1:8) {
-  show_image(normalize(pc_olivetti$x[,i]), 
-             paste0("PC ", i))
-}
-
+selectNcomp(pcr_model, method = "onesigma", plot = TRUE)
 ```
-
-To finish, let's also investigate how well PCA performs as a data reduction method. By retaining only a limited number of principal components, we can build "reduced" versions of the images that involve only a number of principal components. @fig-pca-reduced shows two original faces from the dataset (left), together with compressed versions involving the first 10, 40, and 80 most significant principal components. The version that uses only 10 components is quite generic and it is difficult even to distinguish the male and female face. The version with 80 components, on the other hand, is very close to the original.
-
-```{r}
-#| fig-cap: Original images (left), and 3 PCA-reduced images with increasing numbers of principal components. 
-#| label: fig-pca-reduced
-project_data <- function(pc, n_retain) {
-  t(t(pc$x[,1:n_retain] %*% t(pc$rotation)[1:n_retain,]) + pc$center)
-}
-
-par(mfrow=c(2, 4), mar=c(1, 1, 1, 1))
-show_image(faces[,70], "Original")
-show_image(project_data(pc_olivetti, 10)[,70], "10 PCs")
-show_image(project_data(pc_olivetti, 40)[,70], "40 PCs")
-show_image(project_data(pc_olivetti, 80)[,70], "80 PCs")
-
-show_image(faces[,80], "Original")
-show_image(project_data(pc_olivetti, 10)[,80], "10 PCs")
-show_image(project_data(pc_olivetti, 40)[,80], "40 PCs")
-show_image(project_data(pc_olivetti, 80)[,80], "80 PCs")
-
-```
-
-It is worth realizing the amount of data compression realized by using PCA. The original images had 4096 degrees of freedom, whereas the rightmost versions in @fig-pca-reduced are described by 80 loadings, more than a 50-fold reduction in degrees of freedom! Clearly there are some visual artifacts that appear in the compressed versions, but the faces are clearly distinguishable, and it seems very reasonable at this point that a machine learning algorithm (for example, to classify the faces, or to do segmentation) could take these compressed images as input and still perform well.
-
-## Other methods for dimensionality reduction
-
-### Multidimensional scaling (MDS)
-
-### t-SNE and UMAP
