@@ -326,24 +326,15 @@ Prior to doing principal component analysis, the data are often standardized by 
 $$
   \mathbf{Y}_i = \frac{\mathbf{X}_i - \bar{\mathbf{X}}_i}{\sqrt{S^2_i}},
 $$
-where $S^2_i$ is the variance of $\mathbf{X}_i$. If we put all of these variances $S_i^2$ into a diagonal matrix $\mathbf{V}$ given by
-$$
-  \mathbf{V} = \begin{bmatrix}
-    \sqrt{S_1^2} & 0 & \ldots & 0 \\
-    0 & \sqrt{S_2^2} & \ldots & 0 \\
-    \vdots & \vdots & \ddots & \vdots \\
-    0 & 0 & \ldots & \sqrt{S_D^2}
-  \end{bmatrix}
-$$
-then it can be shown that the covariance matrix $\mathbf{R}$ of the $\mathbf{Y}$ variables is related to the covariance matrix $\mathbf{S}$ of the original $\mathbf{X}$ variables by
-$$
-  \mathbf{...}
-$$
+where $S^2_i$ is the variance of $\mathbf{X}_i$. The resulting variables $\mathbf{Y}_i$ will have mean 0 and variance 1.
 
+Standardizing the predictors means that they will be comparable in magnitude: variables whose variance is small will gain in importance and large variables will decrease in importance, roughly speaking. This may change the PCA output significantly!
 
-This standardization often has a profound effect on the principal component analysis.
+As a rule of thumb, you should standardize variables that are measured in different units (e.g. seconds, meters, Watt, ...), since the unit can be rescaled without affecting the physical meaning of the variable, or its relation to other variables (e.g., rescaling a variable expressed in meters by a factor of 1000 is the same as expressing that variable in kilometers). By contrast, variables that are measured in the same units or that are unitless should not be rescaled (or should be rescaled collectively). 
 
+For an example of the latter, think about pixel intensities in an image dataset (such a dataset is in fact analyzed in @sec-eigenfaces). Pixels near the edge of the image presumably are part of the background, don't vary that much, and are relatively unimportant, whereas pixels in the center are likely to be part of the image subject, vary a lot, and carry a lot of information. Standardizing the pixels would make the pixels near the edge just as variable as the pixels in the center, which would greatly amplify the noise in the image at the expense of the useful information in it!
 
+Standardizing the predictors is also referred to as *scaling*.
 
 ## Interpreting the PCA results
 
