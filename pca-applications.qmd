@@ -33,36 +33,32 @@ gg_screeplot <- function(pc, n = length(pc$sdev)) {
     ylab("Explained variance (%)")
 }
 
-
 ```
-
-## Adulteration of olive oil
-
-section outline:
-
-- Problem description
-- Plot of spectra for adulterated versus pure, indicate that spectra look difficult but that it's not easy to tell them apart based on some numbers
-- PC plot, loadings, % variance explained
-- PCR/PLS to predict adulteration
 
 Principal component analysis is often a necessary first step when there are a large number of independent variables that need to be  analyze simultaneously. Many devices in a modern lab produce this kind of high-dimensional data: for example, a reading for a single sample obtained via gas chromatography-mass spectrometry (GC-MS) or hyperspectral imagining (HSI) is a vector with 100s of entries, and with the number of samples often running in the 100s as well, we need a technique like PCA to find the needle in the haystack.
 
-In this section, we look at one such example. Prof. Van Haute of the Centre for Food Chemistry and Technology at GUGC provided us with a dataset of HSI readings for different kinds of olive oils and vegetable oils (see [@2023-malavi-HyperspectralImagingChemometrics] for more details and a much more extensive analysis). 
+In this chapter we consider a number of real-world examples, from the life sciences and beyond, where PCA and dimensionality reduction prove to be essential.
 
+## Adulteration of olive oil
 
+This case study is a simplified version of an analysis done by the group of Prof. Van Haute of the Centre for Food Chemistry and Technology at GUGC to determine the adulteration of extra-virgin olive oil through the use of hyperspectral imaging data. The full analysis can be found in [@2023-malavi-HyperspectralImagingChemometrics]. My thanks go to Prof. Van Haute for making the data available and for in-depth discussions regarding the analysis.
 
+### Problem statement
 
+Extra-virgin olive oil (EVOO) is a type of oil that is made by cold-pressing the fruit of the olive tree without the use of chemicals or heat. It is considered the highest quality and most flavorful type of olive oil and is widely used in cooking and as a dressing for salads and other dishes. Extra-virgin olive is  packed with antioxidants and healthy fats, making it a popular choice among health-conscious consumers. Due to its high quality and health benefits, extra-virgin olive oil is often more expensive than other types of olive oil. 
 
-*Can hyperspectral imaging be used to detect whether olive oil has been adulterated with other kinds of oils? If so, can the amount of adulteration be quantified accurately?*
+Extra-virgin olive oil is sometimes adulterated, either accidentally, or deliberately, by the addition of other, cheaper vegetable oils. This is misleading to the customer and can pose health risks, for example through the introduction of allergens. As a result, manufacturers and food safety agencies have an interest in determining whether a given EVOO sample has been adulterated, and if so, to what degree.
 
+One way to determine the chemical composition of an oil sample is through hyperspectral imaging (HSI). A hyperspectral imaging system will shine infrared light onto the sample and measure the reflection off the sample at different wavelengths. We will not go into the details of how this signal is acquired, but what is important is that the system outputs for each sample a so-called *spectral curve* describing the average reflectance at different wavelengths. By inspecting the spectral curve, we can establish whether the sample absorbs light of a specific wavelength, and this can point towards the presence of particular chemical structures that characterize the sample. An example of a spectral curve is shown in figure @fig-hsi.
 
+In our case study we want to determine whether hyperspectral imaging can be used to detect the adulteration of extra-virgin olive oil. More precisely, we have the following research questions:
 
-The dataset contains HSI readings from 183 different kinds of food oil, with 13 kinds of extra-virgin olive oils, and the 
+1. *Can hyperspectral imaging be used to detect whether olive oil has been adulterated with other kinds of oils?*
+1. *If so, can the amount of adulteration be quantified (e.g. as a percentage)?*
 
+To investigate these research questions, @2023-malavi-HyperspectralImagingChemometrics acquired readings from 13 different kinds of unadulterated EVOO, together with readings from 42 adulterated mixtures. Each adulterated mixture was prepared by taking olive oil and adding one of 6 different vegetable oils to it, at 7 different percentages (ranging from 1% to 20% adulterant). Each sample was prepared and imagined in triplicate, resulting in 183 spectra. Each spectra is a vector of length 224, describing the reflectance at equally distributed wavelengths from 700 to 1800 nm.
 
-
-
-::: {#fig-hsi layout-ncol=2 align="center"}
+::: {#fig-hsi layout-ncol=2 align="center" layout-valign="center"}
 
 ![](./images/02-PCA/hyperspectral.png)
 
@@ -71,17 +67,20 @@ The dataset contains HSI readings from 183 different kinds of food oil, with 13 
 Hyperspectral imaging system (left) and typical output spectra (right). Figure source: @2023-malavi-HyperspectralImagingChemometrics. 
 :::
 
+Below, we read in the dataset and we print out a random sample of 10 rows from it. Note that the dataset has 228 columns: 4 of these are metadata variables described below and the remaining 224 columns describe the spectrum for each sample. The metadata variables are:
 
-The 
+- `Sample ID/Wavelength`: The name of the oil or mixture, and the mixture ratio (if applicable)
+- `Sample`: A unique integer identifying each sample. Not used in the subsequent analysis.
+- `Classification`: Whether the sample is primarily olive oil or not. Not used in the subsequent analysis.
+- `% Adulteration`: The percentage of food oil added to the mixture. For pure EVOO this is 0, while for pure food oil it is 100%. For the other mixtures, it is one of 1%, 2%, 4%, 8%, 12%, 16%, or 20%.
 
 ```{r}
 #| warning: false
 
 library(readxl)
 
-# The dataset contains in the first column a description
-# of the kind of adulteration with th
-# create_mixture <- function(fullname) {
+# Split off the percentage adulterant from the mixture name.
+# create_mixture_name <- function(fullname) {
 #   if (!grepl('/', fullname, fixed = TRUE)) {
 #     return(fullname)
 #   }
@@ -89,21 +88,27 @@ library(readxl)
 #   paste(items[-length(items)], collapse = " ")
 # }
 
-oils <- read_excel("./datasets/02-pca/HSI.xlsx")
+# Read in the data and add the 'mixture' column described above.
+ oils <- read_excel("./datasets/02-pca/HSI.xlsx")# %>%
+  # mutate(mixture = map_chr(`Sample ID/Wavelength`, create_mixture))
 
-# Names of the spectra
+# Names of the spectra.
 cols <- colnames(oils)
 spectra <- cols[5:length(cols)]
 
+# "Long" form of the dataframe, used for plotting.
 oils_long <- oils %>%
   pivot_longer(cols = spectra, 
                names_to = "wavelength", 
                values_to = "intensity") %>%
   mutate(wavelength = as.numeric(wavelength))
 
-head(oils)
+rmarkdown::paged_table(oils[sample(1:nrow(oils), 10),])
 
 ```
+
+
+### XYZ
 
 Trace plot for adulterated oils, with EVOO superimposed
 
