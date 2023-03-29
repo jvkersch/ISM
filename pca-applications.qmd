@@ -71,7 +71,7 @@ To investigate these research questions, @2023-malavi-HyperspectralImagingChemom
 Hyperspectral imaging system (left) and typical output spectra (right). Figure source: @2023-malavi-HyperspectralImagingChemometrics. 
 :::
 
-Below, we read in the dataset and we print out a random sample of 10 rows from it (the full dataset is too large to display in its entirety). Note that the dataset has 228 columns: 4 of these are metadata variables described below and the remaining 224 columns describe the spectrum for each sample. The metadata variables are:
+Below, we read in the dataset and we print out the first 6 columns of a random sample of 10 rows (the full dataset is too large to display in its entirety). Note that the dataset has 228 columns: 4 of these are metadata variables described below and the remaining 224 columns describe the spectrum for each sample. The metadata variables are:
 
 - `Sample ID/Wavelength`: The name of the oil or mixture, and the mixture ratio (if applicable)
 - `Sample`: A unique integer identifying each sample. Not used in the subsequent analysis.
@@ -83,18 +83,8 @@ Below, we read in the dataset and we print out a random sample of 10 rows from i
 
 library(readxl)
 
-# Split off the percentage adulterant from the mixture name.
-# create_mixture_name <- function(fullname) {
-#   if (!grepl('/', fullname, fixed = TRUE)) {
-#     return(fullname)
-#   }
-#   items <- strsplit(fullname, ' +')[[1]]
-#   paste(items[-length(items)], collapse = " ")
-# }
-
 # Read in the data and add the 'mixture' column described above.
- oils <- read_excel("./datasets/02-pca/HSI.xlsx")# %>%
-  # mutate(mixture = map_chr(`Sample ID/Wavelength`, create_mixture))
+ oils <- read_excel("./datasets/02-pca/HSI.xlsx")
 
 # Names of the spectra.
 cols <- colnames(oils)
@@ -107,9 +97,10 @@ oils_long <- oils %>%
                values_to = "intensity") %>%
   mutate(wavelength = as.numeric(wavelength))
 
-rmarkdown::paged_table(oils[sample(1:nrow(oils), 10),])
+oils[sample(1:nrow(oils), 10), 1:6]
 
 ```
+
 
 ### Inspecting the spectral plots
 
