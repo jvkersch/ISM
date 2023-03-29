@@ -39,6 +39,10 @@ Principal component analysis is often a necessary first step when there are a la
 
 In this chapter we consider a number of real-world examples, from the life sciences and beyond, where PCA and dimensionality reduction prove to be essential.
 
+::: {.callout-warning}
+Given that the examples in this chapter deal with real-world data, which is often large and messy, the R code is at times a bit more complex than in the previous chapter. The underlying principles remain the same, however.
+:::
+
 ## Adulteration of olive oil
 
 This case study is a simplified version of an analysis done by the group of Prof. Van Haute of the Centre for Food Chemistry and Technology at GUGC to determine the adulteration of extra-virgin olive oil through the use of hyperspectral imaging data. The full analysis can be found in [@2023-malavi-HyperspectralImagingChemometrics]. My thanks go to Prof. Van Haute for making the data available and for in-depth discussions regarding the analysis.
@@ -60,9 +64,9 @@ To investigate these research questions, @2023-malavi-HyperspectralImagingChemom
 
 ::: {#fig-hsi layout-ncol=2 align="center" layout-valign="center"}
 
-![](./images/02-PCA/hyperspectral.png)
+![](./images/02-PCA/hyperspectral.png){#fig-hyperspectral-system}
 
-![](./images/02-PCA/hsi-spectra.png)
+![](./images/02-PCA/hsi-spectra.png){#fig-typical-spectra}
 
 Hyperspectral imaging system (left) and typical output spectra (right). Figure source: @2023-malavi-HyperspectralImagingChemometrics. 
 :::
@@ -71,7 +75,7 @@ Below, we read in the dataset and we print out a random sample of 10 rows from i
 
 - `Sample ID/Wavelength`: The name of the oil or mixture, and the mixture ratio (if applicable)
 - `Sample`: A unique integer identifying each sample. Not used in the subsequent analysis.
-- `Classification`: Whether the sample is primarily olive oil or not. Not used in the subsequent analysis.
+- `Classification`: Whether the sample is primarily olive oil or not.
 - `% Adulteration`: The percentage of food oil added to the mixture. For pure EVOO this is 0, while for pure food oil it is 100%. For the other mixtures, it is one of 1%, 2%, 4%, 8%, 12%, 16%, or 20%.
 
 ```{r}
@@ -107,27 +111,32 @@ rmarkdown::paged_table(oils[sample(1:nrow(oils), 10),])
 
 ```
 
+### Inspecting the spectral plots
 
-### XYZ
-
-Trace plot for adulterated oils, with EVOO superimposed
+As a first step in our analysis, let's compare the typical spectrum of EVOO with that of the other 6 vegetable oils. We see that overall the spectra are quite similar (they are all oils, after all) but that there are small differences between the different kinds of oil. On the other hand, if we are given a new, unlabeled spectrum, it would be quite difficult to "guess" just by looking what type of oil it is. This is where dimensionality reduction will help us!
 
 ```{r}
-pure_non_pure <- oils_long %>%
-  filter(Classification == "Olive") %>%
-  mutate(pure = `% Adulteration` == 0)
+#| warning: false
+#| fig-cap: Typical spectra of EVOO and different types of vegetable oils. Note the similarity with figure @fig-typical-spectra.
+
+# Keep only EVOO and pure vegetable oil, and compute mean reflectivity across 
+# the 3 replicates
+summarized_oils_long <- oils_long %>%
+  filter(`% Adulteration` == 0 | `% Adulteration` == 100) %>%
+  mutate(type = if_else(Classification == "Olive", "EVOO", `Sample ID/Wavelength`)) %>%
+  group_by(type, wavelength) %>% summarise(mean_intensity = mean(intensity))
 
 ggplot(
-  data = pure_non_pure,
-  aes(x = wavelength, y = intensity, color = pure,
-             group = interaction(`Sample ID/Wavelength`, Sample))) +
-  geom_line(data = subset(pure_non_pure, pure == FALSE)) +
-  geom_line(data = subset(pure_non_pure, pure == TRUE)) +
-  labs(x = "Wavelength", y = "Intensity", color = "Type of oil") +
-  scale_color_discrete(labels = c("Adulterated", "Pure"))
+  summarized_oils_long,
+  aes(x = wavelength, y = mean_intensity, color = type)) +
+  geom_line() +
+  labs(x = "Wavelength (nm)", y = "Mean reflectance", color = "Type of oil")
+
 
 ```
 
+
+### XYZ
 
 Compute principal components
 ```{r}
