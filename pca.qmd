@@ -516,3 +516,56 @@ biplot(pc)
 The numbers on the plot represent the data points from the original dataset, expressed relative to the first two principal components. This is the part of the biplot that is like a score plot. The red arrows, on the other hand, represent the original variables in the dataset (as shown by the labels attached to them) and are expressed on the top and right-most axis, which show how much each variable contributes to the first two principal components. The red arrows carry the same information as a loadings plot (in a different form), when you consider only the first two principal component.
 
 At one glance, we see that `triceps.skinfold` and `thigh.circumference` are the most important contributors to the first principal component, and that the second principal component is almost entirely made up by `midarm.circumference`. This confirms our intuition from the beginning of this chapter, as well as the conclusions that we drew from the loadings plot.
+
+## Principal component regression
+
+Once we have performed PCA, we can build a linear model using the principal components that we have chosen to retain. This is known as *principal component regression*. Let's see this in action for the bodyfat dataset. We start from a model where we include the first principal component only: 
+
+```{r}
+#| echo: true
+#| code-fold: false
+
+pc1 <- pc$x[, "PC1"]
+outcome <- bodyfat$bodyfat
+
+model_1 <- lm(outcome ~ pc1)
+summary(model_1)
+```
+
+Adding the second principal component results in a bigger model, but the coefficient of the second principal component is not significant. We therefore do not include it in our final model and we stay with `model_1`.
+
+```{r}
+#| echo: true
+#| code-fold: false
+
+pc2 <- pc$x[, "PC2"]
+model_12 <- lm(outcome ~ pc1 + pc2)
+summary(model_12)
+
+```
+
+In this way, we obtain a simple least squares model, with one predictor and one outcome. Quite a simplification from our original linear model, which had three predictors and suffered from multi-collinearity. This reduction from 3 to 1 predictors may not seem like a big deal, but in the next chapter we will see examples of how PCA can be used to reduce datasets with many hundreds of variables to just 2-3 components, while maintaining the essential information in the dataset.
+
+In this section we have built the linear model "by hand", but in reality you would probably not want to do this, for two reasons:
+
+1. Testing each predictor at a time when there are many hundreds of candidates to choose from is impractical.
+1. Using the forward model building procedure, as we did above, comes with significant multiple-testing issues.
+
+Luckily, there are R packages that will do the PCA, select the optimal number of components, and build the regression model all for us. Here we use the `pls` package. We tell it to consider all principal components, and to assess the error through cross-validation. The details of this will be discussed in class, but the important line in the output is labeled `RMSEP`. This shows a measure of error in function of the number of components taken into account. We see that this error is the lowest when only the first principal component is considered.
+
+```{r}
+#| warning: false
+#| echo: true
+#| code-fold: false
+
+library(pls)
+
+pcr_model <- pcr(bodyfat ~ ., data = bodyfat, validation = "CV")
+summary(pcr_model)
+```
+
+There are various rules to select the optimal number of components to consider. One such rule is the "1-sigma rule" [@hastie2009elements] which considers the model with the least number of components whose cross-validation error is at most one standard deviation away from the optimal model. In our case, this again results in a model with only one predictor.
+
+```{r}
+selectNcomp(pcr_model, method = "onesigma", plot = TRUE)
+```
