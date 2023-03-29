@@ -193,6 +193,7 @@ Below we have a scatterplot of the first two principal components. The EVOO samp
 
 ```{r}
 #| fig-cap: Principal component plot for the EVOO and adulterated oil samples. Pure vegetable oil samples are not shown.
+#| label: fig-pc-plot-oils
 pdata <- pca_oils %>%
   broom::augment(oils) %>%
   filter(`% Adulteration` < 100) %>%
@@ -212,9 +213,11 @@ ggplot(
 
 ```
 
-
-
 ### Predicting the percentage of adulteration
+
+Now that we are able to tell EVOO and adulterated samples apart, it is time to consider our second research question: given an adulterated oil sample, can we predict the percentage of vegetable oil that was added? Looking at @fig-pc-plot-oils, it looks like we'll need more than two principal components: we see no clear pattern in the percentage adulteration that we or a linear model could exploit.
+
+Before building some models, we need to do some data preparation. We select from our dataset only those rows that contain adulterated oils, and we split the resulting dataset into a *training dataset* (containing 80% of the data) and a *test dataset* (containing the remaining 20%). The idea is that we set apart the test dataset and build our model using only the training dataset. The test dataset is used to evaluate how well the model performs on data that it has never seen before. Using the full dataset to build the model and evaluate it would result in an overly optimistic estimate of the predictive capabilities of our model.
 
 ```{r}
 # for the adulterated oils, predict the percentage of adulteration
@@ -230,31 +233,39 @@ train_idxs <- sample(1:nrow(adulterated), train_no)
 adulterated_train <- adulterated[train_idxs, ]
 adulterated_test <- adulterated[-train_idxs, ]
 
+message("Number of rows in the training dataset: ", nrow(adulterated_train))
+message("Number of rows in the test dataset: ", nrow(adulterated_test))
 ```
 
+We could build a linear model with more than two components by hand, just like we did for the bodyfat dataset in the previous chapter. However, it is easier to let R do the work for us, and we will use the the `pls` package for this. This package has a number of advantages: you can use the same formula syntax that you know from the `lm` command, and the package comes with a number of different regression models. Here we build a principal component regression model and a partial least squares regression model. 
+
 ```{r}
+#| warning: false
+#| echo: true
+#| code-fold: false
 library(pls)
 
-# Run a PCR analysis first
+# Principal component regression
 pcr_model <- pcr(
-  `% Adulteration` ~ .,
-  data = adulterated_train,
-  scale = FALSE, validation = "CV"
+  `% Adulteration` ~ ., data = adulterated_train, scale = FALSE, validation = "CV", ncomp = 10
 )
-# Do a PLS secondly
 
+# Partial least squares regression
 pls_model <- plsr(
-  `% Adulteration` ~ .,
-  data = adulterated_train,
-  scale = FALSE, validation = "CV"
+  `% Adulteration` ~ ., data = adulterated_train, scale = FALSE, validation = "CV", ncomp = 10
 )
 
 ```
 
+The argument `validation = "CV"` will cause the model to select by itself the appropriate number of components to use, up to a maximum of 10 components (this is controlled by the `ncomp = 10` argument). To do this it will use the so-called cross-validation (CV) strategy: it will repeatedly split the data into a training and a validation set (not to be confused with the training and test set that we created ourselves above) and use the performance on the validation set to select the appropriate number of components.
+
+Now that we have two models, we can ask them to make predictions on the held-out test data, and we can compare the predictions made between both models. In the prediction plot below we see in general good agreement between the actual percentage of adulteration (on the $x$-axis) and the predicted percentage (on the $y$-axis). Both models perform comparably well, at least as far as can be judged from the plot. 
+
 ```{r}
-ncomp <- 5
-pcr_pred <- predict(pcr_model, adulterated_test, ncomp = ncomp)
-pls_pred <- predict(pls_model, adulterated_test, ncomp = ncomp)
+#| echo: true
+#| code-fold: false
+pcr_pred <- predict(pcr_model, adulterated_test, ncomp = 10)
+pls_pred <- predict(pls_model, adulterated_test, ncomp = 10)
 ```
 
 ```{r}
@@ -274,28 +285,13 @@ ggplot(df) +
 
 ```
 
-```{r}
-# Evaluate RMSE as a function of number of components on test dataset
+### A cautionary note
 
-rmse <- function(ncomp, model) {
-  pred <- predict(model, adulterated_test, ncomp = ncomp)
-  mean((pred - adulterated_test$`% Adulteration`)^2)^0.5
-}
+In building the models above, we have glossed over many details that may impact the accuracy and even the validity of our model. 
 
-ncomps <- seq(3, 15)
-rmse_data <- data.frame(
-  ncomps = ncomps,
-  PCR = map_dbl(ncomps, rmse, model = pcr_model),
-  PLS = map_dbl(ncomps, rmse, model = pls_model)
-) %>% pivot_longer(cols = c("PCR", "PLS"))
+- 
 
-ggplot(rmse_data) +
-  geom_line(aes(x = ncomps, y = value, color = name)) +
-  labs(color = "Method", x = "Number of components", y = "RMSE")
-
-
-```
-
+- Determining the optio
 
 ## Eigenfaces {#sec-eigenfaces}
 
