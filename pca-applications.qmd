@@ -135,19 +135,26 @@ ggplot(
 
 ```
 
+### Computing the principal components
 
-### XYZ
+We are now in a position to compute the principal components, and to figure out what they tell us about olive and other oils. Two issues to keep in mind:
 
-Compute principal components
+1. Our dataset contains both metadata and spectral data: we want to make sure to compute the principal components only for the columns containing spectral data!
+1. For spectral data, we definitely do **not** scale the different variables! 
+
 ```{r}
+#| echo: true
 pca_oils <- oils %>%
   select(all_of(spectra)) %>%
   prcomp(scale = FALSE)
 
 ```
 
-Percentage of variance explained
+The first two principal components explain more than 90% of the variance in the data, as shown below.
+
 ```{r}
+#| fig-cap: Percentage of variance explained by the first 10 principal components. The first two principal components explain 94% of the variance in the data.
+
 pca_oils %>%
   broom::tidy(matrix = "eigenvalues") %>%
   head(n = 9) %>%
@@ -161,11 +168,11 @@ pca_oils %>%
   labs(y = "Percentage of variance explained")
 ```
 
+The loadings for the first two principal components tell us something about what the spectra look like overall, and what variations between the individual spectra look like. This is of course an extremely coarse perspective, given that we only consider two principal components.
 
-
-
-Plot of the first few loadings vectors
 ```{r}
+#| fig-cap: Loadings for the first two principal components. 
+
 loadings <- as.data.frame(pca_oils$rotation)
 loadings$wavelength <- as.numeric(rownames(loadings))
 rownames(loadings) <- 1:nrow(loadings)
@@ -179,8 +186,13 @@ loadings %>%
 
 ```
 
-Plot first two PCs
+We started this section with the observation that there are minute differences between the spectra of different oils, but we admitted that it would be quite difficult to tell two spectra apart just by eye. We are now in a position where we can solve this issue: by considering only the first few principal components we get a number of variables that (hopefully) can be used to tell the spectra apart.
+
+Below we have a scatterplot of the first two principal components. The EVOO samples are round dots, and the adulterated oils are triangles colored by the percentage of adulteration. The EVOO samples are clearly distinct from the adulterated oils (they are separated by the second principal component). This answers our first research question with a "yes": we can tell pure and adulterated oils apart.
+
+
 ```{r}
+#| fig-cap: Principal component plot for the EVOO and adulterated oil samples. Pure vegetable oil samples are not shown.
 pdata <- pca_oils %>%
   broom::augment(oils) %>%
   filter(`% Adulteration` < 100) %>%
@@ -199,6 +211,10 @@ ggplot(
   scale_shape_discrete(labels = c("Pure", "Adulterated"))
 
 ```
+
+
+
+### Predicting the percentage of adulteration
 
 ```{r}
 # for the adulterated oils, predict the percentage of adulteration
