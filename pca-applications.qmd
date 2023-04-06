@@ -342,10 +342,10 @@ Note that there are 400 principal components in this dataset. We can visualize t
 gg_screeplot(pc_olivetti, n = 50)
 ```
 
-One of the advantages of the faces dataset is that the principal components can be represented graphically, and that we can reason about them. @fig-olivetti-pc shows the first 8 principal components, represented as images. How should we interpret these images? Each principal component represents a particular *pattern* in the dataset of all faces: the first principal component, for example, captures the overall structure of a human face, while the second represents the illumination from right to left. Probably there were some photos in the dataset that were illuminated from the left or the right. Principal component three does the same for the top-down illumination, and principal components four through eight capture particular patterns involving the eyes or the eyebrows. *By selectively "mixing" all 400 principal components, we can recreate any face in the dataset.*
+One of the advantages of the faces dataset is that the loadings vectors can be represented graphically, and that we can reason about them. @fig-olivetti-pc shows the first 8 loadings vectors, represented as images. How should we interpret these images? Each loadings vector represents a particular *pattern* in the dataset of all faces: the first loadings vector, for example, captures the overall structure of a human face, while the second represents the illumination from right to left. Probably there were some photos in the dataset that were illuminated from the left or the right. Loadings vector three does the same for the top-down illumination, and loadings vectors four through eight capture particular patterns involving the eyes or the eyebrows. *By selectively "mixing" all 400 loadings vectors, we can recreate any face in the dataset.*
 
 ```{r}
-#| fig-cap: The first 8 principal components of the Olivetti dataset represent particularly expressive patterns in the dataset.
+#| fig-cap: The first 8 loadings vectors of the Olivetti dataset represent particularly expressive patterns in the dataset.
 #| label: fig-olivetti-pc
 normalize <- function(x) {
   # ensure that PC components are between 0 and 255,
@@ -360,7 +360,7 @@ for (i in 1:8) {
 
 ```
 
-To finish, let's also investigate how well PCA performs as a data reduction method. By retaining only a limited number of principal components, we can build "reduced" versions of the images that involve only a number of principal components. @fig-pca-reduced shows two original faces from the dataset (left), together with compressed versions involving the first 10, 40, and 80 most significant principal components. The version that uses only 10 components is quite generic and it is difficult even to distinguish the male and female face. The version with 80 components, on the other hand, is very close to the original.
+To finish, let's also investigate how well PCA performs as a data reduction method. By retaining only a limited number of principal components, we can build "compressed" versions of the images that contain less information but are comparable to the eye. @fig-pca-reduced shows two original faces from the dataset (left), together with compressed versions involving the first 10, 40, and 80 most significant principal components. The version that uses only 10 components is quite generic and it is difficult even to distinguish the male and female face. The version with 80 components, on the other hand, is very close to the original.
 
 ```{r}
 #| fig-cap: Original images (left), and 3 PCA-reduced images with increasing numbers of principal components. 
@@ -382,4 +382,4 @@ show_image(project_data(pc_olivetti, 80)[,80], "80 PCs")
 
 ```
 
-It is worth realizing the amount of data compression realized by using PCA. The original images had 4096 degrees of freedom, whereas the rightmost versions in @fig-pca-reduced are described by 80 loadings, more than a 50-fold reduction in degrees of freedom! Clearly there are some visual artifacts that appear in the compressed versions, but the faces are clearly distinguishable, and it seems very reasonable at this point that a machine learning algorithm (for example, to classify the faces, or to do segmentation) could take these compressed images as input and still perform well.
+It is worth realizing the amount of data compression realized by using PCA. The original images had 4096 degrees of freedom, whereas the rightmost versions in @fig-pca-reduced are described by the coefficients of 80 loadings vectors, more than a 50-fold reduction in degrees of freedom! Clearly there are some visual artifacts that appear in the compressed versions, but the faces are clearly distinguishable, and it seems very reasonable at this point that a machine learning algorithm (for example, to classify the faces, or to do segmentation) could take these compressed images as input and still perform well.
