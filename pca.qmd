@@ -24,7 +24,7 @@ Principal component analysis (PCA) finds a low-dimensional approximation to the 
 
 ```{r}
 #| warning: false
-#| fig-cap: Correlations between the different variables in the body fat dataset. The variable `triceps.skinfold.thickness` is strongly correlated with the other two variables in the dataset and hence carries less information.
+#| fig-cap: Correlations between the different variables in the body fat dataset. The variables `triceps.skinfold.thickness` and `thigh.circumference` are highly correlated.
 #| fig-align: center
 bodyfat <- read.csv("datasets/02-PCA/bodyfatNKNW.txt", sep = " ")
 bodyfat_predictors <- bodyfat[,c("triceps.skinfold.thickness", "thigh.circumference", "midarm.circumference")]
