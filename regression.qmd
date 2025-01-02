@@ -204,4 +204,30 @@ $$ {#eq-mse}
 is a good (i.e., unbiased) estimate of $\sigma^2$. Remark that the size of the residual mean squared error is closely connected with the correlation. If the outcome is independent from the predictor variable, the variability of the outcomes around the regression line is the same as the total variability, as denoted by the standard deviation $s_y$. If the variables $X$ and $Y$ are (perfectly) linearly dependent on each other, the correlation is 1, and hence there is no variation around the regression line. This is logical, since in that case the data points form a straight line and therefore do not vary around that line. 
 
 
+::: {.callout-note}
+## Woody debris and tree density, continued
 
+Previously, the R model summary for the CWD model gave the following estimate for the residual standard deviation:
+
+> Residual standard error: 36.32 on 14 degrees of freedom
+
+Assuming the CWD basal area is normally distributed for a given tree density, we can conclude that respectively 68% and 95% of those basal areas given a tree density of 1,300 per km can be expected to fall in the intervals $[73-36, 73+36] = [37, 109]$ and $[73-2\times 36, 73 + 2\times 36] = [1, 145]$. Thus we obtain a fairly wide 95% reference interval for the CWD basal area when the tree density is 1,300 trees per km of shoreline. These intervals are not completely accurate since they do not take the imprecision of the estimates of the mean outcome and residual standard deviation into account. in the literature there exist so-called \emph{prediction intervals} which do take this imprecision into account.
+:::
+
+```{r}
+#| label: fig-cwd-diagnostics
+#| fig-align: center
+#| fig-cap: "Analysis of the CWD data. Left: scatterplot of the squared residuals. Right: QQ-plot of the residuals."
+
+par(mfrow = c(1, 2))
+plot(m, which = 1)
+plot(m, which = 2)
+```
+
+For the previous results to be valid, it is of course again important that all conditions imposed by the model are met. This time we do not only have the assumption of linearity, but more importantly also the assumption of homoscedasticity of the outcomes. Since, according to @eq-mse, the squared residuals are indicative for the variability that is present in the data, we can obtain knowledge concerning this assumption by making a scatterplot of the squared residuals (on the $Y$-axis) in function of the explanatory variable (on the $X$-axis).This is illustrated for the CWD data in @fig-cwd-diagnostics (left), which seems to suggest that the variability increases for increasing tree densities. Consequently, the reference intervals that have been calculated assuming homoscedasticity cannot be fully trusted. In particular they might be too narrow for high tree densities and too wide for low tree densities.
+
+Even if the variance would be homogeneous, it is still important to verify that the outcomes are normally distributed for subjects with the same predictor value in order for the residual standard deviation to be a meaningful measure to describe the variability on the data and for the calculated reference intervals to be correct. A QQ-plot of the outcomes would be misleading, since this checks the normality of all measurements as a whole, not the normality of the measurements for subjects with the same predictor value. It can mathematically be shown that normally distributed outcomes for a given $x$-value implies that also the residuals approximately normally distributed. Hence deviations from normality in a QQ-plot for the residuals indicates therefore that the outcomes are not normally distributed for a fixed $x$. @fig-cwd-diagnostics (right) illustrates this for the CWD data and shows deviations from normality. This is not surprising, since heterogeneity of the variance often goes together with non-normality, in particular skewness, of the data.
+
+Finally it is also necessary that all outcomes are independent to obtain correct estimations of the residual standard deviation. This would not be the case in so-called longitudinal studies where the outcome is measured repeatedly over time for the same subject (e.g., plants of animals).
+
+In the next section we will describe how to handle deviations from the previously mentioned assumptions. 
