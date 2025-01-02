@@ -116,3 +116,74 @@ If the assumption of linearity holds, then there should be no pattern visible in
 
 Since the linearity of the model can only be verified over the observed range of the explanatory variable (for example, over the interval [771; 2,150] for the CWD data), it is important to understand that the results of a linear model cannot just be extrapolated past the largest or smallest observed $X$-value. In the CWD example we can estimate that the mean CWD basal area for lakes with a riparian tree density of 750 per km of shoreline will be $-77.09908 +0.11552\times 750=9.5$ m$^2$, but the observed data do not allow us verify the reliability of this estimation. After all, it could be that the regression line for low values of the predictor variable increases or decreases, causing the linear extrapolation to be misleading. Note that, for example, the prediction for a tree density of 500 per km of shoreline is very misleading, since it gives a negative result ($-77.09908 +0.11552\times 500=-19$ m$^2$).
 
+
+::: {.callout-note}    
+## Frequency of Lap94 and distance from Southport
+
+The frequency of the allele Lap94 in Mytilus edulis (a mussel) with respect to the eastern distance from Southport, Connecticut, U.S.A., is shown in @fig-southport. A linear regression analysis shows that the expected gene frequency differs 2.6% between mussels that are located at a 10 km eastern distance from each other.
+
+XXX use asin(sqrt(southport$freq))*180/pi transform? Sokal-Rohlf 1997.
+
+```{r}
+#| label: fig-southport
+#| fig-align: center
+#| fig-cap: "Frequency of Lap94 in function of the eastern distance from Southport, with linear regression line (dotted line), quadratic regression line (solid line), and loess scatterplot smoother (dashed line)"
+
+southport <- read.csv("datasets/01-regression/southport.txt", sep = " ")
+southport$freq <- southport$freq / 2
+
+plot(freq ~ km, data = southport,
+     xlab = "Distance (in km)",
+     ylab = "Frequency")
+
+# linear model
+m_linear <- lm(freq ~ km, data = southport)
+abline(m_linear, lty = "dotted")
+
+# quadratic model
+m_quad <- lm(freq ~ km + I(km^2), data = southport)
+km_dense <- seq(0, 110, length.out = 100)
+lines(km_dense, predict(m_quad, new = data.frame(km = km_dense)))
+
+# loess model
+m_loess <- loess(freq ~ km, data = southport)
+lines(southport$km, m_loess$fitted, lty = "dashed")
+```
+
+```{r}
+m_linear <- lm(freq ~ km, data = southport)
+summary(m_linear)
+```
+
+
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=0.7\textwidth]%[height =  cm , width = 11cm]
+{assets/eps/southport2.eps}
+\caption{Residual plots for linear regression (left) and quadratic regression (right), with loess scatterplot smoother.}\label{fig:lap942}
+\end{figure}
+
+@fig-southport-residuals shows a residual plot based on linear regression. We see that that residuals display a systematic pattern, which is approximately parabolic. This suggests that adding a quadratic term to the model will improve the reliability of the regression model.
+
+```{r}
+#| label: fig-southport-residuals
+#| fig-align: center
+#| fig-cap: Residual plots for linear regression (left) and quadratic regression (right), with loess scatterplot smoother.
+
+par(mfrow = c(1, 2))
+plot(m_linear, which = 1, main = "Linear regression")
+plot(m_quad, which = 1, main = "Quadratic regression")
+```
+
+Adding a quadratic term gives the following model:
+
+```{r}
+m_quad <- lm(freq ~ km + I(km^2), data = southport)
+summary(m_quad)
+```
+
+We conclude from this that the mean frequency of the allele Lap$^{94}$ in Mytilus edulis can be described in function of the eastern distance $x$ from Southport as $(1.4-0.042x+0.0028x^2)/100$. @fig-southport-residuals (right) shows a residual plot based on this quadratic regression and indicates that the previously found pattern has mostly disappeared. Hence this model better describes the data. In subsequent sections it will be examined if the model can be improved further.
+
+XXX Check numbers
+:::
+
