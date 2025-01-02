@@ -231,3 +231,21 @@ Even if the variance would be homogeneous, it is still important to verify that 
 Finally it is also necessary that all outcomes are independent to obtain correct estimations of the residual standard deviation. This would not be the case in so-called longitudinal studies where the outcome is measured repeatedly over time for the same subject (e.g., plants of animals).
 
 In the next section we will describe how to handle deviations from the previously mentioned assumptions. 
+
+## Deviations from the assumptions in linear regression analysis
+
+The primary assumption in linear regression analysis is the assumption that the outcome varies linearly in the predictor. Whenever residual plots suggest that this is not the case, we could consider transforming the explanatory variable. In dose-response studies where, for example, the impact of increasing doses of a toxic substance on a phenotype in test animals is studied, the (mean) outcome will often not vary linearly in function of the administered dose, but will vary linearly in function of the logarithm of the administered dose. In that case, we could opt to include the log-transformed explanatory variable as a predictor in the model. For other examples it might happen that other transformations than the log-transformation are better suited, such as the square root ($\sqrt{x}$) or the inverse ($1/x$) transformation.
+
+An advantage of transforming the explanatory variable is that it is easy to accomplish, a disadvantage is that this often complicates the interpretation of the coefficient in the model. However, this will not happen when applying a log-transformation, because an increase in log-dose with, for example, 1 unit is equivalent with a change in dose with a factor $\exp(1)=2.78$. Transforming the explanatory variable does not have a direct influence on the homogeneity of the variance or on the normality of the outcomes (for fixed values of the predictor variable), except by improving the linearity of the model. Therefore this option is often less suitable when there are strong deviations from normality. 
+
+An alternative option to improve the linearity of the model, is *higher-order regression*. Here nonlinear relations are directly modeled by including higher-order terms in the model. We could, for example, consider a second-order model (see also Example~\ref{vb:lap94}): 
+$$
+    E(Y|X)=\alpha+\beta_1X+\beta_2X^2,
+$$
+in which case the regression curve will be parabolic, or a third-order model: 
+$$
+    E(Y|X)=\alpha+\beta_1X+\beta_2X^2+\beta_3X^3,
+$$
+where the regression curve will be a polynomial of degree 3. This method can be seen as some sort of transformation of the explanatory variable and essentially has the same properties, advantages, and disadvantages. However, an additional advantage is that in this case there is no need to decide yourself on a transformation, because the method itself will implicitly estimate a good polynomial.
+
+Finally we could also consider to transform the outcome instead of the explanatory variable. For example, when the outcomes are right skewed, it is often appropriate to perform a log-transformation of the outcomes and include this new variable as the outcome variable in the model. Usually this not only improves the linearity of the model, but it will also improve the normality of the residuals with a more constant variability. This method has the same advantages and disadvantages as a transformation of the explanatory variable. A big difference between both options that greatly influences the choice between both methods is that, contrary to transformations of the outcome, transformations of the independent variable have little to no influence on the distribution of the residuals (unless via changes in their mean). Normally distributed residuals in particular will remain rather normally distributed after transforming the explanatory variable, whereas they might no longer be normally distributed after a transformation of the outcome variable, and vice versa.
