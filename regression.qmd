@@ -187,3 +187,21 @@ We conclude from this that the mean frequency of the allele Lap$^{94}$ in Mytilu
 XXX Check numbers
 :::
 
+## The residual standard deviation
+
+The CWD linear regression model from the previous section indicates how much (in particular, what basal area of) woody debris we can expect along North American lakes with a certain tree density. However, it does not inform us how much this area can vary between lakes with the same tree density. Nevertheless, it is of the utmost importance to know this when we want to make predictions based on the regression model, since outcomes that vary a lot around the regression line can of course not be predicted accurately by using the regression line, as opposed to outcomes with little variation around the line which can be predicted relatively accurately.
+
+If the outcomes for lakes with the same predictor value $x$ (i.e., tree density) are normally distributed, then it makes sense to express the variation of the outcomes around their mean by means of a *conditional variance* $Var(Y|X=x)$. Similarly to the conditional mean $E(Y|X=x)$, this indicates the variance on the outcomes for the subgroup from the study population consisting of lakes for which the tree density $X$ takes on the value $x$. For example, $Var(Y|X=1,300)$ in the CWD example is the variance on the CWD basal area per km of shoreline for lakes with a riparian tree density of 1,300 per km. These variances cannot just be estimated, since there is only 1 observation in the dataset with a tree density of 1,300. When we examine @fig-residuals, we see that the points are equally spread around the regression line, irrespective of the tree density, and that the variability on the basal area of coarse woody debris does not seem to depend on the tree density. In this case, we call the outcomes *homoscedastic* or the variance is said to be *homogeneous*. It then makes sense to assume that the conditional variance $Var(Y|X=x)$ is constant: 
+$$
+    Var(Y|X=x)=\sigma^2.
+$$ {#eq-homosc}
+The constant $\sigma$ is called the *residual standard deviation*. If we assume @eq-homosc, we are able to determine the conditional variance $Var(Y|X=1,300)=\sigma^2$, because then it can be estimated based on the data for all lakes, as will be illustrated in the next paragraph.
+
+As we have learned in descriptive statistics, the variation of the outcomes around their conditional mean can be described by means of the differences between the observations $y_i$ and their (estimated) mean $\hat{\alpha}+\hat{\beta}x_i$, or in other words, through the residuals. However, the mean of the residuals is always 0 (verify this!) because the positive and negative deviations cancel each other out. Hence the mean residual is not a good measure for the variation, and it is more sensible to use the squared deviations $e_i^2$. The mean of these *squared residuals* therefore will give a good measure. In particular it can be shown that the so-called \emph{residual mean squared error}
+$$
+    \hat{\sigma^2}=\frac{\sum_{i=1}^n e_i^2}{n-2}=s_y^2\{1-\mbox{Cor}(x,y)^2\}
+$$ {#eq-mse}
+is a good (i.e., unbiased) estimate of $\sigma^2$. Remark that the size of the residual mean squared error is closely connected with the correlation. If the outcome is independent from the predictor variable, the variability of the outcomes around the regression line is the same as the total variability, as denoted by the standard deviation $s_y$. If the variables $X$ and $Y$ are (perfectly) linearly dependent on each other, the correlation is 1, and hence there is no variation around the regression line. This is logical, since in that case the data points form a straight line and therefore do not vary around that line. 
+
+
+
