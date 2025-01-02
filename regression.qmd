@@ -1,22 +1,118 @@
-# Linear regression
+# Regression analysis
 
-Note: redo chapter structure using the structure from "the book"
+Often a lot of measurements for each subject (e.g., each animal or each plant) are collected in scientific experiments in biosciences. An ecologist could, for example, measure at the same time the number of a certain shrub on different plots of land, as well as the acidity of each plot in order to hopefully be able to describe a relationship between both. A biotechnologist might be interested in seeing which genes are important during which phase of the growth of a plant. He or she could therefore collect at appropriate times measurements for the expression of different genes and subsequently investigate the association between gene expression and time. The purpose of this chapter is to provide techniques to detect patterns and relations in complex datasets and then to use these relations to predict future outcomes. We will in particular focus on situations where we are interested in 1 specific continuous outcome and hope to understand its relationship with 1 or multiple continuous or qualitative variables.
 
-## Introduction
+## The linear regression model
+
+Although the correlation coefficient is frequently used in explorative and descriptive statistics to describe an association between 2 continuous measurements, it has a number of limitations:
+
+1. Its numerical value is difficult to interpret;
+2. It cannot be used to predict the value of the outcome $Y$ (e.g., the number of nests of red land crabs in a certain area) based on some predictor value $X$ (e.g., the biomass of crabs in that area);
+3. It does not allow for an easy correction of the association between the variables $X$ and $Y$ for the disturbing influence of measured confounders;
+4. It does not allow for an easy verification of whether the strength of the association between the variables $X$ and $Y$ depends on the value of a third variable $Z$ (e.g., to verify if there exist gene-neighbourhood interactions where the influence that certain genes exert on the development of Chronic Obstructive Pulmonary Disease depends on smoking history);
+5. It does not allow to describe nonlinear associations or associations between a continuous and a qualitative variable.
+
+To handle these problems in a flexible way, we will use *regression techniques*
+
+::: {.callout-note}
+## Example: Woody debris and tree density
+ 
+The human impact on freshwater environments concerns scientists a lot. Coarse woody debris (CWD) is fallen wood that provides a habitat for aquatic organisms and furthermore influences hydrological processes and the transport of organic materials within aquatic ecosystems. The presence of humans has altered the CWD input to aquatic systems.  Chistensen et al. (1996) therefore studied the connection between coarse woody debris and riparian vegetation in a sample of 16 North American lakes. They defined CWD as woody debris with a diameter larger than 5 cm and registered for a number of locations along the shoreline the CWD basal area (in m$^2$ per km of shoreline) and the tree density (in number per km of shoreline). To obtain a single measurement per lake, weighted averages were used.
+
+The goal of this study is to describe the association between the tree density along the shoreline of the lake and the relative basal area of CWD. Since we want to explain the effect of the tree density on CWD, we call tree density the **explanatory**, **predictor** or **independent variable** and the CWD basal area the **outcome** or **dependent variable**, i.e., the variable in which we are primarily interested. For the rest of this section, we will always use $X$ for the independent variables and $Y$ for the dependent variables.
+
+@fig-trees plots the CWD basal area (in m$^2$ per km) in function of the riparian tree density, together with a loess scatterplot smoother (dotted line). The plot gives no indication that the relation between both variables would not be linear. Hence the Pearson correlation coefficient is an appropriate measure. It is equal to 0.797, which suggests a strong increase in CWD basal area with an increased riparian tree density. We gain more insight in the strength of the association by studying the loess scatterplot smoother, since this function gives for every tree density value the expected outcome for the CWD basal area. Because this curve can be well approximated by a much simpler, linear relation, we also added the `best fitting' straight line (full line; i.e., the least squares regression line) to the plot. This gives an even clearer image of the relationship between both variables than the correlation coefficient, and also uses only 1 parameter (namely the slope) to do so. In this section we will see how to construct and interpret this so-called regression line.
+
+```{r}
+#| label: fig-trees
+#| fig-align: center
+#| fig-cap: "CWD basal area in function of tree density, with linear regression line (solid line) and loess scatterplot smoother (dashed line)."
+
+trees <- read.csv("./datasets/01-regression/christ.csv")
+plot(CWD.BASA ~ RIP.DENS, data = trees,
+     xlab = "Riparian tree density",
+     ylab = "CWD basal area")
+
+m1 <- lm(CWD.BASA ~ RIP.DENS, data = trees)
+abline(m1)
+
+m2 <- loess(CWD.BASA ~ RIP.DENS, data = trees)
+j <- order(trees$RIP.DENS)
+lines(trees$RIP.DENS[j], m2$fitted[j], lty = "dashed")
+```
+:::
+
+We denote with $E(Y|X=x)$ the mean outcome for the subgroup of the study population consisting of subjects for which the explanatory variable $X$ takes on the value $x$. For the CWD example above, $E(Y|X=1,200)$ indicates the mean CWD basal area per km of shoreline for lakes that have 1,200 trees per km along their shoreline. We would obtain this mean by registering, for all lakes in the study population with 1,200 trees per km of shoreline, the CWD basal area and then taking the mean of these values. The mean $E(Y|X=x)$ is called a *conditional mean* because it describes a mean outcome, conditional to the fact that $X=x$.
+
+Now suppose that the mean outcome can be described linearly in function of the explanatory variable $X$, which means that
+$$
+    E(Y|X=x)=\alpha + \beta x,
+$$ {#eq-linreg}
+where $\alpha$ and $\beta$ are unknown numbers. In this expression, $E(Y|X=x)$ represents the value on the $Y$-axis, $x$ the value on the $X$-axis, the *intercept* $\alpha$ indicates the intersection with the $Y$-axis, and $\beta$ is the *slope* of the line. This expression is called a *statistical model*. This naming suggests that certain assumptions will be placed on the distribution of the observations. In particular it assumes that the mean outcome varies linearly in function of the predictor $X$. For this reason, this is also called a *simple linear regression model*. According to this model, every measurement $Y$ can be described, modulo an error term $\epsilon$, as a linear function of the explanatory variable $X$: 
+$$
+    Y=E(Y|X=x)+\epsilon=\alpha+\beta x+\epsilon,
+$$
+where $\epsilon$ represents the deviation between the observed outcome and its (conditional) mean value, i.e., the uncertainty in the response variable.
+
+The parameters $\alpha$ and $\beta$ are unknowns. If we could observe the entire study population, we could determine both parameters exactly (by calculating for 2 $x$-values the mean outcome and then solve the resulting system of linear equations as given by @eq-linreg). In reality we only observe a limited sample from the study population and hence we need to estimate both parameters based on the available information. The parameters are estimated by searching for the line that `best fits' the data. For this we want that for a given value $x_i$ for subject $i$, the difference between the corresponding point on the regression line, $(x_i, \alpha + \beta x_i)$, and the observation itself, $(x_i, y_i)$, is as small as possible. This can be realised by choosing values for $\alpha$ and $\beta$ that minimise the sum of the squared distances between the predicted and the observed points:
+$$
+    \sum_{i=1}^n (y_i-\alpha-\beta x_i)^2.
+$$
+The obtained line is then called the *least squares (regression) line*. The corresponding values or estimations $\hat{\alpha}$ for $\alpha$ and $\hat{\beta}$ for $\beta$ are called the *least squares estimates*. It can be shown quite easily that 
+$$
+    \hat{\beta}=\frac{\mbox{Cor}(x,y)s_y}{s_x} 
+$$
+and that  
+$$
+    \hat{\alpha}=\bar y - \hat{\beta} \bar x.
+$$
+Note that the slope of the least squares line is proportional to the correlation between the outcome and the explanatory variable.
+
+For the given estimates $\hat{\alpha}$ for $\alpha$ and $\hat{\beta}$ for $\beta$, the linear regression model [-@eq-linreg] allows us to do two things:
+
+1. To predict the expected outcome for subjects with a given $x$-value for the explanatory variable as $\hat{\alpha}+\hat{\beta}x$.
+2. To verify how much the outcome differs on average between 2 groups of subjects with a difference of $\delta$ units in the explanatory variable. This is:
+$$
+    E(Y|X=x+\delta)-E(Y|X=x) = \alpha + \beta (x+\delta) -\alpha-\beta x = \beta\delta.
+$$
+In particular, $\beta$ can be interpreted as the difference in mean outcome between 2 subjects that differ 1 unit in $X$-value. This difference can be estimated by $\hat{\beta}$.
+
+::: {.callout-note}
+## Woody debris and tree density, continued
+
+An analysis of the data in R gives the following results:
+```{r}
+m <- lm(CWD.BASA ~ RIP.DENS, data = trees)
+summary(m)
+```
+
+The software reports $\hat{\alpha}=-77.09908$ and $\hat{\beta}=0.11552$. We conclude that, per km of shoreline, the CWD basal area increases on average with 1.2 m$^2$ per increase of 10 trees in tree density. Furthermore, we can predict what CWD basal area can be expected for any given number of trees per km of shoreline. For example, if the tree density is 1,600 trees per km shoreline, we expect a mean CWD basal area of $-77.09908 +0.11552\times 1,600=108$ m$^2$ per km shoreline.
+
+Remark, using @fig-trees, that the dataset does not contain any lakes with a tree density of approximately 1,600 trees per km of shoreline. Based on the dataset it would thus not be possible, without using a statistical model, to obtain an estimate for the mean CWD basal area for that given tree density. However, assuming that the mean CWD basal area varies linearly with the riparian tree density, we can use all\footnote{Indeed, this mean is calculated based on the estimates $\hat{\alpha}$ and $\hat{\beta}$, which were obtained using all observations.} observations to estimate this mean. Hence we obtain a meaningful and precise result, if the condition of linearity is met of course.
+:::
+
+```{r}
+#| label: fig-residuals
+#| fig-align: center
+#| fig-cap: Residual plot for the CWD data.
+m <- lm(CWD.BASA ~ RIP.DENS, data = trees)
+plot(trees$RIP.DENS, m$residuals,
+     xlab = "Riparian tree density",
+     ylab = "Residuals")
+
+lw <- loess(m$residuals ~ trees$RIP.DENS)
+j <- order(trees$RIP.DENS)
+lines(trees$RIP.DENS[j], lw$fitted[j])
+```
 
 
+For the results obtained from the linear regression model to be valid, it is important to verify that all conditions that are imposed by the model are met. So far, the only assumption we made was that the mean outcome varies linearly in function of the explanatory variable (later on, we will add more conditions to also determine the variability of the data around the regression line). This assumption can easily be verified graphically using a scatterplot where we plot the outcome in function of the explanatory variable and then check if the relation seems to follow a linear pattern. Deviations from linearity can usually be discovered more easily by means of a *residual plot*. This is a scatterplot with the explanatory variable on the $X$-axis and the *residuals* on the $Y$-axis. The residuals are the prediction errors that can be calculated as 
+$$
+e_i=y_i-\hat{y}_i=y_i-\hat{\alpha}-\hat{\beta}x_i.
+$$
+They represent the vertical distance between the observation for subject $i$ and its prediction on the regression line.
 
-## Simple linear regression
+If the assumption of linearity holds, then there should be no pattern visible in the residual plot. This is the case in @fig-residuals that shows a residual plot for the regression analysis of the CWD example. However, when the residuals reveal a nonlinear pattern, this means that extra terms should be added to the model to correctly predict the mean outcome. For example, if the residuals show a quadratic pattern, then we could write that approximately $e_i\approx \delta_0+\delta_1 x_i+\delta_2 x_i^2$ for some numbers $\delta_0$, $\delta_1$, and $\delta_2$, and hence that the outcome $y_i=\hat{\alpha}+\hat{\beta}x_i+e_i\approx (\hat{\alpha}+\delta_0)+(\hat{\beta}+\delta_1)x_i+\delta_2 x_i^2$ (modulo an error term) is a quadratic function of $x_i$. In that case it is best to switch to a quadratic regression model.
 
-## Multiple linear regression
-
-## Outliers
-
-## Predictivity, collinearity, and diagnostics
-
-Note: this structure is not right. These topics were lumped together to fit the slides. Use the structure from the "book"
-
-Maybe move categorical variables before this, so that we can end with VIF and then move straight into PCA.
-
-## Incorporating categorical variables
+Since the linearity of the model can only be verified over the observed range of the explanatory variable (for example, over the interval [771; 2,150] for the CWD data), it is important to understand that the results of a linear model cannot just be extrapolated past the largest or smallest observed $X$-value. In the CWD example we can estimate that the mean CWD basal area for lakes with a riparian tree density of 750 per km of shoreline will be $-77.09908 +0.11552\times 750=9.5$ m$^2$, but the observed data do not allow us verify the reliability of this estimation. After all, it could be that the regression line for low values of the predictor variable increases or decreases, causing the linear extrapolation to be misleading. Note that, for example, the prediction for a tree density of 500 per km of shoreline is very misleading, since it gives a negative result ($-77.09908 +0.11552\times 500=-19$ m$^2$).
 
