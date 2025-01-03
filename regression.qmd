@@ -410,3 +410,41 @@ $$
 $$
 The fact that this interval contains negative values suggests that the allele frequency $\alpha$ in Southport was estimated very inaccurately and that the linear model probably does not describe these data very well (since theoretically allele frequencies cannot be negative).
 :::
+
+## The multiple correlation coefficient
+
+For the data in the CWD example, the standard deviation on the CWD basal area is 58.03 per km and the residual standard deviation 36.32 per km. This shows that the measurements of the outcome vary less for lakes with the same tree density than in the entire population of lakes. This is not surprising, because part of the variability on the outcome measurements is explained by the fact that different lakes have different tree densities. In this section we will further exploit this idea to gain insight in the quality of the regression line. 
+
+The total squared deviation of the data around their mean can be split as follows:
+\begin{eqnarray*}
+SS_{Total}=\sum_{i=1}^n (y_i-\bar y)^2&=&\sum_{i=1}^n (\hat{\alpha}+\hat{\beta}x_i-\bar y)^2+ \sum_{i=1}^n (y_i-\hat{\alpha}-\hat{\beta}x_i)^2 \\
+&=&\sum_{i=1}^n (\hat{\alpha}+\hat{\beta}x_i-\bar y)^2+ \sum_{i=1}^n e_i^2 \\
+&=&SS_{Regression}+SS_{Residual} \,.
+\end{eqnarray*}
+For the second equality, we've used the defining relations for the coefficients of a linear regression, i.e.
+$$
+   \sum_{i=1}^n ( \hat{\alpha} + \hat{\beta} x_i - y_i) = 0 \quad \text{and} \quad \sum_{i=1}^n ( \hat{\alpha} + \hat{\beta} x_i - y_i) x_i = 0
+$$
+to show that the cross-product vanishes.
+
+In this sum, $SS_{Regression}=\sum_{i=1}^n (\hat{\alpha}+\hat{\beta}x_i-\bar y)^2$ indicates how much the points on the regression line vary around the group mean $\bar y$, and the $SS_{Residual}=\sum_{i=1}^n e_i^2$ reflects the residual variation of the observations around the regression line. The latter is called the *residual sum of squares* and indicates how much of the variation on the measurements is not explained by the regression model. The former is the \emph{regression sum of squares} and indicates the amount of variability on the measurements that is explained by the regression model. The ratio of the regression sum of squares and the total sum of squares $SS_{Total}$, 
+$$
+    R^2=\frac{SS_{Regression}}{SS_{Total}}
+$$
+expresses the percentage of the variation on the data that is captured by their association with the explanatory variable, and is called the *coefficient of determination* or *multiple correlation coefficient*. It is generally denoted by $R^2$ and is a measure for the *predictive value* of the explanatory variable. In other words, it expresses how well the explanatory variable(s) predict(s) the outcome. This coefficient lies always between 0 and 1, where a value equal to 1 indicates that there is no residual variation around the regression line en hence the outcome shows a perfect (linear) relationship with the predictor. Analogously, a value 0 of $R^2$ implies that there is no association between the outcome and the predictor. 
+
+Often it is incorrectly claimed that a linear regression model is bad if the multiple correlation coefficient is low (e.g., 0.2). If the goal of the study is to predict the outcome based on the explanatory variables, a large value of $R^2$ is indeed needed because in the case of a low value there remains a lot of variability on the outcomes that is not explained by the explanatory variables. However, if the goal of the study is to determine the effect of an exposure on the outcome, then a linear regression model is good as soon as it correctly describes the association between on the one hand the outcome and on the other hand the exposure and possible confounders. Whenever exposure and confounders are weakly related to the outcome, then a small $R^2$-value is expected, even if a correct regression model is used.
+
+TODO : add this sentence: \footnote{See Section~ \ref{sec:mlr}, where is shown that when estimating the effect of an exposure on the outcome, all confounders should be included in the regression model.}
+
+::: {.callout-note}
+## Woody debris and tree density
+
+Recall that we found the following model for the logarithm of the CWD basal area and the riparian tree density:
+
+```{r}
+summary(m_log_quad)
+```
+  
+We conclude that 71.6% of the variability on the log-transformed CWD basal area is explained by its association with the tree density. The riparian tree density is thus strongly predictive for the CWD basal area.
+:::
