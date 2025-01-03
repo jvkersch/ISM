@@ -351,3 +351,62 @@ or, equivalently, that the geometric mean CWD basal area varies in function of t
 :::
 
 For certain types of outcomes there exist \emph{variance stabilising transformations} for the outcome that are aimed at fulfilling the assumption of homoscedasticity. For proportions or percentages we often use the arcsin-transformation which transforms the outcome $Y$ in $\arcsin\sqrt{Y}$, because it can be shown that percentages (given certain conditions) have a constant variance after such a transformation. If the transformation of the outcome is not helping or is not appropriate (e.g., because it is harmful for the interpretation of the model) and there is a consistent pattern of unequal variance (e.g., increasing variance in the outcome for increasing predictor values), we could also determine \emph{weighted least squares}  estimates. Another alternative would be to estimate \emph{generalized linear models}, which also allow other distributions than the normal one. Both types of solutions, i.e., weighted least squares estimates and generalized linear models, are beyond the scope of this course.
+
+## Inference in regression models
+
+In linear regression analysis we often want to test whether or not the slope $\beta$ is equal to 0, i.e., whether or not a linear relation between $Y$ and $X$ exists. We wish, for example, to test if the CWD basal area per km is linearly related to the tree density, or if there exists a linear relation between the gene frequency of the allele Lap$^{94}$ in the  mussel Mytilus edulis and the eastern distance from Southport. We can show that the least squares estimate $\hat{\beta}$ is a sensible measure to perform tests on $\beta$ since it is an unbiased estimator of $\beta$ (and hence not systematically too high or too low), on the condition that the model is correct. If additionally the outcomes are normally distributed for a given predictor value $X$, and have a homogeneous variance, then its standard error can be estimated as
+$$
+    SE(\hat{\beta})=\sqrt{\frac{MSE}{\sum_i (X_i-\bar X)^2}},
+$$
+where the \emph{mean squared error} ($MSE$) is defined as $\frac{1}{n}\sum_{i=1}^n (Y_i - \hat{Y}_i)^2$, and we can obtain tests and confidence intervals for $\beta$ based on
+$$
+    \frac{\hat{\beta}-\beta}{SE(\hat{\beta})}\sim t_{n-2}.
+$$
+
+::: {.callout-note}
+## Frequency of Lap$^{94}$ and distance from Southport 
+
+Previously we established, admittedly under the wrong assumption that the gene frequency varies linearly in function of the eastern distance from Southport, the following model:
+
+```{r}
+summary(m_linear)
+```
+
+TODO: Fix up numbers
+
+Based on this output we can construct a 95\% confidence interval for $\beta$ as 
+$$
+    [0.0026 - 2.13\times 0.0003,0.0026 + 2.13\times 0.0003]=[0.00196,0.00324],
+$$
+where we use the fact that we posses $n=17$ observations and that $t_{15,0.975}=2.13$. We conclude that the mean increase in the frequency of the allele Lap$^{94}$ as we move 10 km east of Southport, with 95\% probability can be expected between 1.96\% and 3.24\%. The p-value for the test of the null hypothesis $\beta=0$ (versus the alternative $\beta\ne 0$) is the probability that a $t_{15}$-distributed random variable in absolute value is larger than $0.0026/0.0003=7.636$. This probability is $1.52 \ 10^{-6}$ and gives a very strong indication that there is a change in mean allele frequency in the eastern direction from Southport.
+:::
+
+
+We could also test if the intercept takes on a certain value (e.g., 0). Again the least squares estimate $\hat{\alpha}$ is meaningful since it is an unbiased estimator of $\alpha$, provided that the model is correct. If additionally the outcomes are normally distributed for a given predictor value $X$, and have a homogeneous variance, then its standard error can be estimated as 
+$$
+    SE(\hat{\alpha})=\sqrt{MSE\left\{\frac{1}{n}+\frac{\bar X^2}{\sum_i (X_i-\bar X)^2}\right\}}.
+$$
+Tests and confidence intervals for $\alpha$ can be obtained based on
+$$
+    \frac{\hat{\alpha}-\alpha}{SE(\hat{\alpha})}\sim t_{n-2}.
+$$
+Similarly will $\hat{Y}_h=\hat{\alpha}+\hat{\beta}X_h$ be an unbiased estimator of $E(Y|X_h)=\alpha+\beta X_h$. Its standard error is 
+$$
+    SE(\hat{Y}_h)=\sqrt{MSE\left\{\frac{1}{n}+\frac{(X_h-\bar X)^2}{\sum_i (X_i-\bar X)^2}\right\}}.
+$$
+and tests and confidence intervals for $E(Y|X_h)$ depend on 
+$$
+    \frac{\hat{Y}_h-E(Y|X_h)}{SE(\hat{Y}_h)}\sim t_{n-2}.
+$$
+
+::: {.callout-note}
+## Frequency of Lap$^{94}$ and distance from Southport
+
+TODO: check numbers 
+
+The p-value for the test that the allele frequency $\alpha$ in Southport is 1%, versus the alternative that it would be less, is the probability that a $t_{15}$-distributed random variable is smaller than $(-0.0397-0.01)/0.0231=-2.15$. This probability is 0.024 and suggests that, at the 5% significance level, there is enough evidence to support the claim that the allele frequency in Southport is less than 1%. A 95% confidence interval for $\alpha$ is obtained as
+$$
+    [-0.0397 - 2.13\times 0.0231,-0.0397 + 2.13\times 0.0231]=[-0.0889,0.0095].
+$$
+The fact that this interval contains negative values suggests that the allele frequency $\alpha$ in Southport was estimated very inaccurately and that the linear model probably does not describe these data very well (since theoretically allele frequencies cannot be negative).
+:::
