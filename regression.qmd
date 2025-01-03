@@ -518,11 +518,11 @@ Assuming the linearity conditions of the model are fulfilled, the association be
 \beta_1&=&\alpha + \beta_1 (x+1) +\beta_2 c-\alpha - \beta_1 x -\beta_2 c \\
 &=&E(Y|X=x+1,C=c)-E(Y|X=x,C=c) \,.
 \end{eqnarray*}
-In other words, $\beta_1$ represents the mean difference in outcome between individuals that differ 1 unit in $X$, but all have the same value for the confounder $C$ (e.g., people from the same age). This way we compare comparable groups of individuals, effectively correcting for the perturbing effect of the confounder. In the literature, the estimate for $\beta_1$ is therefore called the \emph{adjusted effect} of $X$ on $Y$, to indicate that we controlled for confounders. If $C$ is the only confounder\footnote{In practice we seldom know for sure (unless in randomised studies) if a certain variable $C$ is the only confounder for the association between $X$ and $Y$; often there can be unmeasured confounders that are not included in the dataset and for which it thus is also impossible to correct.} for the association between $X$ and $Y$, then this can indeed be interpreted as the causal effect of an increase of 1 unit of $X$ on the mean outcome. The estimate for the association between $X$ and $Y$  in the model without confounders (i.e., the estimate $\beta^*_1$ in the model $E(Y|X)=\alpha^*+\beta^*_1X$) is then called the \emph{unadjusted effect} of $X$ on $Y$, even though it has, due to confounding, no causal meaning (in other words, it does not represent an effect of a unit change in $X$ on the mean outcome).
+In other words, $\beta_1$ represents the mean difference in outcome between individuals that differ 1 unit in $X$, but all have the same value for the confounder $C$ (e.g., people from the same age). This way we compare comparable groups of individuals, effectively correcting for the perturbing effect of the confounder. In the literature, the estimate for $\beta_1$ is therefore called the *adjusted effect* of $X$ on $Y$, to indicate that we controlled for confounders. If $C$ is the only confounder[^1] for the association between $X$ and $Y$, then this can indeed be interpreted as the causal effect of an increase of 1 unit of $X$ on the mean outcome. The estimate for the association between $X$ and $Y$  in the model without confounders (i.e., the estimate $\beta^*_1$ in the model $E(Y|X)=\alpha^*+\beta^*_1X$) is then called the *unadjusted effect* of $X$ on $Y$, even though it has, due to confounding, no causal meaning (in other words, it does not represent an effect of a unit change in $X$ on the mean outcome).
 
 In some cases we would also like to know if the effect of a variable $X$ on another variable $Y$ depends on a third variable $C$. This could, for example, happen when we wish to investigate if the effect of asbestos on the respiratory function changes with increasing age. Such issues are very actual in the context of scientific studies on gene-environment interactions. For asthma or COPD, for example, there are strong indications that gene-environment interactions with a history of smoking are important factors in determining the severity of the disease (in particular that the role of certain genes is amplified by a history of smoking). In pharmacogenetics there exists a huge interest in gene-medicine interactions in order to ascertain if certain drugs are especially effective in the presence of certain genes. For example, gene-medicine interactions were discovered for steroids with regard to their effect on the respiratory function of asthma patients. 
 
-To statistically model such \emph{interaction} or \emph{effect modification} between 2 variables $X$ (e.g., use of steroids or not) and $C$ (e.g., presence/absence of a certain gene), we could add the product of those variables to the model: 
+To statistically model such *interaction* or *effect modification* between 2 variables $X$ (e.g., use of steroids or not) and $C$ (e.g., presence/absence of a certain gene), we could add the product of those variables to the model: 
 \begin{equation*}
 E(Y|X,C)=\alpha+\beta_1X+\beta_2C+\beta_3 X C \,.
 \end{equation*}
@@ -533,4 +533,113 @@ E(Y|X=x+1,C=c)-E(Y|X=x,C=c)&=&\alpha + \beta_1 (x+1) +\beta_2 c+\beta_3
 &&-\alpha - \beta_1 x -\beta_2 c-\beta_3 xc \\
 &=&\beta_1+\beta_3c
 \end{eqnarray*}
-when $C$ remains unchanged. Remark that the `effect' of a change in $X$ for a constant value of $C$ now indeed depends on the chosen value of $C$.
+when $C$ remains unchanged. Remark that the effect of a change in $X$ for a constant value of $C$ now indeed depends on the chosen value of $C$.
+
+::: {.callout-note}
+## Mineral composition vs growth
+
+The regression model
+$$
+    E(Y|X_n,X_f)=\alpha+\beta_n X_n+\beta_f X_f
+$$ {#eq-model-no-interaction}
+assumes that nitrogen and phosphorus are linearly associated with the length of Japanese larches, but that the strength of the association between nitrogen and length does not depend on the phosphorus level in the needles. In particular, the output below suggests that trees that differ 0.1\% in their nitrogen level, but have the same level of phosphorus, differ on average 0.12 m in length, independent from the actual level of phosphorus. @fig-needles-no-interaction (left) illustrates indeed that the mean tree length increases at the same rate with an increase of the level of nitrogen, irrespective of the level of phosphorus in the needles. Similar, @fig-needles-no-interaction (right) shows that the association between tree length and nitrogen is 123.8, no matter what the level of phosphorus is.
+
+```{r}
+#| label: fig-needles-no-interaction
+#| fig-align: center
+#| fig-cap: "Association between tree length and levels of nitrogen and phosphorus in model [-@eq-model-no-interaction]. Left: mean tree length in function of nitrogen level for different levels of phosphorus. Right: size of the association between nitrogen and tree length for different levels of phosphorus."
+
+model_no_interaction <- lm(length ~ nitrogen + phosphor, data = needles)
+
+nitrogen_plot <- seq(1, 3, length.out = 50)
+phosphor_plot <- c(0.10, 0.20, 0.30, 0.40)
+
+predict_length <- function(phosphor) {
+    predict(model_no_interaction, new = data.frame(
+        phosphor = phosphor,
+        nitrogen = nitrogen_plot))
+}
+
+par(mfrow=c(1, 2))
+plot(1, type='n', xlim=c(min(nitrogen_plot), max(nitrogen_plot)),
+     ylim=c(100, 300), xlab='Nitrogen', ylab='Length',
+     main="Nitrogen-length Association")
+for (ph in phosphor_plot) {
+  outcome <- predict_length(ph)
+  lines(nitrogen_plot, outcome, type = "l", lwd = 2)
+}
+
+# manually place labels
+text(2.35, 150, 0.10, adj = 0)
+text(2.07, 177, 0.20, adj = 0)
+text(1.79, 203, 0.30, adj = 0)
+text(1.50, 230, 0.40, adj = 0)
+
+cs <- coef(model_no_interaction)
+phosphor_plot <- seq(0.15, 0.40, by = 0.1)
+nitrogen_effect <- cs[2] + 0*phosphor_plot
+plot(phosphor_plot, nitrogen_effect, type = "l", lwd = 2,
+     xlab = "Phosphorus", ylab = "Nitrogen effect",
+     main = "Influence of one unit of nitrogen")
+
+```
+
+```{r}
+model_no_interaction <- lm(length ~ nitrogen + phosphor, data = needles)
+summary(model_no_interaction)
+```
+
+
+The linear regression model
+$$
+    E(Y|X_n,X_f)=\alpha+\beta_n X_n+\beta_f X_f+\beta_{nf} X_nX_f
+$$ {#eq-interaction}
+also assumes that nitrogen and phosphorus are linearly associated with the length of Japanese larches, but allows the association between nitrogen and length to vary with the level of phosphorus in the needles. In particular, the output below suggests that trees that differ 0.1\% in nitrogen level, but with the same level of phosphorus $x_f$, differ on average $-7.9+79.5x_f$ centimeter in length. Trees with a phosphorus level of 0.1\% will therefore have approximately the same length, irrespective of their level of nitrogen (because $-0.79+7.95\times 0.1\approx 0$). Trees that differ 0.1\% in nitrogen level and have a phosphorus level of 0.2\%, will on average differ $-7.9+79.5\times 0.2=8$ cm in length. @fig-needles-interaction (left) shows indeed that the mean tree length grows differently with increasing levels of nitrogen depending on the phosphorus level. Similar, @fig-needles-interaction (right) illustrates that the association between tree length and nitrogen changes linearly according to the expression $-7.9+79.5x_f$ in function of the level of phosphorus $x_f$. In particular, the influence of nitrogen increases when the needles contain more phosphorus.
+
+```{r}
+#| label: fig-needles-interaction
+#| fig-align: center
+#| fig-cap: "Association between tree length and levels of nitrogen and phosphorus in model (\ref{eq:regrint2}). Left: mean tree length in function of nitrogen level for different levels of phosphorus. Right: size of the association between nitrogen and tree length for different levels of phosphorus."
+model_interaction <- lm(length ~ nitrogen*phosphor, data = needles)
+
+nitrogen_plot <- seq(1, 3, length.out = 50)
+phosphor_plot <- c(0.15, 0.20, 0.25, 0.30)
+
+predict_length <- function(phosphor) {
+    predict(model_interaction, new = data.frame(
+        phosphor = phosphor,
+        nitrogen = nitrogen_plot))
+}
+
+par(mfrow=c(1, 2))
+plot(1, type='n', xlim=c(min(nitrogen_plot), max(nitrogen_plot)),
+     ylim=c(100, 300), xlab='Nitrogen', ylab='Length',
+     main="Nitrogen-length association")
+for (ph in phosphor_plot) {
+  outcome <- predict_length(ph)
+  lines(nitrogen_plot, outcome, type = "l", lwd = 2)
+}
+
+# manually place labels
+text(2.55, 150, 0.15, adj = 0)
+text(2.55, 200, 0.20, adj = 0)
+text(2.55, 250, 0.25, adj = 0)
+text(2.10, 280, 0.30, adj = 0)
+
+cs <- coef(model_interaction)
+phosphor_plot <- seq(0.15, 0.40, by = 0.1)
+nitrogen_effect <- cs[2] + cs[4]*phosphor_plot
+plot(phosphor_plot, nitrogen_effect, type = "l", lwd = 2,
+     xlab = "Phosphorus", ylab = "Nitrogen effect",
+     main = "Influence of one unit of nitrogen")
+```
+
+```{r}
+model_interaction <- lm(length ~ nitrogen*phosphor, data = needles)
+summary(model_interaction)
+```
+:::
+
+Finally, we wish to remark that residual plots similar to the ones used for simple linear regression models can be used to verify the linearity assumption for multiple linear regression models. However, since the model now contains multiple predictors, it makes sense to plot the residuals and squared residuals in function of each of the predictors separately. In that way we can verify with respect to which variable the linearity of the model might fail. To avoid too much work in models with a lot of predictors, we sometimes also plot the residuals in function of the predictions $\hat{\alpha}+\hat{\beta}_1x_1+...+\hat{\beta}_px_p$. After all, if we note a deviation with respect to the predictions, then that deviation also holds with respect to at least 1 of the predictors (since the predictions are function of the predictors).
+
+[^1]: In practice we seldom know for sure (unless in randomised studies) if a certain variable $C$ is the only confounder for the association between $X$ and $Y$; often there can be unmeasured confounders that are not included in the dataset and for which it thus is also impossible to correct.
