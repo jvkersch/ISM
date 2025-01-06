@@ -642,4 +642,50 @@ summary(model_interaction)
 
 Finally, we wish to remark that residual plots similar to the ones used for simple linear regression models can be used to verify the linearity assumption for multiple linear regression models. However, since the model now contains multiple predictors, it makes sense to plot the residuals and squared residuals in function of each of the predictors separately. In that way we can verify with respect to which variable the linearity of the model might fail. To avoid too much work in models with a lot of predictors, we sometimes also plot the residuals in function of the predictions $\hat{\alpha}+\hat{\beta}_1x_1+...+\hat{\beta}_px_p$. After all, if we note a deviation with respect to the predictions, then that deviation also holds with respect to at least 1 of the predictors (since the predictions are function of the predictors).
 
+## Inference in regression models and model construction
+
+In practice we often possess a large number of predictors and it is therefore not always obvious what regression model to consider. After all, such a model does not necessarily contain just the predictors separately, but possibly also higher order terms when one of the predictors is not linearly associated with the outcome, or interactions between 2 predictors when there is an indication that the effect of a certain predictor depends on the value of another predictor. All in all, there are in practice easily thousands of possible models that could have generated the data.
+
+Hoping to obtain a model that is as accurate as possible, we could opt to include as many predictors as possible in the model, together with their interactions and higher order terms. However, such a strategy comes with big disadvantages. First of all, the final model will contain an enormous amount of predictors. This means that based on a limited number of observations, a lot of parameters need to be estimated, leading to imprecise estimates. With this we mean that, if we would repeat the study in a similar way, the results for the regression parameters can vary strongly between samples and that there is thus a big risk that they deviate greatly from the true population values. Secondly, coefficients in models with higher order terms and interactions are more difficult to interpret. This makes complex models less interesting for scientific purposes since in that case we pursue as much simplicity as possible (unless this would give incorrect models). After all, models that contain superfluous terms have the tendency, even if they are correct, to *overfit* the data. This means that predictions obtained by those models will give good approximations for those outcomes that have been observed, but bad (Often a lot worse than approximations obtained with simpler models). approximations for outcomes that are observed in a similar sample but which were not used to construct the regression model. Keeping these disadvantages in mind, we will strive to construct a model that is as simple as possible by preventing unimportant predictors from entering the model.
+
+Starting from a given regression model [-@eq-mlinreg], we can decide for each predictor $x_j$ whether or not it is essential in the model by testing the null hypothesis that the corresponding coefficient $\beta_j=0$ (versus a two-sided alternative). If the outcome is normally distributed for given values of the predictors or if the sample is sufficiently large, and if furthermore the variance on the outcomes is homogeneous (i.e., does not depend on the predictors), then such tests can relatively easy be obtained by using the knowledge that for each coefficient $\beta_j$ in the model 
+$$
+    \frac{\hat{\beta}_j-\beta_j}{SE(\hat{\beta}_j)}\sim t_{n-p}
+$$
+where $p$ represents the number of unknown parameters in the model. We will not discuss the details on the calculation of the standard errors, but trust the software to estimate those for us. Confidence intervals for $\beta_j$ can also be obtained using this result.r
+
+::: {.callout-note}
+## Mineral composition vs growth
+
+Based on the linear regression model (\ref{eq:regrint2}) we can decide if there exists an indication that the measure in which tree length is associated with the nitrogen level in the needles, is also influenced by the presence of phosphorus. To gain this kind of insight, we can test whether $\beta_{nf}=0$ versus a two-sided alternative. Based on previous R-output, we find that the test statistic equals $794.9668/426.1981=1.8653$. This value can also be directly found in the output under the output for t-value. For 26 available observations and 4 unknown parameters (intercept, 2 predictors and their interaction), we find that the corresponding p-value is the probability that a $t_{22}$-distributed random variable is, in absolute value, more extreme than 1.8653. This probability equals 7.55\% as can be seen in the output under `Pr(>|t|)`. Hence, there is insufficient proof, at the 5\% significance level, to conclude that the measure in which tree length is associated with the needles' nitrogen level, is phosphorus-dependent. A 95\% confidence interval for $\beta_{sf}$ is found as
+$$
+    794.9668\pm t_{22,0.025}\times 426.1981=[-88.91,1678.85]
+$$
+The interval allows for large effect modifications, because of which we cannot just conclude that the association between nitrogen and tree length is not phosphorus-dependent. The relatively small negative values suggest that a weak enfeeblement of the association between nitrogen and the tree length for increasing phosphorus values is compatible with the data. The positive values in the interval also suggest that a small to large strengthening of the association between nitrogen and the tree length for increasing levels of  phosphorus is compatible with the data.
+:::
+
+Whenever the aim of the regression model is to predict the outcomes based on the predictors or to describe associations between on the one hand the outcome and on the other hand the predictors, *automatic selection procedures* can often come in very handy. One of these procedures, the *stepwise selection procedure*, starts with a model that only contains the intercept. In the next step, the predictor that is most strongly associated with the outcome (in the sense that the corresponding regression parameter has the largest absolute t-value or the smallest p-value) is included in the model, provided that it is significantly associated with the outcome. 
+
+Starting from the resulting model, the predictor that is now most strongly associated with the outcome  (in the sense that the corresponding regression parameter has the largest absolute t-value or the smallest p-value) is added. It is often advised to perform these tests at the 10\% significance level to avoid that important predictors disappear from the model. Then the predictors that are no longer significantly associated with the outcome are, starting with the least significant, one by one removed from the model until we obtain a model with only significant predictors. Remark that predictors which were significantly associated with the outcome in previous steps can become insignificant due to confounding and similar reasons. Next, the predictor that is most strongly associated with the outcome is included in the new model. This algorithm is repeated until convergence.
+
+::: {.callout-note}
+## Mineral composition vs growth
+Simple regression models produced the following t-values: 6.97, 5.99, 6.35, and 5.87 for a model with respectively only nitrogen, only phosphorus, only potassium, and only residual ash. In a stepwise selection procedure, we will opt to first include nitrogen in the model. It is indeed retained, because it is significantly associated with the tree length at the 10\% significance level. Adding respectively phosphorus, potassium or residual ash to the resulting model gives t-values of 3.72, 4.91, and 3.07. Based on these t-values, we now add potassium to the model. This gives the following output:
+
+```{r}
+m_nk <- lm(length ~ nitrogen + potassium, data = needles)
+summary(m_nk)
+```
+
+Both predictors nitrogen and potassium are significantly associated with the outcome and are thus retained in the model. This procedure continues until convergence of the algorithm. Once the first order structure is known (i.e., the algorithm has converged, but so far no higher order terms or interactions have been added), the same principle can be applied for higher order terms and interactions. Please note that this is applied *hierarchically*, meaning that lower order terms will never be removed from the model as long as the higher order terms are significantly associated with the outcome. Continuing in this way, we obtain the model:
+
+```{r}
+m_needles_full <- lm(length ~ nitrogen + phosphor + potassium + residu + phosphor:residu + phosphor:nitrogen, data = needles)
+summary(m_needles_full)
+```
+
+Remark that nitrogen and phosphorus, although not significantly associated with tree length at the 10\% significance level, are retained in the model because these terms appear in higher order terms (i.e., `phosphorus:nitrogen`). As an exercise, think about how the parameters in this "final model" can be interpreted.
+:::
+
+
 [^1]: In practice we seldom know for sure (unless in randomised studies) if a certain variable $C$ is the only confounder for the association between $X$ and $Y$; often there can be unmeasured confounders that are not included in the dataset and for which it thus is also impossible to correct.
