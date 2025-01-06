@@ -694,4 +694,87 @@ So far we considered situations where the aim of the regression model consisted 
 
 Finally we like to remark that the previously mentioned hypothesis tests are all based on the assumption of normally distributed outcomes for a given predictor value (unless the sample is sufficiently large) and that the variance is homogeneous in the predictors. Residual plots similar to Section~\ref{sec:residsd} can be used to verify these assumptions. Since the model now contains multiple predictors, it makes sense to plot the squared residuals against each of these predictors separately or against the predictions $\hat{\alpha}+\hat{\beta}_1x_1+...+\hat{\beta}_px_p$ obtained by the model.
 
+## Regression diagnostics
+
+### Multicollinearity
+
+An important problem in multiple linear regression, and one that is often overlooked, is the impact of correlated predictor variables on parameter estimates and on hypothesis tests concerning these parameters. When the predictors are correlated, as is often the case for biological data, we say that the data are subject to *multicollinearity*. Heavy multicollinearity can have a serious impact on the estimated regression parameters. After all, when 2 predictors are strongly correlated, they share for a large part the same information and it thus becomes difficult to estimate the separate effects of both on the outcome. This is expressed by the fact that the computational calculation of the least squares estimates becomes unstable in the sense that small modifications to the data or even adding or removing a predictor variable will have a huge impact on the size, and possibly even the sign, of the estimated regression coefficients. A second effect of multicollinearity is that the standard errors of the estimated regression coefficients can be largely inflated and the corresponding confidence intervals thus become very wide. However, as long as we only try to make predictions based on the regression model without extrapolating outside the range of the predictors, multicollinearity does not pose a problem. 
+
+Problems caused by multicollinearity can be recognised by the fact that results become unstable. Large changes can occur in the coefficients after inclusion of a predictor, very wide confidence intervals can be obtained for some coefficients, or unexpected results can be found. Formally, we can get an idea of the measure of multicollinearity by inspecting the correlations between each pair of predictors in the regression model or through a *scatterplot matrix* (see @fig-scattermatrix) that plots each pair of predictors on a scatterplot. However, such diagnostics for multicollinearity are not ideal. First of all, they give no information on how unstable the results become by the observed multicollinearity. Secondly, in models with 3 or more predictors, let's say $X_1,X_2,X_3$, it can happen that heavy multicollinearity exists, despite the fact that all pairwise correlations between predictors are low. This could happen, for example, when $X_1$ is strongly correlated with a linear combination of $X_2$ and $X_3$. 
+
+These mentioned disadvantages can be avoided by investigating the \emph{variance inflation factor (VIF)}, which is defined for the $k^{th}$ coefficient in the regression model as
+$$
+    \textrm{VIF}_k=\left(1-R_k^2\right)^{-1}.
+$$
+In this expression, $R_k^2$ represents the multiple correlation coefficient of a linear regression model for the $k^{th}$ predictor based on all other predictors in the model. The VIF has the property that it equals 1 if the $k^{th}$ predictor is not linearly associated with the other predictors in the model, and consequently when the $k^{th}$ coefficient in the model is not subject to multicollinearity. The VIF is larger than 1 in all other cases. In particular, it expresses how much larger the observed variance on the estimate of the $k^{th}$ coefficient would be compared to when all predictors would be independent. Therefore, the larger the VIF, the less stable the estimates will be. The average of the VIFs for the different predictors can, up to a proportionality factor, be interpreted as the mean squared distance between the estimated coefficients and the true coefficients in the model. The smaller the VIF, the closer the estimates are thus expected to be to their population values. In practice, multicollinearity for a regression coefficient is considered problematic when its VIF surpasses 10.
+
+```{r}
+#| label: fig-scattermatrix
+#| fig-align: center
+#| fig-cap: Scatterplot matrix.
+bodyfat <- read.csv("./datasets/02-PCA/bodyfatNKNW.txt", sep = ' ')
+features <- c("triceps.skinfold.thickness",
+              "thigh.circumference",
+              "midarm.circumference")
+
+pairs(bodyfat[features])
+```
+
+::: {.callout-note}
+## Prediction of body fat
+
+It is relatively expensive and costly to determine the proportion of body fat in a person. For that reason, a number of studies have been set up in the past in order to unravel the pattern between the true percentage of body fat and several, more easily measurable, surrogates. One of these studies measured for 20 healthy women between the ages of 25 and 34 years the proportion of body fat $Y$, the thickness of the triceps skin fold $X_1$, the thigh circumference $X_2$, and the midarm circumference $X_3$. If we are able to construct an accurate regression model based on these data, it will allow us in the future to make predictions of the proportion of body fat for healthy women between 25 and 34 years old, based on their triceps skin fold thickness, their thigh circumference, and their midarm circumference.
+
+Including these 3 predictors simultaneously in the regression model gives the following output:
+
+```{r}
+m_bodyfat <- lm(bodyfat ~ triceps.skinfold.thickness + thigh.circumference + midarm.circumference, data = bodyfat)
+summary(m_bodyfat)
+```
+
+The scatterplot matrix in @fig-scattermatrix indicates that there is multicollinearity in terms of the predictors $X_1$ and $X_2$, but not immediately for the midarm circumference $X_3$. Nevertheless we obtain substantial VIF values of respectively 708.84, 564.34, and 104.61 for the 3 predictors. This suggests that also the midarm circumference is susceptible to severe multicollinearity and hence shows that the scatterplot matrix indeed only gives a limited view on the problem of multicollinearity. On average, the VIF is 460, which shows that the mean (squared) distance between the estimates of the regression parameters and their true values is 460 times as large as when there would be no multicollinearity. In other words, there is a large problem of multicollinearity. This can also be observed in the regression output: not a single of the predictors is significantly associated with body fat, although the F-statistic[^f-statistic] indicates, with a p-value of $7.34 \ 10^{-6}$, that at for least 1 of the predictors there is strong evidence for an association with the outcome.
+:::
+
+
+In the literature, numerous suggestions have been made on  how to deal with the problem of multicollinearity. The most simple solution is to ban predictors that are strongly correlated with other predictors from the model. This makes sense when multiple predictors measure the same or a similar biological entity (e.g., a number of strongly correlated morphological traits). In other cases this might introduce a severe bias, namely when the predictor that is deleted from the model is an important confounder for the association between one of the remaining predictors and the outcome. Another approach, called *principal component regression*, roughly consists in transforming the predictors to a series of uncorrelated predictors, which solves the problem of multicollinearity. A third option, for example used in *ridge regression*, will allow that the estimates of the regression parameters are slightly biased in favour of a large increase in stability.
+
+::: {.callout-note}
+## Mineral composition vs growth
+
+The addition of higher order and interaction terms to the model typically introduces multicollinearity problems since normally a predictor $X_1$ is correlated with any function, e.g., $X_1X_2$ or $X_1^2$, of itself. In the previous section we constructed a model that included interactions between phosphorus and nitrogen as well as between phosphorus and residual ash. It therefore doesn't come as a surprise that @fig-vif (left) shows large VIFs, especially for the interaction terms. In such situations, namely when the model contains interactions and higher order terms, it typically helps to center the concerned variables. To this end, the concerned predictors are transformed by subtracting their respective sample mean. For example, $X_n$ will be transformed to $X_n-\bar X_n$ and will be denoted by {\tt cnitrogen} in the below \texttt{R}-output. Note that in @fig-vif (right) the problem of multicollinearity essentially has disappeared for the model that contains only these *centered variables*. Furthermore, the standard errors on the estimated regression coefficients have shrunk tremendously as can be seen in the output. As an exercise, reflect on how the regression parameters now can be interpreted.
+
+```{r}
+needles_centered <- with(needles, {
+    data.frame(
+        length = length,
+        cnitrogen = nitrogen - mean(nitrogen),
+        cphosphorus = phosphor - mean(phosphor),
+        cpotassium = potassium - mean(potassium),
+        cresidu = residu - mean(residu))})
+
+m_needles_full_centered <- lm(
+    length ~ cnitrogen + cphosphorus + cpotassium + cresidu + cphosphorus:cresidu + cphosphorus:cnitrogen, data = needles_centered)
+summary(m_needles_full_centered)
+```
+
+```{r}
+#| label: fig-vif
+#| fig-align: center
+#| fig-cap: Variance inflation factors before (left) and after (right) centering. Parameter numbers 1 to 6 correspond respectively with $X_n, X_f, X_p, X_r, X_fX_r$ and $X_fX_n$.
+
+library(car)
+
+par(mfrow = c(1, 2))
+plot(vif(m_needles_full), pch = 19, xlab = "Parameter number", ylab = "VIF", main = "Before centering")
+abline(h = 10, col = "blue", lty = "dashed")
+plot(vif(m_needles_full_centered), pch = 19, xlab = "Parameter number", ylab = "VIF", main = "After centering")
+
+```
+
+:::
+
+
+
 [^1]: In practice we seldom know for sure (unless in randomised studies) if a certain variable $C$ is the only confounder for the association between $X$ and $Y$; often there can be unmeasured confounders that are not included in the dataset and for which it thus is also impossible to correct.
+
+[^f-statistic]: The F-statistic in the regression output always gives the result for a test of the null hypothesis that the regression parameters for all predictors are zero (in other words, that none of the predictors is associated with the outcome) versus the alternative that at least 1 predictor is associated with the outcome.
