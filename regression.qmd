@@ -154,14 +154,14 @@ lines(southport$km, m_loess$fitted, lty = "dashed")
 m_linear <- lm(freq ~ km, data = southport)
 summary(m_linear)
 ```
-
+<!-- 
 
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=0.7\textwidth]%[height =  cm , width = 11cm]
 {assets/eps/southport2.eps}
 \caption{Residual plots for linear regression (left) and quadratic regression (right), with loess scatterplot smoother.}\label{fig:lap942}
-\end{figure}
+\end{figure} -->
 
 @fig-southport-residuals shows a residual plot based on linear regression. We see that that residuals display a systematic pattern, which is approximately parabolic. This suggests that adding a quadratic term to the model will improve the reliability of the regression model.
 
@@ -741,7 +741,7 @@ In the literature, numerous suggestions have been made on  how to deal with the 
 ::: {.callout-note}
 ## Mineral composition vs growth
 
-The addition of higher order and interaction terms to the model typically introduces multicollinearity problems since normally a predictor $X_1$ is correlated with any function, e.g., $X_1X_2$ or $X_1^2$, of itself. In the previous section we constructed a model that included interactions between phosphorus and nitrogen as well as between phosphorus and residual ash. It therefore doesn't come as a surprise that @fig-vif (left) shows large VIFs, especially for the interaction terms. In such situations, namely when the model contains interactions and higher order terms, it typically helps to center the concerned variables. To this end, the concerned predictors are transformed by subtracting their respective sample mean. For example, $X_n$ will be transformed to $X_n-\bar X_n$ and will be denoted by {\tt cnitrogen} in the below \texttt{R}-output. Note that in @fig-vif (right) the problem of multicollinearity essentially has disappeared for the model that contains only these *centered variables*. Furthermore, the standard errors on the estimated regression coefficients have shrunk tremendously as can be seen in the output. As an exercise, reflect on how the regression parameters now can be interpreted.
+The addition of higher order and interaction terms to the model typically introduces multicollinearity problems since normally a predictor $X_1$ is correlated with any function, e.g., $X_1X_2$ or $X_1^2$, of itself. In the previous section we constructed a model that included interactions between phosphorus and nitrogen as well as between phosphorus and residual ash. It therefore doesn't come as a surprise that @fig-vif (left) shows large VIFs, especially for the interaction terms. In such situations, namely when the model contains interactions and higher order terms, it typically helps to center the concerned variables. To this end, the concerned predictors are transformed by subtracting their respective sample mean. For example, $X_n$ will be transformed to $X_n-\bar X_n$ and will be denoted by `cnitrogen` in the below R-output. Note that in @fig-vif (right) the problem of multicollinearity essentially has disappeared for the model that contains only these *centered variables*. Furthermore, the standard errors on the estimated regression coefficients have shrunk tremendously as can be seen in the output. As an exercise, reflect on how the regression parameters now can be interpreted.
 
 ```{r}
 needles_centered <- with(needles, {
@@ -773,7 +773,106 @@ plot(vif(m_needles_full_centered), pch = 19, xlab = "Parameter number", ylab = "
 
 :::
 
+### Influential observations
 
+XXX Rewrite this paragraph using the examples from the slides.
+
+Often, a dataset contains extreme observations, both for the outcome $Y$ and the predictors $X$. These extreme observations can greatly influence the estimated regression parameters and regression line. This is no surprise, since the regression line represents the mean outcome in function of $X$ and the mean is extremely sensitive to outliers. Figure~\ref{fig:infl9} shows a point cloud with 3 deviating observations, as well as 2 linear regression lines, one before (dotted line) and one after (full line) omission of these observations. Remark that the regression line changes significantly after omission of the 3 observations. The explanation is as follows. The presence of observation 1 implies that the regression line (and thus also the intercept) is moved upwards, but has no further influence on the pattern of the regression line. Observation 2 is extreme, but has no influence on the regression line since it clearly follows the pattern of the line. Although observation 3 does not correspond to a very extreme outcome $y$, it will nevertheless be the most influential observation because its predictor value $x$, and more particular, the combination $(x,y)$, is extremely deviant. 
+
+<!-- \begin{figure}[htbp]
+\centering
+\includegraphics[width=0.65\textwidth]%[height =  cm , width = 11cm]
+{assets/eps/infl9.eps}
+\caption{Linear regression line with (full line) and without (dotted line) omission of the influential observations.}\label{fig:infl9}
+\end{figure} -->
+
+
+Naturally, it is undesirable that a single observation determines the best part of the result of a linear regression analysis. Some diagnostics to track down extreme observations are therefore needed. *Residuals* indicate how much the outcome differs from the regression line and can thus be used to identify extreme outcomes. In particular, we already mentioned that residuals should be approximately normally distributed when the model is correct and the outcome is normally distributed (for fixed predictor values) with a homogeneous variance. Verifying whether or not a residual is extreme can then be done by comparing it to the normal distribution. Assume, for example, that we possess 100 observations. We then expect that approximately 95\% of the residuals are, in absolute value, smaller than 1.96$\hat{\sigma}$. Observing a lot more than 5\% of extreme residuals will then give us an indication for outliers.
+
+In the literature, a number of modifications of the residuals have been introduced to make them more suitable for outlier detection. After all, it is possible to show that, due to estimation errors, even when the model is correct and the outcomes are normally distributed (for fixed predictor values) with homogeneous variance, the residuals will not have a constant variance and are not perfectly normally distributed. *Studentized residuals* are a transformation of the previously defined residuals that do come with a constant variance and that are $t$-distributed with $n-1$ degrees of freedom under the assumptions of the model. Outliers can thus be detected more accurately by verifying if a lot more than 5\% of the Studentized residuals are larger in absolute value than the 97.5\% percentile of the $t_{n-1}$-distribution.
+
+Extreme predictor values can in principle be detected using a scatterplot matrix of the outcome in function of the different predictors. However, when there are multiple predictors, these plots have serious shortcomings because it is possible that not the predictor values themselves, but a combination of the predictors is unusual, which may not be visible in these plots. It is therefore more sensible to investigate the so-called *leverage* (influence) of each observation. Leverage is a diagnostic measure for the influence of predictor observations (in contrast to residuals that give a diagnostic measure for the influence of the outcomes). In particular, the leverage of observation $i$ is a measure for the distance of the predictor value of observation $i$ to the mean predictor value in the sample. As a consequence, a large leverage for the $i^{th}$ observation means that it has predictor values that strongly deviate from the mean. In this case, that observation might also have a large influence on the regression coefficients and the predictions. Leverage values normally vary between $1/n$ and $1$ and are on average equal to $p/n$ with $p$ the number of unknown parameters. Typically, a leverage value is considered to be extreme if it is larger than $2p/n$.
+
+```{r}
+#| label: fig-leverage
+#| fig-align: center
+#| fig-cap: Leverage in function of observation number. The dashed line indicates the cut-off value of $2p/n$.
+leverage <- hatvalues(m_needles_full)
+plot(leverage, xlab = "Observation", ylab = "Leverage", pch = 19)
+
+p <- length(coefficients(m_needles_full))
+n <- nrow(needles)
+abline(h = 2 * p / n, col = "blue", lty = "dashed")
+```
+
+A more direct measure to express the influence of each observation on the regression analysis, is *Cook's distance*. The Cook's distance for the $i^{th}$ observation is a diagnostic measure for the influence of that observation on all predictions, or equivalently for its influence on \emph{all} estimated coefficients. It is obtained by comparing each prediction  $\hat{Y}_j$, obtained based on the regression model for the $j^{th}$ outcome, $j=1, \ldots, n$, with the corresponding prediction $\hat{Y}_{j(i)}$ that would have been obtained if observation $i$ had not been used to fit the regression model:
+$$
+    D_i=\frac{\sum_{j=1}^n(\hat{Y}_j-\hat{Y}_{j(i)})^2}{p\textrm{MSE}}.
+$$
+If the Cook's distance $D_i$ is large, then observation $i$ will have a large influence on the predictions and estimated coefficients. In particular, a Cook's distance is called extreme if it surpasses the 50\% percentile of the $F_{p,n-p}$-distribution.
+
+::: {.callout-note}
+## Mineral composition vs growth
+
+The leverage of each observation in the regression analysis for this example is shown in @fig-leverage. It indicates that the first and fourth observation take on extreme predictor values and hence might have a large influence on the results of the analysis. The Cook's distance of the first observation is 1.5. Knowing that the model contains 7 parameters ($p=7$) and 26 observations ($n=26$), we conclude that this well exceeds the 50\% percentile of the $F_{p,n-p}$-distribution, which is 0.94. Essentially, the value of 1.5 corresponds to the 77\% percentile of that distribution. We thus conclude that the first observation has a large influence on the estimated regression coefficients. @fig-cooks shows that the other observations have a far lesser and hardly influential impact.
+
+```{r}
+#| label: fig-cooks
+#| fig-align: center
+#| fig-cap: Cook's distance in function of observation number.
+plot(cooks.distance(m_needles_full),
+     pch = 19,
+     xlab = "Observation",
+     ylab = "Cook's distance")
+abline(h = 0.94, col = "blue", lty = "dashed")
+```
+:::
+
+Once we observed that an observation is influential, the so-called *DFBETAs* can be used to determine on which regression coefficient(s) exactly it exercises its large influence. The DFBETAs of observation $i$ are a diagnostic measure for the influence of that observation *on each regression coefficient separately*, contrary to Cook's distance which evaluates the influence on all coefficients simultaneously. In particular, the DFBETA for the $i^{th}$ observation and $j^{th}$ coefficient is obtained by comparing the $j^{th}$ coefficient $\hat{\beta}_j$ with the coefficient $\hat{\beta}_{j(i)}$ from the regression model that is fitted without including the $i^{th}$ observation in the analysis:
+$$
+    \textrm{DFBETA}_{j(i)}=\frac{\hat{\beta}_{j}-\hat{\beta}_{j(i)}}{\textrm{SD}(\hat{\beta}_{j})}.
+$$
+From this expression it follows that the sign of the DFBETA for observation $i$ indicates whether omitting that observation from the analysis causes an increase (DFBETA$<0$) or decrease (DFBETA$>0$) in the corresponding coefficient. A DFBETA is called extreme if it exceeds 1 in small to medium-sized datasets or $2/\sqrt{n}$ in larger datasets. 
+
+::: {.callout-note}
+## Mineral composition vs growth
+
+We concluded that the first observation is influential on the regression analysis for this example. The DFBETAs in @fig-dfbetas show that it has a large influence on the interaction between phosphorus and residual ash. The corresponding coefficient observed in the regression analysis is -598 (SE 290). Using the expression of the DFBETA and the fact that its value is 2.16, we conclude that omitting the first observation will change the interaction between phosphorus and residual ash to approximately
+$$
+    -598-2.16\times 290=-1224.
+$$
+Because of this, as well as the fact that the interaction between phosphorus and residual ash was only marginally significant, we decide to remove the interaction from the model. This leads to the output given below. Figure~\ref{fig:cooks2} confirms that there is now no longer a single observation that has an outsize influence on the results of the obtained model.
+
+```{r}
+#| label: fig-dfbetas
+#| fig-align: center
+#| fig-cap: DFBETAs for the first observation in function of the coefficient number.
+d <- dfbetas(m_needles_full_centered)
+plot(d[1, ],
+     pch = 19,
+     xlab = "Parameter number",
+     ylab = "DFBETA",
+     main = "DFBETAs for observation 1")
+```
+
+```{r}
+m_needles_full_centered_adjusted <- lm(
+    length ~ cnitrogen + cphosphorus + cpotassium + cresidu +  cphosphorus:cnitrogen, data = needles_centered)
+summary(m_needles_full_centered_adjusted)
+```
+
+Please remark that now the influence of residual ash on tree length has become insignificant and that in a next step this parameter will have to be removed from the model.
+
+```{r}
+#| label: fig-cooks-distance-adjusted
+#| fig-align: center
+#| fig-cap: Cook's distance in function of observation number after removing the interaction between phosphorus and residual ash.
+plot(cooks.distance(m_needles_full_centered_adjusted),
+     pch = 19,
+     xlab = "Observation",
+     ylab = "Cook's distance")
+```
+:::
 
 [^1]: In practice we seldom know for sure (unless in randomised studies) if a certain variable $C$ is the only confounder for the association between $X$ and $Y$; often there can be unmeasured confounders that are not included in the dataset and for which it thus is also impossible to correct.
 
