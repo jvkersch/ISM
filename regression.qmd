@@ -101,7 +101,9 @@ For the results obtained from the linear regression model to be valid, it is imp
 $$
 e_i=y_i-\hat{y}_i=y_i-\hat{\alpha}-\hat{\beta}x_i.
 $$
-They represent the vertical distance between the observation for subject $i$ and its prediction on the regression line.
+They represent the vertical distance between the observation for subject $i$ and its prediction on the regression line. 
+
+In practice, it is often more convenient to put the fitted values on the $x$-axis, rather than the values of the predictor. This is especially useful for multiple linear regression, where there are several predictors. We will follow this convention for the residual plot from now on.
 
 If the assumption of linearity holds, then there should be no pattern visible in the residual plot. This is the case in @fig-residuals that shows a residual plot for the regression analysis of the CWD example. However, when the residuals reveal a nonlinear pattern, this means that extra terms should be added to the model to correctly predict the mean outcome. For example, if the residuals show a quadratic pattern, then we could write that approximately $e_i\approx \delta_0+\delta_1 x_i+\delta_2 x_i^2$ for some numbers $\delta_0$, $\delta_1$, and $\delta_2$, and hence that the outcome $y_i=\hat{\alpha}+\hat{\beta}x_i+e_i\approx (\hat{\alpha}+\delta_0)+(\hat{\beta}+\delta_1)x_i+\delta_2 x_i^2$ (modulo an error term) is a quadratic function of $x_i$. In that case it is best to switch to a quadratic regression model.
 
@@ -109,18 +111,12 @@ If the assumption of linearity holds, then there should be no pattern visible in
 #| label: fig-residuals
 #| fig-align: center
 #| fig-cap: Residual plot for the CWD data.
-m_cwd <- lm(CWD.BASA ~ RIP.DENS, data = trees)
-plot(trees$RIP.DENS, m_cwd$residuals,
-     xlab = "Riparian tree density",
-     ylab = "Residuals")
-
-lw <- loess(m_cwd$residuals ~ trees$RIP.DENS)
-j <- order(trees$RIP.DENS)
-lines(trees$RIP.DENS[j], lw$fitted[j])
+plot(m_cwd, which = 1)
 ```
 
 Since the linearity of the model can only be verified over the observed range of the explanatory variable (for example, over the interval [771; 2,150] for the CWD data), it is important to understand that the results of a linear model cannot just be extrapolated past the largest or smallest observed $X$-value. In the CWD example we can estimate that the mean CWD basal area for lakes with a riparian tree density of 750 per km of shoreline will be $-77.09908 +0.11552\times 750=9.5$ m$^2$, but the observed data do not allow us verify the reliability of this estimation. After all, it could be that the regression line for low values of the predictor variable increases or decreases, causing the linear extrapolation to be misleading. Note that, for example, the prediction for a tree density of 500 per km of shoreline is very misleading, since it gives a negative result ($-77.09908 +0.11552\times 500=-19$ m$^2$).
 
+PROOFREADING UP UNTIL THIS POINT
 
 ::: {.callout-note}    
 ## Frequency of Lap94 and distance from Southport
