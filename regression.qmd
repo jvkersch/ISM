@@ -116,14 +116,10 @@ plot(m_cwd, which = 1)
 
 Since the linearity of the model can only be verified over the observed range of the explanatory variable (for example, over the interval [771; 2,150] for the CWD data), it is important to understand that the results of a linear model cannot just be extrapolated past the largest or smallest observed $X$-value. In the CWD example we can estimate that the mean CWD basal area for lakes with a riparian tree density of 750 per km of shoreline will be $-77.09908 +0.11552\times 750=9.5$ m$^2$, but the observed data do not allow us verify the reliability of this estimation. After all, it could be that the regression line for low values of the predictor variable increases or decreases, causing the linear extrapolation to be misleading. Note that, for example, the prediction for a tree density of 500 per km of shoreline is very misleading, since it gives a negative result ($-77.09908 +0.11552\times 500=-19$ m$^2$).
 
-PROOFREADING UP UNTIL THIS POINT
-
-::: {.callout-note}    
+::: {.callout-note}
 ## Frequency of Lap94 and distance from Southport
 
-The frequency of the allele Lap94 in Mytilus edulis (a mussel) with respect to the eastern distance from Southport, Connecticut, U.S.A., is shown in @fig-southport. A linear regression analysis shows that the expected gene frequency differs 2.6% between mussels that are located at a 10 km eastern distance from each other.
-
-XXX use asin(sqrt(southport$freq))*180/pi transform? Sokal-Rohlf 1997.
+The frequency of the allele Lap94 in Mytilus edulis (a mussel) with respect to the eastern distance from Southport, Connecticut, U.S.A., is shown in @fig-southport. 
 
 ```{r}
 #| label: fig-southport
@@ -131,7 +127,6 @@ XXX use asin(sqrt(southport$freq))*180/pi transform? Sokal-Rohlf 1997.
 #| fig-cap: "Frequency of Lap94 in function of the eastern distance from Southport, with linear regression line (dotted line), quadratic regression line (solid line), and loess scatterplot smoother (dashed line)"
 
 southport <- read.csv("datasets/01-regression/southport.txt", sep = " ")
-southport$freq <- southport$freq / 2
 
 plot(freq ~ km, data = southport,
      xlab = "Distance (in km)",
@@ -151,18 +146,13 @@ m_loess <- loess(freq ~ km, data = southport)
 lines(southport$km, m_loess$fitted, lty = "dashed")
 ```
 
+A linear regression model shows that the expected gene frequency differs by 2.2% between mussels that are located at a 10 km eastern distance from each other.
+
 ```{r}
+#| code-fold: show
 m_linear <- lm(freq ~ km, data = southport)
 summary(m_linear)
 ```
-<!-- 
-
-\begin{figure}[htbp!]
-\centering
-\includegraphics[width=0.7\textwidth]%[height =  cm , width = 11cm]
-{assets/eps/southport2.eps}
-\caption{Residual plots for linear regression (left) and quadratic regression (right), with loess scatterplot smoother.}\label{fig:lap942}
-\end{figure} -->
 
 @fig-southport-residuals shows a residual plot based on linear regression. We see that that residuals display a systematic pattern, which is approximately parabolic. This suggests that adding a quadratic term to the model will improve the reliability of the regression model.
 
@@ -179,28 +169,27 @@ plot(m_quad, which = 1, main = "Quadratic regression")
 Adding a quadratic term gives the following model:
 
 ```{r}
+#| code-fold: show
 m_quad <- lm(freq ~ km + I(km^2), data = southport)
 summary(m_quad)
 ```
 
-We conclude from this that the mean frequency of the allele Lap$^{94}$ in Mytilus edulis can be described in function of the eastern distance $x$ from Southport as $(1.4-0.042x+0.0028x^2)/100$. @fig-southport-residuals (right) shows a residual plot based on this quadratic regression and indicates that the previously found pattern has mostly disappeared. Hence this model better describes the data. In subsequent sections it will be examined if the model can be improved further.
-
-XXX Check numbers
+@fig-southport-residuals (right) shows a residual plot based on this quadratic regression and indicates that the previously found pattern has mostly disappeared. Hence this model better describes the data. In subsequent sections we will investigate whether the model can be improved further.
 :::
 
 ## The residual standard deviation
 
 The CWD linear regression model from the previous section indicates how much (in particular, what basal area of) woody debris we can expect along North American lakes with a certain tree density. However, it does not inform us how much this area can vary between lakes with the same tree density. Nevertheless, it is of the utmost importance to know this when we want to make predictions based on the regression model, since outcomes that vary a lot around the regression line can of course not be predicted accurately by using the regression line, as opposed to outcomes with little variation around the line which can be predicted relatively accurately.
 
-If the outcomes for lakes with the same predictor value $x$ (i.e., tree density) are normally distributed, then it makes sense to express the variation of the outcomes around their mean by means of a *conditional variance* $Var(Y|X=x)$. Similarly to the conditional mean $E(Y|X=x)$, this indicates the variance on the outcomes for the subgroup from the study population consisting of lakes for which the tree density $X$ takes on the value $x$. For example, $Var(Y|X=1,300)$ in the CWD example is the variance on the CWD basal area per km of shoreline for lakes with a riparian tree density of 1,300 per km. These variances cannot just be estimated, since there is only 1 observation in the dataset with a tree density of 1,300. When we examine @fig-residuals, we see that the points are equally spread around the regression line, irrespective of the tree density, and that the variability on the basal area of coarse woody debris does not seem to depend on the tree density. In this case, we call the outcomes *homoscedastic* or the variance is said to be *homogeneous*. It then makes sense to assume that the conditional variance $Var(Y|X=x)$ is constant: 
+If the outcomes for lakes with the same predictor value $x$ (i.e., tree density) are normally distributed, then it makes sense to express the variation of the outcomes around their mean by means of a *conditional variance* $\text{Var}(Y \mid X=x)$. Similarly to the conditional mean $E(Y \mid X=x)$, this indicates the variance on the outcomes for the subgroup from the study population consisting of lakes for which the tree density $X$ takes on the value $x$. For example, $\text{Var}(Y \mid X=1,300)$ in the CWD example is the variance on the CWD basal area per km of shoreline for lakes with a riparian tree density of 1,300 per km. These variances cannot just be estimated, since there is only 1 observation in the dataset with a tree density of 1,300. When we examine @fig-residuals, we see that the points are equally spread around the regression line, irrespective of the tree density, and that the variability on the basal area of coarse woody debris does not seem to depend on the tree density. In this case, we call the outcomes *homoscedastic* or the variance is said to be *homogeneous*. It then makes sense to assume that the conditional variance $\text{Var}(Y \mid X=x)$ is constant: 
 $$
-    Var(Y|X=x)=\sigma^2.
+    \text{Var}(Y \mid X=x) = \sigma^2.
 $$ {#eq-homosc}
-The constant $\sigma$ is called the *residual standard deviation*. If we assume @eq-homosc, we are able to determine the conditional variance $Var(Y|X=1,300)=\sigma^2$, because then it can be estimated based on the data for all lakes, as will be illustrated in the next paragraph.
+The constant $\sigma$ is called the *residual standard deviation*. If we assume @eq-homosc, we are able to determine the conditional variance $\text{Var}(Y \mid X=1300)=\sigma^2$, because then it can be estimated based on the data for all lakes, as will be illustrated in the next paragraph.
 
-As we have learned in descriptive statistics, the variation of the outcomes around their conditional mean can be described by means of the differences between the observations $y_i$ and their (estimated) mean $\hat{\alpha}+\hat{\beta}x_i$, or in other words, through the residuals. However, the mean of the residuals is always 0 (verify this!) because the positive and negative deviations cancel each other out. Hence the mean residual is not a good measure for the variation, and it is more sensible to use the squared deviations $e_i^2$. The mean of these *squared residuals* therefore will give a good measure. In particular it can be shown that the so-called \emph{residual mean squared error}
+As we have learned in descriptive statistics, the variation of the outcomes around their conditional mean can be described by means of the differences between the observations $y_i$ and their (estimated) mean $\hat{\alpha}+\hat{\beta}x_i$, or in other words, through the residuals. However, the mean of the residuals is always 0 because the positive and negative deviations cancel each other out. Hence the mean residual is not a good measure for the variation, and it is more sensible to use the squared deviations $e_i^2$. The mean of these *squared residuals* therefore will give a good measure. In particular it can be shown that the so-called *residual mean squared error*, given by
 $$
-    \hat{\sigma^2}=\frac{\sum_{i=1}^n e_i^2}{n-2}=s_y^2\{1-\mbox{Cor}(x,y)^2\}
+    \hat{\sigma}^2=\frac{\sum_{i=1}^n e_i^2}{n-2}=s_y^2\{1-\mbox{Cor}(x,y)^2\}
 $$ {#eq-mse}
 is a good (i.e., unbiased) estimate of $\sigma^2$. Remark that the size of the residual mean squared error is closely connected with the correlation. If the outcome is independent from the predictor variable, the variability of the outcomes around the regression line is the same as the total variability, as denoted by the standard deviation $s_y$. If the variables $X$ and $Y$ are (perfectly) linearly dependent on each other, the correlation is 1, and hence there is no variation around the regression line. This is logical, since in that case the data points form a straight line and therefore do not vary around that line. 
 
@@ -210,10 +199,14 @@ is a good (i.e., unbiased) estimate of $\sigma^2$. Remark that the size of the r
 
 Previously, the R model summary for the CWD model gave the following estimate for the residual standard deviation:
 
-> Residual standard error: 36.32 on 14 degrees of freedom
+```
+Residual standard error: 36.32 on 14 degrees of freedom
+```
 
-Assuming the CWD basal area is normally distributed for a given tree density, we can conclude that respectively 68% and 95% of those basal areas given a tree density of 1,300 per km can be expected to fall in the intervals $[73-36, 73+36] = [37, 109]$ and $[73-2\times 36, 73 + 2\times 36] = [1, 145]$. Thus we obtain a fairly wide 95% reference interval for the CWD basal area when the tree density is 1,300 trees per km of shoreline. These intervals are not completely accurate since they do not take the imprecision of the estimates of the mean outcome and residual standard deviation into account. in the literature there exist so-called \emph{prediction intervals} which do take this imprecision into account.
+Assuming the CWD basal area is normally distributed for a given tree density, we can conclude that respectively 68% and 95% of those basal areas given a tree density of 1,300 per km can be expected to fall in the intervals $[73-36, 73+36] = [37, 109]$ and $[73-2\times 36, 73 + 2\times 36] = [1, 145]$. Thus we obtain a fairly wide 95% reference interval for the CWD basal area when the tree density is 1,300 trees per km of shoreline. These intervals are not completely accurate since they do not take the imprecision of the estimates of the mean outcome and residual standard deviation into account. in the literature there exist so-called *prediction intervals* which do take this imprecision into account.
 :::
+
+For the previous results to be valid, it is of course again important that all conditions imposed by the model are met. This time we do not only have the assumption of linearity, but more importantly also the assumption of homoscedasticity of the outcomes. Since, according to @eq-mse, the squared residuals are indicative for the variability that is present in the data, we can investigate this assumption by making a scatterplot of the squared residuals (on the $Y$-axis) in function of the explanatory variable (on the $X$-axis).This is illustrated for the CWD data in @fig-cwd-diagnostics (left), which seems to suggest that the variability increases for increasing tree densities. Consequently, the reference intervals that have been calculated assuming homoscedasticity cannot be fully trusted. In particular they might be too narrow for high tree densities and too wide for low tree densities.
 
 ```{r}
 #| label: fig-cwd-diagnostics
@@ -225,11 +218,9 @@ plot(m_cwd, which = 1)
 plot(m_cwd, which = 2)
 ```
 
-For the previous results to be valid, it is of course again important that all conditions imposed by the model are met. This time we do not only have the assumption of linearity, but more importantly also the assumption of homoscedasticity of the outcomes. Since, according to @eq-mse, the squared residuals are indicative for the variability that is present in the data, we can obtain knowledge concerning this assumption by making a scatterplot of the squared residuals (on the $Y$-axis) in function of the explanatory variable (on the $X$-axis).This is illustrated for the CWD data in @fig-cwd-diagnostics (left), which seems to suggest that the variability increases for increasing tree densities. Consequently, the reference intervals that have been calculated assuming homoscedasticity cannot be fully trusted. In particular they might be too narrow for high tree densities and too wide for low tree densities.
+Even if the variance would be homogeneous, it is still important to verify that the outcomes are normally distributed for subjects with the same predictor value in order for the residual standard deviation to be a meaningful measure to describe the variability on the data and for the calculated reference intervals to be correct. A QQ-plot of the outcomes would be misleading, since this checks the normality of all measurements as a whole, not the normality of the measurements for subjects with the same predictor value. It can be shown that normally distributed outcomes for a given $x$-value implies that the residuals are also approximately normally distributed. Hence deviations from normality in a QQ-plot for the residuals indicate that the outcomes are not normally distributed for a fixed $x$. @fig-cwd-diagnostics (right) illustrates this for the CWD data and shows deviations from normality. This is not surprising, since heterogeneity of the variance often goes together with non-normality, in particular skewness, of the data.
 
-Even if the variance would be homogeneous, it is still important to verify that the outcomes are normally distributed for subjects with the same predictor value in order for the residual standard deviation to be a meaningful measure to describe the variability on the data and for the calculated reference intervals to be correct. A QQ-plot of the outcomes would be misleading, since this checks the normality of all measurements as a whole, not the normality of the measurements for subjects with the same predictor value. It can mathematically be shown that normally distributed outcomes for a given $x$-value implies that also the residuals approximately normally distributed. Hence deviations from normality in a QQ-plot for the residuals indicates therefore that the outcomes are not normally distributed for a fixed $x$. @fig-cwd-diagnostics (right) illustrates this for the CWD data and shows deviations from normality. This is not surprising, since heterogeneity of the variance often goes together with non-normality, in particular skewness, of the data.
-
-Finally it is also necessary that all outcomes are independent to obtain correct estimations of the residual standard deviation. This would not be the case in so-called longitudinal studies where the outcome is measured repeatedly over time for the same subject (e.g., plants of animals).
+Finally it is also necessary that all outcomes are independent to obtain correct estimations of the residual standard deviation. This would not be the case in so-called longitudinal studies where the outcome is measured repeatedly over time for the same subject.
 
 In the next section we will describe how to handle deviations from the previously mentioned assumptions. 
 
