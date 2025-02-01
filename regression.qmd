@@ -442,11 +442,11 @@ We conclude that 71.6% of the variability on the log-transformed CWD basal area 
 
 ## Multiple linear regression
 
-So far we focused on describing the association between a certain outcome $Y$ and a single predictor $X$. However, it is often more useful to describe the mean outcome not in terms of only 1, but in terms of multiple predictors at the same time. This is illustrated in the following examples:
+So far we focused on describing the association between a certain outcome $Y$ and a single predictor $X$. However, it is often more useful to describe the mean outcome not in terms of only one, but in terms of multiple predictors at the same time. This is illustrated in the following examples:
 
 1. Often the association between a predicting variable $X$ and an outcome $Y$ will be disturbed due to a confounder $C$. For example, when determining the effect of asbestos  ($X$) on the respiratory function ($Y$), age ($C$) is a confounder because it influences both the duration of the exposure and the respiratory function. To correct for this confounding, it is necessary to describe the association between $X$ and $Y$ separately for people of the same age (in other words, individuals with the same value for the confounder). Performing a separate linear regression for each observed age $c$ amongst those people of that age $c$, doesn't make sense since usually there are only very little people with exactly the same age in a study. Especially when there are multiple confounders, this becomes problematic. In this section we will solve this problem by including the confounder $C$ in the linear model.
-2. In many studies we are interested to know which group of variables influences the outcome most. For example, understanding which aspects of habitat and human activity have a major impact on the biodiversity of the rain forest is an important objective of conservation biology. To that end, not only the size of the forest has to be taken into account, but also other factors, such as age and altitude of the forest, proximity of other forests, \ldots \ A study of the simultaneous effect of the different variables will allow to get a deeper understanding of the variation in biodiversity between different forests. By inspecting in particular forests with a low or high biodiversity, new predictive factors for biodiversity might be discovered.
-3. Whenever we want to predict an outcome for individuals, it is crucial that a lot of predictive information is available and that this information is used simultaneously in a regression model. For example, the prognosis after treatment is highly uncertain for patients with an advanced stage of breast cancer. However, based on measured predictors before and after the operation, it would be possible to construct regression models that allow to predict for each patient, using his or her own characteristics, a prognosis. Related predictions (but then for mortality risk) are used daily in intensive care units to express the severity of a patient's health. It goes without saying that better predictions can be made when a large number of predictors is taken into account at the same time. 
+2. In many studies we are interested in knowing which group of variables influences the outcome most. For example, understanding which aspects of habitat and human activity have a major impact on the biodiversity of the rain forest is an important objective of conservation biology. To that end, not only the size of the forest has to be taken into account, but also other factors, such as age and altitude of the forest, proximity of other forests, and so on. A study of the simultaneous effect of the different variables will allow us to get a deeper understanding of the variation in biodiversity between different forests. By inspecting in particular forests with a low or high biodiversity, new predictive factors for biodiversity might be discovered.
+3. Whenever we want to predict an outcome for individuals, it is crucial that a lot of predictive information is available and that this information is used simultaneously in a regression model. For example, the prognosis after treatment is highly uncertain for patients with an advanced stage of breast cancer. However, based on measured predictors before and after the operation, it would be possible to construct regression models that allow to predict a prognosis for each patient, using his or her own characteristics. Related predictions (but then for mortality risk) are used daily in intensive care units to express the severity of a patient's health. It goes without saying that better predictions can be made when a large number of predictors is taken into account at the same time. 
 
 ::: {.callout-note}
 ## Mineral composition vs growth
@@ -455,10 +455,12 @@ In this example we study the relation between the growth and mineral composition
 $$
     E(Y|X_f)=\alpha+\beta_f X_f
 $$
-only allow us to predict the height of a tree based on a single mineral. Obviously, we could obtain more accurate predictions if multiple minerals are taken into account at the same time. Note that for example the coefficient $\beta_f$ in such a model might not show the pure effect of phosphorus. It is true that $\beta_f$ represents the mean difference in length between trees that differ by 1 unit in phosphorus, but even if phosphorus would not have an influence on the growth of the Japanese larch, it could still be possible that trees with a higher proportion of phosphorus are larger (and thus $\beta_f>0$) because, for example, they also contain more potassium. This is a problem of confounding (the effect of phosphorus is confounded with the effect of potassium) that can be resolved by comparing trees with a different level of phosphorus, but with an identical proportion of potassium. We will see in this section that multiple linear regression models make this possible in a natural way.
+only allow us to predict the height of a tree based on a single mineral. Obviously, we could obtain more accurate predictions if multiple minerals are taken into account at the same time. 
+
+Note that for example the coefficient $\beta_f$ in such a model might not show the pure effect of phosphorus. It is true that $\beta_f$ represents the mean difference in length between trees that differ by 1 unit in phosphorus, but even if phosphorus would not have an influence on the growth of the Japanese larch, it could still be possible that trees with a higher proportion of phosphorus are larger (and thus $\beta_f>0$) because, for example, they also contain more potassium. This is a problem of confounding (the effect of phosphorus is confounded with the effect of potassium) that can be resolved by comparing trees with a different level of phosphorus, but with an identical proportion of potassium. We will see in this section that multiple linear regression models make this possible in a natural way.
 :::
 
-The technique that we will use to this end is called *multiple linear regression*, as opposed to simple linear regression that was used before. Suppose we observed  a number of explanatory variables $X_1,...,X_p$ and an outcome $Y$ for $n$ subjects. Suppose furthermore that the mean outcome can be described linearly with respect to these variables, i.e., 
+The technique that we will use to this end is called *multiple linear regression*, as opposed to simple linear regression used before. Suppose we observed  a number of explanatory variables $X_1,...,X_p$ and an outcome $Y$ for $n$ subjects. Suppose furthermore that the mean outcome can be described linearly with respect to these variables, i.e., 
 $$
     E(Y|X_1=x_1,...,X_p=x_p)=\alpha + \beta_1 x_1 + ... +\beta_p x_p,
 $$ {#eq-mlinreg}
@@ -479,23 +481,25 @@ In particular, we can interpret $\beta_j$ as the difference in mean outcome betw
 An analysis of the simple linear regression model $E(Y|X_f)=\alpha+\beta_f X_f$ in R gives the following output:
 
 ```{r}
+#| code-fold: false
 needles <- read.csv("./datasets/01-regression/needles.txt", sep = '\t')
 m_needles_simple <- lm(length ~ phosphor, data = needles)
 summary(m_needles_simple)
 ```
 
-Based on these data, we conclude that trees with a phosphorus level that is 0.1% higher, are on average 1.06m higher. An analysis of the multiple linear regression model
+Based on these data, we conclude that trees with a phosphorus level that is 0.1% higher, are on average 1.06m taller. An analysis of the multiple linear regression model
 $$
     E(Y|X_n,X_f,X_p,X_r)=\alpha+\beta_n X_n+\beta_f X_f+\beta_p X_p+\beta_r X_r
 $$
 drastically changes this result, as indicated in the output:
 
 ```{r}
+#| code-fold: false
 m_needles_multiple <- lm(length ~ nitrogen + phosphor + potassium + residu, data = needles)
 summary(m_needles_multiple)
 ```
 
-The coefficient for phosphorus now implies that trees with an increase of 0.1% in their phosphorus level, but with the same levels of nitrogen, potassium, and residual ash, are only 25.7 cm higher. The reason why we find such a difference of more than 1 m, can be found in the fact that trees that differ 0.1% in phosphorus level, also often differ in their levels of nitrogen, potassium, and residual ash.
+The coefficient for phosphorus now implies that trees with an increase of 0.1% in their phosphorus level, but with the same levels of nitrogen, potassium, and residual ash, are only 25.7 cm taller. The reason why we find such a difference of more than 1 m, can be found in the fact that trees that differ 0.1% in phosphorus level, also often differ in their levels of nitrogen, potassium, and residual ash.
 
 The $R^2$-value in the output is 86.8%, which tells us that the majority of the variability on the length of Japanese larches can be explained by the mineral composition of the needles. The 4 chosen minerals are therefore strongly predictive for the outcome.
 :::
@@ -509,14 +513,14 @@ Assuming the linearity conditions of the model are fulfilled, the association be
 \beta_1&=&\alpha + \beta_1 (x+1) +\beta_2 c-\alpha - \beta_1 x -\beta_2 c \\
 &=&E(Y|X=x+1,C=c)-E(Y|X=x,C=c) \,.
 \end{eqnarray*}
-In other words, $\beta_1$ represents the mean difference in outcome between individuals that differ 1 unit in $X$, but all have the same value for the confounder $C$ (e.g., people from the same age). This way we compare comparable groups of individuals, effectively correcting for the perturbing effect of the confounder. In the literature, the estimate for $\beta_1$ is therefore called the *adjusted effect* of $X$ on $Y$, to indicate that we controlled for confounders. If $C$ is the only confounder[^1] for the association between $X$ and $Y$, then this can indeed be interpreted as the causal effect of an increase of 1 unit of $X$ on the mean outcome. The estimate for the association between $X$ and $Y$  in the model without confounders (i.e., the estimate $\beta^*_1$ in the model $E(Y|X)=\alpha^*+\beta^*_1X$) is then called the *unadjusted effect* of $X$ on $Y$, even though it has, due to confounding, no causal meaning (in other words, it does not represent an effect of a unit change in $X$ on the mean outcome).
+In other words, $\beta_1$ represents the mean difference in outcome between individuals that differ 1 unit in $X$, but all have the same value for the confounder $C$ (e.g., people of the same age). This way we compare comparable groups of individuals, effectively correcting for the perturbing effect of the confounder. In the literature, the estimate for $\beta_1$ is therefore called the *adjusted effect* of $X$ on $Y$, to indicate that we controlled for confounders. If $C$ is the only confounder[^1] for the association between $X$ and $Y$, then this can indeed be interpreted as the causal effect of an increase of 1 unit of $X$ on the mean outcome. The estimate for the association between $X$ and $Y$  in the model without confounders (i.e., the estimate $\beta^*_1$ in the model $E(Y|X)=\alpha^*+\beta^*_1X$) is then called the *unadjusted effect* of $X$ on $Y$, even though it has, due to confounding, no causal meaning (in other words, it does not represent an effect of a unit change in $X$ on the mean outcome).
 
-In some cases we would also like to know if the effect of a variable $X$ on another variable $Y$ depends on a third variable $C$. This could, for example, happen when we wish to investigate if the effect of asbestos on the respiratory function changes with increasing age. Such issues are very actual in the context of scientific studies on gene-environment interactions. For asthma or COPD, for example, there are strong indications that gene-environment interactions with a history of smoking are important factors in determining the severity of the disease (in particular that the role of certain genes is amplified by a history of smoking). In pharmacogenetics there exists a huge interest in gene-medicine interactions in order to ascertain if certain drugs are especially effective in the presence of certain genes. For example, gene-medicine interactions were discovered for steroids with regard to their effect on the respiratory function of asthma patients. 
+In some cases we would also like to know if the effect of a variable $X$ on another variable $Y$ depends on a third variable $C$. This could, for example, happen when we wish to investigate if the effect of asbestos on the respiratory function changes with increasing age. Such issues are very relevant in the context of scientific studies on gene-environment interactions. For asthma or COPD, for example, there are strong indications that gene-environment interactions with a history of smoking are important factors in determining the severity of the disease (in particular that the role of certain genes is amplified by a history of smoking). In pharmacogenetics there exists a huge interest in gene-medicine interactions in order to ascertain if certain drugs are especially effective in the presence of certain genes. For example, gene-medicine interactions were discovered for steroids with regard to their effect on the respiratory function of asthma patients. 
 
 To statistically model such *interaction* or *effect modification* between 2 variables $X$ (e.g., use of steroids or not) and $C$ (e.g., presence/absence of a certain gene), we could add the product of those variables to the model: 
-\begin{equation*}
-E(Y|X,C)=\alpha+\beta_1X+\beta_2C+\beta_3 X C \,.
-\end{equation*}
+$$
+    E(Y|X,C)=\alpha+\beta_1X+\beta_2C+\beta_3 X C.
+$$
 The effect of a change in $X$ on the mean outcome now is 
 \begin{eqnarray*}
 E(Y|X=x+1,C=c)-E(Y|X=x,C=c)&=&\alpha + \beta_1 (x+1) +\beta_2 c+\beta_3
@@ -533,7 +537,15 @@ The regression model
 $$
     E(Y|X_n,X_f)=\alpha+\beta_n X_n+\beta_f X_f
 $$ {#eq-model-no-interaction}
-assumes that nitrogen and phosphorus are linearly associated with the length of Japanese larches, but that the strength of the association between nitrogen and length does not depend on the phosphorus level in the needles. In particular, the output below suggests that trees that differ 0.1\% in their nitrogen level, but have the same level of phosphorus, differ on average 0.12 m in length, independent from the actual level of phosphorus. @fig-needles-no-interaction (left) illustrates indeed that the mean tree length increases at the same rate with an increase of the level of nitrogen, irrespective of the level of phosphorus in the needles. Similar, @fig-needles-no-interaction (right) shows that the association between tree length and nitrogen is 123.8, no matter what the level of phosphorus is.
+assumes that nitrogen and phosphorus are linearly associated with the length of Japanese larches, but that the strength of the association between nitrogen and length does not depend on the phosphorus level in the needles. This model is described in R as
+
+```{r}
+#| code-fold: false
+model_no_interaction <- lm(length ~ nitrogen + phosphor, data = needles)
+summary(model_no_interaction)
+```
+
+In particular, the output suggests that trees that differ 0.1\% in their nitrogen level, but have the same level of phosphorus, differ on average 0.12 m in length, regardless from the actual level of phosphorus. @fig-needles-no-interaction (left) illustrates indeed that the mean tree length increases at the same rate with an increase of the level of nitrogen, irrespective of the level of phosphorus in the needles. Similarly, @fig-needles-no-interaction (right) shows that the association between tree length and nitrogen is 123.8, no matter what the level of phosphorus is.
 
 ```{r}
 #| label: fig-needles-no-interaction
@@ -575,17 +587,19 @@ plot(phosphor_plot, nitrogen_effect, type = "l", lwd = 2,
 
 ```
 
-```{r}
-model_no_interaction <- lm(length ~ nitrogen + phosphor, data = needles)
-summary(model_no_interaction)
-```
-
-
 The linear regression model
 $$
     E(Y|X_n,X_f)=\alpha+\beta_n X_n+\beta_f X_f+\beta_{nf} X_nX_f
 $$ {#eq-interaction}
-also assumes that nitrogen and phosphorus are linearly associated with the length of Japanese larches, but allows the association between nitrogen and length to vary with the level of phosphorus in the needles. In particular, the output below suggests that trees that differ 0.1\% in nitrogen level, but with the same level of phosphorus $x_f$, differ on average $-7.9+79.5x_f$ centimeter in length. Trees with a phosphorus level of 0.1\% will therefore have approximately the same length, irrespective of their level of nitrogen (because $-0.79+7.95\times 0.1\approx 0$). Trees that differ 0.1\% in nitrogen level and have a phosphorus level of 0.2\%, will on average differ $-7.9+79.5\times 0.2=8$ cm in length. @fig-needles-interaction (left) shows indeed that the mean tree length grows differently with increasing levels of nitrogen depending on the phosphorus level. Similar, @fig-needles-interaction (right) illustrates that the association between tree length and nitrogen changes linearly according to the expression $-7.9+79.5x_f$ in function of the level of phosphorus $x_f$. In particular, the influence of nitrogen increases when the needles contain more phosphorus.
+also assumes that nitrogen and phosphorus are linearly associated with the length of Japanese larches, but allows the association between nitrogen and length to vary with the level of phosphorus in the needles. This model is described in R as
+
+```{r}
+#| code-fold: false
+model_interaction <- lm(length ~ nitrogen*phosphor, data = needles)
+summary(model_interaction)
+```
+
+In particular, the output suggests that trees that differ by 0.1\% in nitrogen level, but with the same level of phosphorus $x_f$, differ on average by $-7.9+79.5x_f$ centimeter in length. Trees with a phosphorus level of 0.1\% will therefore have approximately the same length, irrespective of their level of nitrogen (because $-0.79+7.95\times 0.1\approx 0$). Trees that differ 0.1\% in nitrogen level and have a phosphorus level of 0.2\%, will on average differ $-7.9+79.5\times 0.2=8$ cm in length. @fig-needles-interaction (left) shows indeed that the mean tree length grows at different rates with increasing levels of nitrogen, depending on the phosphorus level. Similarly, @fig-needles-interaction (right) illustrates that the association between tree length and nitrogen changes linearly according to the expression $-7.9+79.5x_f$ in function of the level of phosphorus $x_f$. In particular, the influence of nitrogen increases when the needles contain more phosphorus.
 
 ```{r}
 #| label: fig-needles-interaction
@@ -623,11 +637,6 @@ nitrogen_effect <- cs[2] + cs[4]*phosphor_plot
 plot(phosphor_plot, nitrogen_effect, type = "l", lwd = 2,
      xlab = "Phosphorus", ylab = "Nitrogen effect",
      main = "Influence of one unit of nitrogen")
-```
-
-```{r}
-model_interaction <- lm(length ~ nitrogen*phosphor, data = needles)
-summary(model_interaction)
 ```
 :::
 
