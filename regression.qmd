@@ -702,9 +702,9 @@ Finally we like to remark that the previously mentioned hypothesis tests are all
 
 ### Multicollinearity
 
-An important problem in multiple linear regression, and one that is often overlooked, is the impact of correlated predictor variables on parameter estimates and on hypothesis tests concerning these parameters. When the predictors are correlated, as is often the case for biological data, we say that the data are subject to *multicollinearity*. Heavy multicollinearity can have a serious impact on the estimated regression parameters. After all, when 2 predictors are strongly correlated, they share for a large part the same information and it thus becomes difficult to estimate the separate effects of both on the outcome. This is expressed by the fact that the computational calculation of the least squares estimates becomes unstable in the sense that small modifications to the data or even adding or removing a predictor variable will have a huge impact on the size, and possibly even the sign, of the estimated regression coefficients. A second effect of multicollinearity is that the standard errors of the estimated regression coefficients can be largely inflated and the corresponding confidence intervals thus become very wide. However, as long as we only try to make predictions based on the regression model without extrapolating outside the range of the predictors, multicollinearity does not pose a problem. 
+An important problem in multiple linear regression, and one that is often overlooked, is the impact of correlated predictor variables on parameter estimates and on hypothesis tests concerning these parameters. When the predictors are correlated, as is often the case for biological data, we say that the data are subject to *multicollinearity*. Heavy multicollinearity can have a serious impact on the estimated regression parameters. After all, when 2 predictors are strongly correlated, they share for a large part the same information and it thus becomes difficult to estimate the separate effects of both on the outcome. This is expressed by the fact that the calculations of the least squares estimates become numerically unstable in the sense that small modifications to the data or even adding or removing a predictor variable will have a huge impact on the size, and possibly even the sign, of the estimated regression coefficients. A second effect of multicollinearity is that the standard errors of the estimated regression coefficients can be largely inflated and the corresponding confidence intervals thus become very wide. However, as long as we only try to make predictions based on the regression model without extrapolating outside the range of the predictors, multicollinearity does not pose a problem. 
 
-Problems caused by multicollinearity can be recognised by the fact that results become unstable. Large changes can occur in the coefficients after inclusion of a predictor, very wide confidence intervals can be obtained for some coefficients, or unexpected results can be found. Formally, we can get an idea of the measure of multicollinearity by inspecting the correlations between each pair of predictors in the regression model or through a *scatterplot matrix* (see @fig-scattermatrix) that plots each pair of predictors on a scatterplot. However, such diagnostics for multicollinearity are not ideal. First of all, they give no information on how unstable the results become by the observed multicollinearity. Secondly, in models with 3 or more predictors, let's say $X_1,X_2,X_3$, it can happen that heavy multicollinearity exists, despite the fact that all pairwise correlations between predictors are low. This could happen, for example, when $X_1$ is strongly correlated with a linear combination of $X_2$ and $X_3$. 
+Problems caused by multicollinearity can be recognised by the fact that results become numerically unstable. Large changes can occur in the coefficients after inclusion of a predictor, very wide confidence intervals can be obtained for some coefficients, or unexpected results can be found. Formally, we can get an idea of the measure of multicollinearity by inspecting the correlations between each pair of predictors in the regression model or through a *scatterplot matrix* that plots each pair of predictors on a scatterplot. However, such diagnostics for multicollinearity are not ideal. First of all, they give no information on how unstable the results become by the observed multicollinearity. Secondly, in models with 3 or more predictors, let's say $X_1,X_2,X_3$, it can happen that heavy multicollinearity exists, despite the fact that all pairwise correlations between predictors are low. This could happen, for example, when $X_1$ is strongly correlated with a linear combination of $X_2$ and $X_3$. 
 
 These mentioned disadvantages can be avoided by investigating the \emph{variance inflation factor (VIF)}, which is defined for the $k^{th}$ coefficient in the regression model as
 $$
@@ -712,10 +712,16 @@ $$
 $$
 In this expression, $R_k^2$ represents the multiple correlation coefficient of a linear regression model for the $k^{th}$ predictor based on all other predictors in the model. The VIF has the property that it equals 1 if the $k^{th}$ predictor is not linearly associated with the other predictors in the model, and consequently when the $k^{th}$ coefficient in the model is not subject to multicollinearity. The VIF is larger than 1 in all other cases. In particular, it expresses how much larger the observed variance on the estimate of the $k^{th}$ coefficient would be compared to when all predictors would be independent. Therefore, the larger the VIF, the less stable the estimates will be. The average of the VIFs for the different predictors can, up to a proportionality factor, be interpreted as the mean squared distance between the estimated coefficients and the true coefficients in the model. The smaller the VIF, the closer the estimates are thus expected to be to their population values. In practice, multicollinearity for a regression coefficient is considered problematic when its VIF surpasses 10.
 
+
+::: {.callout-note}
+## Prediction of body fat
+
+It is relatively laborious and costly to determine the proportion of body fat in a person. For that reason, a number of studies have been set up in the past in order to unravel the pattern between the true percentage of body fat and several, more easily measurable, surrogates. One of these studies measured for 20 healthy women between the ages of 25 and 34 years the proportion of body fat $Y$, the thickness of the triceps skin fold $X_1$, the thigh circumference $X_2$, and the midarm circumference $X_3$. Pairwise scatter plots for this dataset are shown in @fig-scattermatrix.
+
 ```{r}
 #| label: fig-scattermatrix
 #| fig-align: center
-#| fig-cap: Scatterplot matrix.
+#| fig-cap: Scatterplot matrix for the bodyfat dataset.
 bodyfat <- read.csv("./datasets/02-PCA/bodyfatNKNW.txt", sep = ' ')
 features <- c("triceps.skinfold.thickness",
               "thigh.circumference",
@@ -724,14 +730,12 @@ features <- c("triceps.skinfold.thickness",
 pairs(bodyfat[features])
 ```
 
-::: {.callout-note}
-## Prediction of body fat
+If we are able to construct an accurate regression model based on these data, it will allow us in the future to make predictions of the proportion of body fat for healthy women between 25 and 34 years old, based on their triceps skin fold thickness, their thigh circumference, and their midarm circumference.
 
-It is relatively expensive and costly to determine the proportion of body fat in a person. For that reason, a number of studies have been set up in the past in order to unravel the pattern between the true percentage of body fat and several, more easily measurable, surrogates. One of these studies measured for 20 healthy women between the ages of 25 and 34 years the proportion of body fat $Y$, the thickness of the triceps skin fold $X_1$, the thigh circumference $X_2$, and the midarm circumference $X_3$. If we are able to construct an accurate regression model based on these data, it will allow us in the future to make predictions of the proportion of body fat for healthy women between 25 and 34 years old, based on their triceps skin fold thickness, their thigh circumference, and their midarm circumference.
-
-Including these 3 predictors simultaneously in the regression model gives the following output:
+Including these 3 predictors simultaneously in the regression model gives the following model:
 
 ```{r}
+#| code-fold: false
 m_bodyfat <- lm(bodyfat ~ triceps.skinfold.thickness + thigh.circumference + midarm.circumference, data = bodyfat)
 summary(m_bodyfat)
 ```
@@ -739,13 +743,12 @@ summary(m_bodyfat)
 The scatterplot matrix in @fig-scattermatrix indicates that there is multicollinearity in terms of the predictors $X_1$ and $X_2$, but not immediately for the midarm circumference $X_3$. Nevertheless we obtain substantial VIF values of respectively 708.84, 564.34, and 104.61 for the 3 predictors. This suggests that also the midarm circumference is susceptible to severe multicollinearity and hence shows that the scatterplot matrix indeed only gives a limited view on the problem of multicollinearity. On average, the VIF is 460, which shows that the mean (squared) distance between the estimates of the regression parameters and their true values is 460 times as large as when there would be no multicollinearity. In other words, there is a large problem of multicollinearity. This can also be observed in the regression output: not a single of the predictors is significantly associated with body fat, although the F-statistic[^f-statistic] indicates, with a p-value of $7.34 \ 10^{-6}$, that at for least 1 of the predictors there is strong evidence for an association with the outcome.
 :::
 
-
-In the literature, numerous suggestions have been made on  how to deal with the problem of multicollinearity. The most simple solution is to ban predictors that are strongly correlated with other predictors from the model. This makes sense when multiple predictors measure the same or a similar biological entity (e.g., a number of strongly correlated morphological traits). In other cases this might introduce a severe bias, namely when the predictor that is deleted from the model is an important confounder for the association between one of the remaining predictors and the outcome. Another approach, called *principal component regression*, roughly consists in transforming the predictors to a series of uncorrelated predictors, which solves the problem of multicollinearity. A third option, for example used in *ridge regression*, will allow that the estimates of the regression parameters are slightly biased in favour of a large increase in stability.
+In the literature, numerous suggestions have been made for how to deal with the problem of multicollinearity. The most simple solution is to ban predictors that are strongly correlated with other predictors from the model. This makes sense when multiple predictors measure the same or a similar biological entity (e.g., a number of strongly correlated morphological traits). In other cases this might introduce a severe bias, namely when the predictor that is deleted from the model is an important confounder for the association between one of the remaining predictors and the outcome. Another approach, called *principal component regression*, roughly consists in transforming the predictors to a series of uncorrelated predictors, which solves the problem of multicollinearity. A third option, for example used in *ridge regression*, will allow that the estimates of the regression parameters are slightly biased in favour of a large increase in stability.
 
 ::: {.callout-note}
 ## Mineral composition vs growth
 
-The addition of higher order and interaction terms to the model typically introduces multicollinearity problems since normally a predictor $X_1$ is correlated with any function, e.g., $X_1X_2$ or $X_1^2$, of itself. In the previous section we constructed a model that included interactions between phosphorus and nitrogen as well as between phosphorus and residual ash. It therefore doesn't come as a surprise that @fig-vif (left) shows large VIFs, especially for the interaction terms. In such situations, namely when the model contains interactions and higher order terms, it typically helps to center the concerned variables. To this end, the concerned predictors are transformed by subtracting their respective sample mean. For example, $X_n$ will be transformed to $X_n-\bar X_n$ and will be denoted by `cnitrogen` in the below R-output. Note that in @fig-vif (right) the problem of multicollinearity essentially has disappeared for the model that contains only these *centered variables*. Furthermore, the standard errors on the estimated regression coefficients have shrunk tremendously as can be seen in the output. As an exercise, reflect on how the regression parameters now can be interpreted.
+The addition of higher order and interaction terms to the model typically introduces multicollinearity problems since normally a predictor $X_1$ is correlated with any function, e.g., $X_1X_2$ or $X_1^2$, of itself. In the previous section we constructed a model that included interactions between phosphorus and nitrogen as well as between phosphorus and residual ash. It therefore doesn't come as a surprise that @fig-vif (left) shows large VIFs, especially for the interaction terms. In such situations, namely when the model contains interactions and higher order terms, it typically helps to center the concerned variables. To this end, the concerned predictors are transformed by subtracting their respective sample mean. For example, $X_n$ will be transformed to $X_n-\bar X_n$ and will be denoted by `cnitrogen` in the R code. Note that in @fig-vif (right) the problem of multicollinearity essentially has disappeared for the model that contains only these *centered variables*. Furthermore, the standard errors on the estimated regression coefficients have shrunk tremendously as can be seen in the output.
 
 ```{r}
 needles_centered <- with(needles, {
@@ -779,17 +782,65 @@ plot(vif(m_needles_full_centered), pch = 19, xlab = "Parameter number", ylab = "
 
 ### Influential observations
 
-XXX Rewrite this paragraph using the examples from the slides.
+Often, a dataset contains extreme observations, both for the outcome $Y$ and the predictors $X$. These extreme observations can greatly influence the estimated regression parameters and regression line. This is no surprise, since the regression line represents the mean outcome in function of $X$ and the mean is  sensitive to outliers. 
 
-Often, a dataset contains extreme observations, both for the outcome $Y$ and the predictors $X$. These extreme observations can greatly influence the estimated regression parameters and regression line. This is no surprise, since the regression line represents the mean outcome in function of $X$ and the mean is extremely sensitive to outliers. Figure~\ref{fig:infl9} shows a point cloud with 3 deviating observations, as well as 2 linear regression lines, one before (dotted line) and one after (full line) omission of these observations. Remark that the regression line changes significantly after omission of the 3 observations. The explanation is as follows. The presence of observation 1 implies that the regression line (and thus also the intercept) is moved upwards, but has no further influence on the pattern of the regression line. Observation 2 is extreme, but has no influence on the regression line since it clearly follows the pattern of the line. Although observation 3 does not correspond to a very extreme outcome $y$, it will nevertheless be the most influential observation because its predictor value $x$, and more particular, the combination $(x,y)$, is extremely deviant. 
+@fig-outliers shows the possible influence of extreme observations, or outliers, on the regression line. Plot (a) shows a synthetic dataset consisting of 10 observations together with the regression line. The other plots show what happens to the regression line when one outlier, displayed in red, is added. In each case, we show the unmodified regression line (dashed line) and the regression line when the outlier is added (solid line).
 
-<!-- \begin{figure}[htbp]
-\centering
-\includegraphics[width=0.65\textwidth]%[height =  cm , width = 11cm]
-{assets/eps/infl9.eps}
-\caption{Linear regression line with (full line) and without (dotted line) omission of the influential observations.}\label{fig:infl9}
-\end{figure} -->
+The outlier in plot (b) follows the pattern of the unmodified regression line, and hence does not affect the regression line appreciably. We say that this point has high leverage (it has the potential of affecting the regression line), but low influence (its actual effect is small). We will make this more precise later on.Plot (c) shows an outlier with an extreme $y$-value, but whose $x$-value is close to the mean of the dataset. We will see that such outliers have low leverage: their potential to affect the regression line is low. Lastly, plot(d) shows an outlier with a large influence on the regression line. While the $y$-value of the outlier is not that extreme, the $x$-value is, and the regression line is noticeably affected.
 
+```{r}
+#| label: fig-outliers
+#| fig-align: center
+#| fig-cap: "Influence of outliers on the regression line. Figure (a): original dataset and regression line. Figure (b): Outlier with high leverage but low influence on the regression line. Figure (c): Outlier with low leverage. Figure (d): Outlier with large leverage and large influence."
+set.seed(12345)  
+
+make_data <- function(n = 10) {
+    X <- sort(3*runif(n))
+    Y <- X + 0.3*rnorm(n)
+    data.frame(X = X, Y = Y)
+}
+
+data <- make_data()
+outlier1 <- c(-0.5, -1)
+outlier2 <- c(2, 5)
+outlier3 <- c(4, -1)
+
+make_plot <- function(title = NULL) {
+    plot(NULL, xlim = c(-1, 4), ylim = c(-2, 5), pch = 19, xlab = "", ylab = "", main = title)
+}
+add_points <- function(data, outlier = NULL) {
+    points(Y ~ X, data = data, pch = 19)
+    if (!is.null(outlier)) {
+        points(outlier[1], outlier[2], pch = 19, col = "red")
+    }
+}
+add_line <- function(data, lty, outlier = NULL) {
+    m <- lm(Y ~ X, data = rbind(data, outlier))
+    abline(m, lty = lty)
+}
+
+par(mfrow = c(2, 2))
+
+make_plot("(a) No outliers")
+add_line(data, "dashed")
+add_points(data)
+
+make_plot("(b) High leverage, low influence")
+add_line(data, "dashed")
+add_line(data, "solid", outlier = outlier1)
+add_points(data, outlier = outlier1)
+
+make_plot("(c) Low leverage")
+add_line(data, "dashed")
+add_line(data, "solid", outlier = outlier2)
+add_points(data, outlier = outlier2)
+
+make_plot("(d) High leverage, high influence")
+add_line(data, "dashed")
+add_line(data, "solid", outlier = outlier3)
+add_points(data, outlier = outlier3)
+
+```
 
 Naturally, it is undesirable that a single observation determines the best part of the result of a linear regression analysis. Some diagnostics to track down extreme observations are therefore needed. *Residuals* indicate how much the outcome differs from the regression line and can thus be used to identify extreme outcomes. In particular, we already mentioned that residuals should be approximately normally distributed when the model is correct and the outcome is normally distributed (for fixed predictor values) with a homogeneous variance. Verifying whether or not a residual is extreme can then be done by comparing it to the normal distribution. Assume, for example, that we possess 100 observations. We then expect that approximately 95\% of the residuals are, in absolute value, smaller than 1.96$\hat{\sigma}$. Observing a lot more than 5\% of extreme residuals will then give us an indication for outliers.
 
