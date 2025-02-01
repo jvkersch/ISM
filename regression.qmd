@@ -347,11 +347,11 @@ lines(x_dense, p[,"upr"], lty = "dashed")
 ```
 :::
 
-For certain types of outcomes there exist \emph{variance stabilising transformations} for the outcome that are aimed at fulfilling the assumption of homoscedasticity. For proportions or percentages we often use the arcsin-transformation which transforms the outcome $Y$ in $\arcsin\sqrt{Y}$, because it can be shown that percentages (given certain conditions) have a constant variance after such a transformation. If the transformation of the outcome is not helping or is not appropriate (e.g., because it is harmful for the interpretation of the model) and there is a consistent pattern of unequal variance (e.g., increasing variance in the outcome for increasing predictor values), we could also determine \emph{weighted least squares}  estimates. Another alternative would be to estimate \emph{generalized linear models}, which also allow other distributions than the normal one. Both types of solutions, i.e., weighted least squares estimates and generalized linear models, are beyond the scope of this course.
+For certain types of outcomes there exist *variance stabilising transformations* for the outcome that are aimed at fulfilling the assumption of homoscedasticity. For proportions or percentages we often use the arcsin-transformation which transforms the outcome $Y$ in $\arcsin\sqrt{Y}$, because it can be shown that percentages (given certain conditions) have a constant variance after such a transformation. If the transformation of the outcome is not helping or is not appropriate (e.g., because it is harmful for the interpretation of the model) and there is a consistent pattern of unequal variance (e.g., increasing variance in the outcome for increasing predictor values), we could also determine *weighted least squares*  estimates. Another alternative would be to estimate *generalized linear models*, which also allow other distributions than the normal one. Both types of solutions, i.e., weighted least squares estimates and generalized linear models, are beyond the scope of this course.
 
 ## Inference in regression models
 
-In linear regression analysis we often want to test whether or not the slope $\beta$ is equal to 0, i.e., whether or not a linear relation between $Y$ and $X$ exists. We wish, for example, to test if the CWD basal area per km is linearly related to the tree density, or if there exists a linear relation between the gene frequency of the allele Lap$^{94}$ in the  mussel Mytilus edulis and the eastern distance from Southport. We can show that the least squares estimate $\hat{\beta}$ is a sensible measure to perform tests on $\beta$ since it is an unbiased estimator of $\beta$ (and hence not systematically too high or too low), on the condition that the model is correct. If additionally the outcomes are normally distributed for a given predictor value $X$, and have a homogeneous variance, then its standard error can be estimated as
+In linear regression analysis we often want to test whether or not the slope $\beta$ is equal to 0, i.e., whether or not a linear relation between $Y$ and $X$ exists. We wish, for example, to test if the CWD basal area per km is linearly related to the tree density, or if there exists a linear relation between the gene frequency of the allele Lap94 in the  mussel Mytilus edulis and the eastern distance from Southport. We can show that the least squares estimate $\hat{\beta}$ is a sensible measure to perform tests on $\beta$ since it is an unbiased estimator of $\beta$ (and hence not systematically too high or too low), on the condition that the model is correct. If additionally the outcomes are normally distributed for a given predictor value $X$, and have a homogeneous variance, then its standard error can be estimated as
 $$
     SE(\hat{\beta})=\sqrt{\frac{MSE}{\sum_i (X_i-\bar X)^2}},
 $$
@@ -361,7 +361,7 @@ $$
 $$
 
 ::: {.callout-note}
-## Frequency of Lap$^{94}$ and distance from Southport 
+## Frequency of Lap94 and distance from Southport 
 
 Previously we established, admittedly under the wrong assumption that the gene frequency varies linearly in function of the eastern distance from Southport, the following model:
 
@@ -369,13 +369,11 @@ Previously we established, admittedly under the wrong assumption that the gene f
 summary(m_linear)
 ```
 
-TODO: Fix up numbers
-
 Based on this output we can construct a 95\% confidence interval for $\beta$ as 
 $$
     [0.0026 - 2.13\times 0.0003,0.0026 + 2.13\times 0.0003]=[0.00196,0.00324],
 $$
-where we use the fact that we posses $n=17$ observations and that $t_{15,0.975}=2.13$. We conclude that the mean increase in the frequency of the allele Lap$^{94}$ as we move 10 km east of Southport, with 95\% probability can be expected between 1.96\% and 3.24\%. The p-value for the test of the null hypothesis $\beta=0$ (versus the alternative $\beta\ne 0$) is the probability that a $t_{15}$-distributed random variable in absolute value is larger than $0.0026/0.0003=7.636$. This probability is $1.52 \ 10^{-6}$ and gives a very strong indication that there is a change in mean allele frequency in the eastern direction from Southport.
+where we use the fact that we posses $n=17$ observations and that $t_{15,0.975}=2.13$. We conclude that the mean increase in the frequency of the allele Lap94 as we move 10 km east of Southport can be expected between 1.96\% and 3.24\% with 95% confidence. The p-value for the test of the null hypothesis $\beta=0$ (versus the alternative $\beta\ne 0$) is the probability that a $t_{15}$-distributed random variable in absolute value is larger than $0.0026/0.0003=7.636$. This probability is $1.52 \ 10^{-6}$ and gives a very strong indication that there is a change in mean allele frequency in the eastern direction from Southport.
 :::
 
 
@@ -387,7 +385,7 @@ Tests and confidence intervals for $\alpha$ can be obtained based on
 $$
     \frac{\hat{\alpha}-\alpha}{SE(\hat{\alpha})}\sim t_{n-2}.
 $$
-Similarly will $\hat{Y}_h=\hat{\alpha}+\hat{\beta}X_h$ be an unbiased estimator of $E(Y|X_h)=\alpha+\beta X_h$. Its standard error is 
+Similarly, $\hat{Y}_h=\hat{\alpha}+\hat{\beta}X_h$ will be an unbiased estimator of $E(Y|X_h)=\alpha+\beta X_h$. Its standard error is 
 $$
     SE(\hat{Y}_h)=\sqrt{MSE\left\{\frac{1}{n}+\frac{(X_h-\bar X)^2}{\sum_i (X_i-\bar X)^2}\right\}}.
 $$
@@ -397,9 +395,7 @@ $$
 $$
 
 ::: {.callout-note}
-## Frequency of Lap$^{94}$ and distance from Southport
-
-TODO: check numbers 
+## Frequency of Lap94 and distance from Southport
 
 The p-value for the test that the allele frequency $\alpha$ in Southport is 1%, versus the alternative that it would be less, is the probability that a $t_{15}$-distributed random variable is smaller than $(-0.0397-0.01)/0.0231=-2.15$. This probability is 0.024 and suggests that, at the 5% significance level, there is enough evidence to support the claim that the allele frequency in Southport is less than 1%. A 95% confidence interval for $\alpha$ is obtained as
 $$
@@ -410,7 +406,7 @@ The fact that this interval contains negative values suggests that the allele fr
 
 ## The multiple correlation coefficient
 
-For the data in the CWD example, the standard deviation on the CWD basal area is 58.03 per km and the residual standard deviation 36.32 per km. This shows that the measurements of the outcome vary less for lakes with the same tree density than in the entire population of lakes. This is not surprising, because part of the variability on the outcome measurements is explained by the fact that different lakes have different tree densities. In this section we will further exploit this idea to gain insight in the quality of the regression line. 
+For the data in the CWD example, the standard deviation on the CWD basal area is 58.03 per km and the residual standard deviation is 36.32 per km. This shows that the measurements of the outcome vary less for lakes with the same tree density than in the entire population of lakes. This is not surprising, because part of the variability on the outcome measurements is explained by the fact that different lakes have different tree densities. In this section we will further exploit this idea to gain insight in the quality of the regression line. 
 
 The total squared deviation of the data around their mean can be split as follows:
 \begin{eqnarray*}
@@ -424,15 +420,13 @@ $$
 $$
 to show that the cross-product vanishes.
 
-In this sum, $SS_{Regression}=\sum_{i=1}^n (\hat{\alpha}+\hat{\beta}x_i-\bar y)^2$ indicates how much the points on the regression line vary around the group mean $\bar y$, and the $SS_{Residual}=\sum_{i=1}^n e_i^2$ reflects the residual variation of the observations around the regression line. The latter is called the *residual sum of squares* and indicates how much of the variation on the measurements is not explained by the regression model. The former is the \emph{regression sum of squares} and indicates the amount of variability on the measurements that is explained by the regression model. The ratio of the regression sum of squares and the total sum of squares $SS_{Total}$, 
+In this sum, $SS_{Regression}=\sum_{i=1}^n (\hat{\alpha}+\hat{\beta}x_i-\bar y)^2$ indicates how much the points on the regression line vary around the group mean $\bar y$, and the $SS_{Residual}=\sum_{i=1}^n e_i^2$ reflects the residual variation of the observations around the regression line. The latter is called the *residual sum of squares* and indicates how much of the variation on the measurements is not explained by the regression model. The former is the *regression sum of squares* and indicates the amount of variability on the measurements that is explained by the regression model. The ratio of the regression sum of squares and the total sum of squares $SS_{Total}$, 
 $$
     R^2=\frac{SS_{Regression}}{SS_{Total}}
 $$
 expresses the percentage of the variation on the data that is captured by their association with the explanatory variable, and is called the *coefficient of determination* or *multiple correlation coefficient*. It is generally denoted by $R^2$ and is a measure for the *predictive value* of the explanatory variable. In other words, it expresses how well the explanatory variable(s) predict(s) the outcome. This coefficient lies always between 0 and 1, where a value equal to 1 indicates that there is no residual variation around the regression line en hence the outcome shows a perfect (linear) relationship with the predictor. Analogously, a value 0 of $R^2$ implies that there is no association between the outcome and the predictor. 
 
 Often it is incorrectly claimed that a linear regression model is bad if the multiple correlation coefficient is low (e.g., 0.2). If the goal of the study is to predict the outcome based on the explanatory variables, a large value of $R^2$ is indeed needed because in the case of a low value there remains a lot of variability on the outcomes that is not explained by the explanatory variables. However, if the goal of the study is to determine the effect of an exposure on the outcome, then a linear regression model is good as soon as it correctly describes the association between on the one hand the outcome and on the other hand the exposure and possible confounders. Whenever exposure and confounders are weakly related to the outcome, then a small $R^2$-value is expected, even if a correct regression model is used.
-
-TODO : add this sentence: \footnote{See Section~ \ref{sec:mlr}, where is shown that when estimating the effect of an exposure on the outcome, all confounders should be included in the regression model.}
 
 ::: {.callout-note}
 ## Woody debris and tree density
