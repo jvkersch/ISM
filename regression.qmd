@@ -842,7 +842,7 @@ add_points(data, outlier = outlier3)
 
 ```
 
-Naturally, it is undesirable that a single observation determines the best part of the result of a linear regression analysis. Some diagnostics to track down extreme observations are therefore needed. *Residuals* indicate how much the outcome differs from the regression line and can thus be used to identify extreme outcomes. In particular, we already mentioned that residuals should be approximately normally distributed when the model is correct and the outcome is normally distributed (for fixed predictor values) with a homogeneous variance. Verifying whether or not a residual is extreme can then be done by comparing it to the normal distribution. Assume, for example, that we possess 100 observations. We then expect that approximately 95\% of the residuals are, in absolute value, smaller than 1.96$\hat{\sigma}$. Observing a lot more than 5\% of extreme residuals will then give us an indication for outliers.
+It is in general undesirable that a single observation has an outsized influence of the results of a linear regression analysis. Some diagnostics to track down extreme observations are therefore needed. *Residuals* indicate how much the outcome differs from the regression line and can thus be used to identify extreme outcomes. In particular, we already mentioned that residuals should be approximately normally distributed when the model is correct and the outcome is normally distributed (for fixed predictor values) with a homogeneous variance. Verifying whether or not a residual is extreme can then be done by comparing it to the normal distribution. Assume, for example, that we have a dataset with 100 observations. We then expect that approximately 95\% of the residuals are, in absolute value, smaller than 1.96$\hat{\sigma}$. Observing a lot more than 5\% of extreme residuals will then give us an indication for outliers.
 
 In the literature, a number of modifications of the residuals have been introduced to make them more suitable for outlier detection. After all, it is possible to show that, due to estimation errors, even when the model is correct and the outcomes are normally distributed (for fixed predictor values) with homogeneous variance, the residuals will not have a constant variance and are not perfectly normally distributed. *Studentized residuals* are a transformation of the previously defined residuals that do come with a constant variance and that are $t$-distributed with $n-1$ degrees of freedom under the assumptions of the model. Outliers can thus be detected more accurately by verifying if a lot more than 5\% of the Studentized residuals are larger in absolute value than the 97.5\% percentile of the $t_{n-1}$-distribution.
 
@@ -860,7 +860,7 @@ n <- nrow(needles)
 abline(h = 2 * p / n, col = "blue", lty = "dashed")
 ```
 
-A more direct measure to express the influence of each observation on the regression analysis, is *Cook's distance*. The Cook's distance for the $i^{th}$ observation is a diagnostic measure for the influence of that observation on all predictions, or equivalently for its influence on \emph{all} estimated coefficients. It is obtained by comparing each prediction  $\hat{Y}_j$, obtained based on the regression model for the $j^{th}$ outcome, $j=1, \ldots, n$, with the corresponding prediction $\hat{Y}_{j(i)}$ that would have been obtained if observation $i$ had not been used to fit the regression model:
+A more direct measure to express the influence of each observation on the regression analysis, is *Cook's distance*. The Cook's distance for the $i^{th}$ observation is a diagnostic measure for the influence of that observation on all predictions, or equivalently for its influence on *all* estimated coefficients. It is obtained by comparing each prediction  $\hat{Y}_j$, obtained based on the regression model for the $j^{th}$ outcome, $j=1, \ldots, n$, with the corresponding prediction $\hat{Y}_{j(i)}$ that would have been obtained if observation $i$ had not been used to fit the regression model:
 $$
     D_i=\frac{\sum_{j=1}^n(\hat{Y}_j-\hat{Y}_{j(i)})^2}{p\textrm{MSE}}.
 $$
@@ -896,7 +896,16 @@ We concluded that the first observation is influential on the regression analysi
 $$
     -598-2.16\times 290=-1224.
 $$
-Because of this, as well as the fact that the interaction between phosphorus and residual ash was only marginally significant, we decide to remove the interaction from the model. This leads to the output given below. Figure~\ref{fig:cooks2} confirms that there is now no longer a single observation that has an outsize influence on the results of the obtained model.
+Because of this, as well as the fact that the interaction between phosphorus and residual ash was only marginally significant, we decide to remove the interaction from the model. This leads to the output given below. 
+
+```{r}
+#| code-fold: false
+m_needles_full_centered_adjusted <- lm(
+    length ~ cnitrogen + cphosphorus + cpotassium + cresidu +  cphosphorus:cnitrogen, data = needles_centered)
+summary(m_needles_full_centered_adjusted)
+```
+
+@fig-cooks-distance-adjusted confirms that there is now no longer a single observation that has an outsize influence on the results of the obtained model.
 
 ```{r}
 #| label: fig-dfbetas
@@ -908,12 +917,6 @@ plot(d[1, ],
      xlab = "Parameter number",
      ylab = "DFBETA",
      main = "DFBETAs for observation 1")
-```
-
-```{r}
-m_needles_full_centered_adjusted <- lm(
-    length ~ cnitrogen + cphosphorus + cpotassium + cresidu +  cphosphorus:cnitrogen, data = needles_centered)
-summary(m_needles_full_centered_adjusted)
 ```
 
 Please remark that now the influence of residual ash on tree length has become insignificant and that in a next step this parameter will have to be removed from the model.
