@@ -119,7 +119,11 @@ Since the linearity of the model can only be verified over the observed range of
 ::: {.callout-note}
 ## Frequency of Lap94 and distance from Southport
 
-The frequency of the allele Lap94 in Mytilus edulis (a mussel) with respect to the eastern distance from Southport, Connecticut, U.S.A., is shown in @fig-southport. 
+For the next example, we consider the blue or common mussel (*Mytilus edulis*). We are especially interested in the frequency of the allele Lap94 with respect to the eastern distance from Southport, Connecticut, U.S.A.
+
+![Mytilus edulis, the common mussel. Figure courtesy of [Wikipedia](https://en.wikipedia.org/wiki/File:Miesmuscheln-2.jpg), [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/).](./images/01-regression/Miesmuscheln-2.jpg){width=25% fig-align="center"}
+
+We have obtained a dataset of 17 mussels, where for each mussel we record the frequency of the Lap94 allele, and the distance to the Southport seabord. This dataset is shown in @fig-southport. 
 
 ```{r}
 #| label: fig-southport
@@ -371,11 +375,10 @@ summary(m_linear)
 
 Based on this output we can construct a 95\% confidence interval for $\beta$ as 
 $$
-    [0.0026 - 2.13\times 0.0003,0.0026 + 2.13\times 0.0003]=[0.00196,0.00324],
+    [0.004514 - 2.13\times 0.000536,0.004514 + 2.13\times 0.000536]=[0.003372,0.005656],
 $$
-where we use the fact that we posses $n=17$ observations and that $t_{15,0.975}=2.13$. We conclude that the mean increase in the frequency of the allele Lap94 as we move 10 km east of Southport can be expected between 1.96\% and 3.24\% with 95% confidence. The p-value for the test of the null hypothesis $\beta=0$ (versus the alternative $\beta\ne 0$) is the probability that a $t_{15}$-distributed random variable in absolute value is larger than $0.0026/0.0003=7.636$. This probability is $1.52 \ 10^{-6}$ and gives a very strong indication that there is a change in mean allele frequency in the eastern direction from Southport.
+where we use the fact that we posses $n=17$ observations and that $t_{15,0.975}=2.13$. We conclude that the mean increase in the frequency of the allele Lap94 as we move 10 km east of Southport can be expected between 3.372\% and 5.656\% with 95% confidence. The p-value for the test of the null hypothesis $\beta=0$ (versus the alternative $\beta\ne 0$) is the probability that a $t_{15}$-distributed random variable in absolute value is larger than $0.004515/0.000536 = 8.42$. This probability is $4.56 \times 10^{-7}$ and gives a very strong indication that there is a change in mean allele frequency in the eastern direction from Southport.
 :::
-
 
 We could also test if the intercept takes on a certain value (e.g., 0). Again the least squares estimate $\hat{\alpha}$ is meaningful since it is an unbiased estimator of $\alpha$, provided that the model is correct. If additionally the outcomes are normally distributed for a given predictor value $X$, and have a homogeneous variance, then its standard error can be estimated as 
 $$
@@ -397,9 +400,9 @@ $$
 ::: {.callout-note}
 ## Frequency of Lap94 and distance from Southport
 
-The p-value for the test that the allele frequency $\alpha$ in Southport is 1%, versus the alternative that it would be less, is the probability that a $t_{15}$-distributed random variable is smaller than $(-0.0397-0.01)/0.0231=-2.15$. This probability is 0.024 and suggests that, at the 5% significance level, there is enough evidence to support the claim that the allele frequency in Southport is less than 1%. A 95% confidence interval for $\alpha$ is obtained as
+The p-value for the test that the allele frequency $\alpha$ in Southport is 1%, versus the alternative that it would be less, is the probability that a $t_{15}$-distributed random variable is smaller than $(0.045830 - 0.01)/0.036361=0.9853964$. This probability is 0.17 and suggests that, at the 5% significance level, there is not enough evidence to support the claim that the allele frequency in Southport is less than 1%. A 95% confidence interval for $\alpha$ is obtained as
 $$
-    [-0.0397 - 2.13\times 0.0231,-0.0397 + 2.13\times 0.0231]=[-0.0889,0.0095].
+    [0.045830 - 2.13\times 0.036361, 0.045830 + 2.13\times 0.036361]=[-0.031619,0.123279].
 $$
 The fact that this interval contains negative values suggests that the allele frequency $\alpha$ in Southport was estimated very inaccurately and that the linear model probably does not describe these data very well (since theoretically allele frequencies cannot be negative).
 :::
@@ -457,6 +460,8 @@ $$
 $$
 only allow us to predict the height of a tree based on a single mineral. Obviously, we could obtain more accurate predictions if multiple minerals are taken into account at the same time. 
 
+![Japanese larch, or *Larix kaempferi*. Image courtesy of [Wikipedia](https://en.wikipedia.org/wiki/Larix_kaempferi#/media/File:Larix-kaempferi.JPG), [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)](./images/01-regression/Larix-kaempferi.jpeg){width="30%" fig-align="center"}
+
 Note that for example the coefficient $\beta_f$ in such a model might not show the pure effect of phosphorus. It is true that $\beta_f$ represents the mean difference in length between trees that differ by 1 unit in phosphorus, but even if phosphorus would not have an influence on the growth of the Japanese larch, it could still be possible that trees with a higher proportion of phosphorus are larger (and thus $\beta_f>0$) because, for example, they also contain more potassium. This is a problem of confounding (the effect of phosphorus is confounded with the effect of potassium) that can be resolved by comparing trees with a different level of phosphorus, but with an identical proportion of potassium. We will see in this section that multiple linear regression models make this possible in a natural way.
 :::
 
@@ -513,7 +518,7 @@ Assuming the linearity conditions of the model are fulfilled, the association be
 \beta_1&=&\alpha + \beta_1 (x+1) +\beta_2 c-\alpha - \beta_1 x -\beta_2 c \\
 &=&E(Y|X=x+1,C=c)-E(Y|X=x,C=c) \,.
 \end{eqnarray*}
-In other words, $\beta_1$ represents the mean difference in outcome between individuals that differ 1 unit in $X$, but all have the same value for the confounder $C$ (e.g., people of the same age). This way we compare comparable groups of individuals, effectively correcting for the perturbing effect of the confounder. In the literature, the estimate for $\beta_1$ is therefore called the *adjusted effect* of $X$ on $Y$, to indicate that we controlled for confounders. If $C$ is the only confounder[^1] for the association between $X$ and $Y$, then this can indeed be interpreted as the causal effect of an increase of 1 unit of $X$ on the mean outcome. The estimate for the association between $X$ and $Y$  in the model without confounders (i.e., the estimate $\beta^*_1$ in the model $E(Y|X)=\alpha^*+\beta^*_1X$) is then called the *unadjusted effect* of $X$ on $Y$, even though it has, due to confounding, no causal meaning (in other words, it does not represent an effect of a unit change in $X$ on the mean outcome).
+In other words, $\beta_1$ represents the mean difference in outcome between individuals that differ 1 unit in $X$, but all have the same value for the confounder $C$ (e.g., people of the same age). This way we compare comparable groups of individuals, effectively correcting for the perturbing effect of the confounder. In the literature, the estimate for $\beta_1$ is therefore called the *adjusted effect* of $X$ on $Y$, to indicate that we controlled for confounders. If $C$ is the only confounder[^confounder] for the association between $X$ and $Y$, then this can indeed be interpreted as the causal effect of an increase of 1 unit of $X$ on the mean outcome. The estimate for the association between $X$ and $Y$  in the model without confounders (i.e., the estimate $\beta^*_1$ in the model $E(Y|X)=\alpha^*+\beta^*_1X$) is then called the *unadjusted effect* of $X$ on $Y$, even though it has, due to confounding, no causal meaning (in other words, it does not represent an effect of a unit change in $X$ on the mean outcome).
 
 In some cases we would also like to know if the effect of a variable $X$ on another variable $Y$ depends on a third variable $C$. This could, for example, happen when we wish to investigate if the effect of asbestos on the respiratory function changes with increasing age. Such issues are very relevant in the context of scientific studies on gene-environment interactions. For asthma or COPD, for example, there are strong indications that gene-environment interactions with a history of smoking are important factors in determining the severity of the disease (in particular that the role of certain genes is amplified by a history of smoking). In pharmacogenetics there exists a huge interest in gene-medicine interactions in order to ascertain if certain drugs are especially effective in the presence of certain genes. For example, gene-medicine interactions were discovered for steroids with regard to their effect on the respiratory function of asthma patients. 
 
@@ -932,6 +937,6 @@ plot(cooks.distance(m_needles_full_centered_adjusted),
 ```
 :::
 
-[^1]: In practice we seldom know for sure (unless in randomised studies) if a certain variable $C$ is the only confounder for the association between $X$ and $Y$; often there can be unmeasured confounders that are not included in the dataset and for which it thus is also impossible to correct.
+[^confounder]: In practice we seldom know for sure (unless in randomised studies) if a certain variable $C$ is the only confounder for the association between $X$ and $Y$; often there can be unmeasured confounders that are not included in the dataset and for which it thus is also impossible to correct.
 
 [^f-statistic]: The F-statistic in the regression output always gives the result for a test of the null hypothesis that the regression parameters for all predictors are zero (in other words, that none of the predictors is associated with the outcome) versus the alternative that at least 1 predictor is associated with the outcome.
