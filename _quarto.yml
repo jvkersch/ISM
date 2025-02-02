@@ -7,8 +7,8 @@ book:
   date: "2023/02/25"
   chapters:
     - index.qmd
-    #- intro.qmd
-    #- regression.qmd
+    - intro.qmd
+    - regression.qmd
     - pca.qmd
     - pca-applications.qmd
     #- dimensionality-reduction-other.qmd
@@ -17,7 +17,7 @@ book:
   appendices:
     - datasets.qmd
   body-footer: |
-    These coures notes are made available under the [Creative Commons BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license.
+    These course notes are made available under the [Creative Commons BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license.
 
 bibliography: references.bib
 

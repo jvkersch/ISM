@@ -1,12 +1,5 @@
 # Introduction
 
-## Simple linear regression
+This book is a work-in-progress collection of course notes on various aspects of statistical modeling. I expect that it will grow more complete as the selection of topics that are routinely covered becomes more standardized, and I plan to update the course notes on a regular basis.
 
-During the academic year 2021-22, 26 students in the Probability and Statistics course recorded their height (in centimeter)
-
-## Multiple linear regression
-
-## Principal component analysis
-
-## Nonlinear regression
-
+The chapter on linear regression was taken from a previous set of course notes on statistical inference by Prof. Stijn Vansteelandt (with translations and amendments by Prof. Arnout Van Messem). The version in this book has been lightly edited to incorporate it in a Quarto-based environment (among other things, the code to produce the figures has been streamlined and made available along with the text).

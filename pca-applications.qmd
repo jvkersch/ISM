@@ -277,6 +277,18 @@ ggplot(df) +
 
 ```
 
+### Optimal number of components
+
+```{r}
+selectNcomp(pcr_model, method = "onesigma", plot = TRUE)
+```
+
+```{r}
+selectNcomp(pls_model, method = "onesigma", plot = TRUE)
+```
+
+
+
 ### A cautionary note
 
 In our model building procedure we have glossed over a few critical steps that may cause doubt on the validity of the model or the conclusions that we can draw from our analysis. 
