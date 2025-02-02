@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.1.251">
+<meta name="generator" content="quarto-1.4.550">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Statistical Modelling - 1&nbsp; Principal component analysis</title>
+<title>Introduction to Statistical Modelling - 3&nbsp; Principal component analysis</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -17,11 +17,12 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1.6em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -46,48 +47,20 @@ pre.numberSource code > span > a:first-child::before
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
     padding: 0 4px; width: 4em;
-    color: #aaaaaa;
   }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
 div.sourceCode
   {   }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+/* CSS for citations */
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
+  margin-bottom: 0em;
 }
-.hanging div.csl-entry {
+.hanging-indent div.csl-entry {
   margin-left:2em;
   text-indent:-2em;
 }
@@ -101,8 +74,7 @@ div.csl-right-inline {
 }
 div.csl-indent {
   margin-left: 2em;
-}
-</style>
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -113,7 +85,7 @@ div.csl-indent {
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
 <link href="./pca-applications.html" rel="next">
-<link href="./index.html" rel="prev">
+<link href="./regression.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -129,7 +101,13 @@ div.csl-indent {
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -138,12 +116,42 @@ div.csl-indent {
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -151,11 +159,16 @@ div.csl-indent {
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
-    <div class="container-fluid d-flex justify-content-between">
-      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Principal component analysis</span></h1>
-      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
-        <i class="bi bi-chevron-right"></i>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./pca.html"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Principal component analysis</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
       </button>
     </div>
   </nav>
@@ -163,50 +176,68 @@ div.csl-indent {
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Introduction to Statistical Modelling</a> 
     </div>
       </div>
-      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
         <div id="quarto-search" class="" title="Search"></div>
         </div>
-      </div>
+        </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link">Preface</a>
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./pca.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Principal component analysis</span></a>
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./pca-applications.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Applications of principal component analysis</span></a>
+  <a href="./regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Regression analysis</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./references.html" class="sidebar-item-text sidebar-link">References</a>
+  <a href="./pca.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Principal component analysis</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pca-applications.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Applications of principal component analysis</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">Appendices</a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./datasets.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Datasets</span></a>
+  <a href="./datasets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Datasets</span></span></a>
   </div>
 </li>
       </ul>
@@ -214,28 +245,29 @@ div.csl-indent {
     </ul>
     </div>
 </nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#intuition" id="toc-intuition" class="nav-link active" data-scroll-target="#intuition"><span class="toc-section-number">1.1</span>  Intuition</a></li>
-  <li><a href="#derivation-of-the-pca-algorithm" id="toc-derivation-of-the-pca-algorithm" class="nav-link" data-scroll-target="#derivation-of-the-pca-algorithm"><span class="toc-section-number">1.2</span>  Derivation of the PCA algorithm</a>
+  <li><a href="#intuition" id="toc-intuition" class="nav-link active" data-scroll-target="#intuition"><span class="header-section-number">3.1</span> Intuition</a></li>
+  <li><a href="#derivation-of-the-pca-algorithm" id="toc-derivation-of-the-pca-algorithm" class="nav-link" data-scroll-target="#derivation-of-the-pca-algorithm"><span class="header-section-number">3.2</span> Derivation of the PCA algorithm</a>
   <ul class="collapse">
-  <li><a href="#the-first-principal-component" id="toc-the-first-principal-component" class="nav-link" data-scroll-target="#the-first-principal-component"><span class="toc-section-number">1.2.1</span>  The first principal component</a></li>
-  <li><a href="#the-remaining-principal-components" id="toc-the-remaining-principal-components" class="nav-link" data-scroll-target="#the-remaining-principal-components"><span class="toc-section-number">1.2.2</span>  The remaining principal components</a></li>
-  <li><a href="#worked-out-example" id="toc-worked-out-example" class="nav-link" data-scroll-target="#worked-out-example"><span class="toc-section-number">1.2.3</span>  Worked-out example</a></li>
-  <li><a href="#standardizing-the-predictors" id="toc-standardizing-the-predictors" class="nav-link" data-scroll-target="#standardizing-the-predictors"><span class="toc-section-number">1.2.4</span>  Standardizing the predictors</a></li>
+  <li><a href="#the-first-principal-component" id="toc-the-first-principal-component" class="nav-link" data-scroll-target="#the-first-principal-component"><span class="header-section-number">3.2.1</span> The first principal component</a></li>
+  <li><a href="#the-remaining-principal-components" id="toc-the-remaining-principal-components" class="nav-link" data-scroll-target="#the-remaining-principal-components"><span class="header-section-number">3.2.2</span> The remaining principal components</a></li>
+  <li><a href="#worked-out-example" id="toc-worked-out-example" class="nav-link" data-scroll-target="#worked-out-example"><span class="header-section-number">3.2.3</span> Worked-out example</a></li>
+  <li><a href="#standardizing-the-predictors" id="toc-standardizing-the-predictors" class="nav-link" data-scroll-target="#standardizing-the-predictors"><span class="header-section-number">3.2.4</span> Standardizing the predictors</a></li>
   </ul></li>
-  <li><a href="#interpreting-the-pca-results" id="toc-interpreting-the-pca-results" class="nav-link" data-scroll-target="#interpreting-the-pca-results"><span class="toc-section-number">1.3</span>  Interpreting the PCA results</a>
+  <li><a href="#interpreting-the-pca-results" id="toc-interpreting-the-pca-results" class="nav-link" data-scroll-target="#interpreting-the-pca-results"><span class="header-section-number">3.3</span> Interpreting the PCA results</a>
   <ul class="collapse">
-  <li><a href="#the-score-plot" id="toc-the-score-plot" class="nav-link" data-scroll-target="#the-score-plot"><span class="toc-section-number">1.3.1</span>  The score plot</a></li>
-  <li><a href="#the-loadings-plot" id="toc-the-loadings-plot" class="nav-link" data-scroll-target="#the-loadings-plot"><span class="toc-section-number">1.3.2</span>  The loadings plot</a></li>
-  <li><a href="#the-number-of-principal-components" id="toc-the-number-of-principal-components" class="nav-link" data-scroll-target="#the-number-of-principal-components"><span class="toc-section-number">1.3.3</span>  The number of principal components</a></li>
-  <li><a href="#biplots" id="toc-biplots" class="nav-link" data-scroll-target="#biplots"><span class="toc-section-number">1.3.4</span>  Biplots</a></li>
+  <li><a href="#the-score-plot" id="toc-the-score-plot" class="nav-link" data-scroll-target="#the-score-plot"><span class="header-section-number">3.3.1</span> The score plot</a></li>
+  <li><a href="#the-loadings-plot" id="toc-the-loadings-plot" class="nav-link" data-scroll-target="#the-loadings-plot"><span class="header-section-number">3.3.2</span> The loadings plot</a></li>
+  <li><a href="#the-number-of-principal-components" id="toc-the-number-of-principal-components" class="nav-link" data-scroll-target="#the-number-of-principal-components"><span class="header-section-number">3.3.3</span> The number of principal components</a></li>
+  <li><a href="#biplots" id="toc-biplots" class="nav-link" data-scroll-target="#biplots"><span class="header-section-number">3.3.4</span> Biplots</a></li>
   </ul></li>
-  <li><a href="#principal-component-regression" id="toc-principal-component-regression" class="nav-link" data-scroll-target="#principal-component-regression"><span class="toc-section-number">1.4</span>  Principal component regression</a></li>
+  <li><a href="#principal-component-regression" id="toc-principal-component-regression" class="nav-link" data-scroll-target="#principal-component-regression"><span class="header-section-number">3.4</span> Principal component regression</a></li>
   </ul>
 </nav>
     </div>
@@ -244,7 +276,7 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Principal component analysis</span></h1>
+<h1 class="title"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Principal component analysis</span></h1>
 </div>
 
 
@@ -252,24 +284,27 @@ div.csl-indent {
 <div class="quarto-title-meta">
 
     
+  
     
   </div>
   
 
+
 </header>
+
 
 <p>In the previous chapter we built a linear model to predict the amount of body fat, given measurements of the thickness of the triceps skin fold, the thigh circumference, and the midarm circumference. We saw that the dataset used for this model suffers from multicollinearity, meaning that some of the predictors (or linear combinations of predictors) are correlated with one another. Intuitively speaking, multicollinearity means that some variables don’t contribute much to the expressivity of the data: we could omit them and end up with a dataset that is almost as informative as the original one.</p>
 <p>To find out which combinations of variables contribute most to the variability of our data, we will turn to <em>principal component analysis</em>, one of the mainstays of statistical data analysis. Principal component analysis will allow us to identify the main sources of variability in our dataset, and will tell us which combinations of variables can be omitted with only little impact on the data itself. This allows us to reduce the number of features in the dataset, and makes principal component analysis into what is called a technique for <em>dimensionality reduction</em>. This is useful for a number of reasons:</p>
 <ul>
 <li>As a <em>pre-processing technique</em>: Many statistical techniques, such as multiple linear regression, do not perform well in the presence of highly correlated features. They either fail to converge outright, or they give unreliable results (for example, model coefficients and predictions that change drastically when the data is slightly perturbed). This is even more of an issue when there are more predictors than data points, a situation that often occurs when analysing gene expression data or spectroscopy data.</li>
-<li>To save on <em>computational processing time</em>: analyzing superfluous variables comes with a cost, which can often increase drastically with the number of features. We will see an example of this phenomenon in <a href="pca-applications.html#sec-eigenfaces"><span>Section&nbsp;2.2</span></a>, where the data points are vectors with 4096 components. After principal component reduction, the dimensionality of the dataset can be reduced to 50-100 components, a reduction by more than 98%.</li>
+<li>To save on <em>computational processing time</em>: analyzing superfluous variables comes with a cost, which can often increase drastically with the number of features. We will see an example of this phenomenon in <a href="pca-applications.html#sec-eigenfaces" class="quarto-xref"><span>Section 4.2</span></a>, where the data points are vectors with 4096 components. After principal component reduction, the dimensionality of the dataset can be reduced to 50-100 components, a reduction by more than 98%.</li>
 <li>To <em>visualize</em> the data: for datasets with a limited number of features, we can use a scatter matrix to view the distribution of the features and their relations with one another. Scatter matrices become uninformative, however, as soon as there are more than 4 or 5 features. Moreover, scatter matrices may hide correlations that occur between different linear combinations of variables, as we have seen in the chapter on linear modeling.</li>
 </ul>
-<section id="intuition" class="level2" data-number="1.1">
-<h2 data-number="1.1" class="anchored" data-anchor-id="intuition"><span class="header-section-number">1.1</span> Intuition</h2>
+<section id="intuition" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="intuition"><span class="header-section-number">3.1</span> Intuition</h2>
 <p>Principal component analysis (PCA) finds a low-dimensional approximation to the dataset which retains as much as possible the variability of the original dataset. To understand what is meant by this, let’s revisit the body fat dataset of chapter 1. In this dataset, the features are the measurements of the thickness of the triceps skin fold, the thigh circumference, and the midarm circumference. The total body fat is the outcome, but we will not consider it for the time being.</p>
 <div class="cell" data-layout-align="center">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>bodyfat <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"datasets/02-PCA/bodyfatNKNW.txt"</span>, <span class="at">sep =</span> <span class="st">" "</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>bodyfat_predictors <span class="ot">&lt;-</span> bodyfat[,<span class="fu">c</span>(<span class="st">"triceps.skinfold.thickness"</span>, <span class="st">"thigh.circumference"</span>, <span class="st">"midarm.circumference"</span>)]</span>
@@ -280,15 +315,15 @@ div.csl-indent {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="pca_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Correlations between the different variables in the body fat dataset. The variable <code>triceps.skinfold.thickness</code> is strongly correlated with the other two variables in the dataset and hence carries less information.</figcaption><p></p>
+<p><img src="pca_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+<figcaption>Correlations between the different variables in the body fat dataset. The variables <code>triceps.skinfold.thickness</code> and <code>thigh.circumference</code> are highly correlated.</figcaption>
 </figure>
 </div>
 </div>
 </div>
 <p>From the scatter matrix, we see that <code>triceps.skinfold.thickness</code> and <code>thigh.circumference</code> are highly correlated: if you know one, you can predict the other one reasonably well. This makes it feel like a waste to analyze both: since they carry the same information, we can just as well throw one or the other away, or replace both by a linear combination. Let’s do the latter, and introduce a new variable <code>z1</code> which is the sum of both. In terms of this variable and <code>midarm.circumference</code>, which we leave unchanged, the dataset has only two features that are mildly correlated, as shown on the scatter plot below.</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">with</span>(bodyfat_predictors, {</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  z1 <span class="ot">&lt;-</span> triceps.skinfold.thickness <span class="sc">+</span> thigh.circumference</span>
@@ -300,7 +335,11 @@ div.csl-indent {
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="pca_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="pca_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>We have succeeded in our aim to reduce the number of features in our dataset from 3 to 2, but a number of questions immediately pop up:</p>
@@ -310,8 +349,8 @@ div.csl-indent {
 </ol>
 <p>It will turn out that the variable <code>z1</code>, which we constructed in an ad-hoc way, is remarkably close to the first principal component of the dataset, and we will discover a way to compute all principal components. We will also see that by discarding more or fewer principal components, as much variability of the original dataset can be retained as is needed.</p>
 </section>
-<section id="derivation-of-the-pca-algorithm" class="level2" data-number="1.2">
-<h2 data-number="1.2" class="anchored" data-anchor-id="derivation-of-the-pca-algorithm"><span class="header-section-number">1.2</span> Derivation of the PCA algorithm</h2>
+<section id="derivation-of-the-pca-algorithm" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="derivation-of-the-pca-algorithm"><span class="header-section-number">3.2</span> Derivation of the PCA algorithm</h2>
 <p>PCA works by making linear combinations of the original variables so that the total amount of variation is maximal. There is another way of computing principal components, by minimizing the reconstruction error, and it can be shown that both approaches give the same principal components (<span class="citation" data-cites="bishopPatternRecognitionMachine2006">Bishop (<a href="references.html#ref-bishopPatternRecognitionMachine2006" role="doc-biblioref">2006</a>)</span>, section 12). In this course, we will develop the first method further.</p>
 <p>We assume that we have <span class="math inline">\(N\)</span> observations <span class="math inline">\(\mathbf{x}_{i}\)</span>, where each <span class="math inline">\(\mathbf{x}_i\)</span> is a column vector in <span class="math inline">\(\mathbb{R}^D\)</span>. We assemble these observations into an <span class="math inline">\(N \times D\)</span> <em>data matrix</em> <span class="math inline">\(\mathbf{X}\)</span>, where each row of <span class="math inline">\(\mathbf{X}\)</span> is an observation <span class="math inline">\(\mathbf{x}_i\)</span>: <span class="math display">\[
     \mathbf{X} = \begin{bmatrix}
@@ -326,8 +365,8 @@ div.csl-indent {
 <li><span class="math inline">\(\mathbf{X}_2\)</span>: <code>thigh.circumference</code></li>
 <li><span class="math inline">\(\mathbf{X}_3\)</span>: <code>midarm.circumference</code></li>
 </ul>
-<section id="the-first-principal-component" class="level3" data-number="1.2.1">
-<h3 data-number="1.2.1" class="anchored" data-anchor-id="the-first-principal-component"><span class="header-section-number">1.2.1</span> The first principal component</h3>
+<section id="the-first-principal-component" class="level3" data-number="3.2.1">
+<h3 data-number="3.2.1" class="anchored" data-anchor-id="the-first-principal-component"><span class="header-section-number">3.2.1</span> The first principal component</h3>
 <p>The first principal component, <span class="math inline">\(\mathbf{Z}_1\)</span> is a linear combination of the features, so that the amount of variation in <span class="math inline">\(\mathbf{Z}_1\)</span> is maximized. Let’s unpack these ideas one at a time. The fact that <span class="math inline">\(\mathbf{Z}_1\)</span> is a linear combination means that it can be written as <span class="math display">\[
   \mathbf{Z}_1 = v_1 \mathbf{X}_1 + \cdots + v_D \mathbf{X}_D = \sum_{j = 1}^D v_j \mathbf{X}_j.
 \]</span> where the <span class="math inline">\(v_j\)</span> are coefficients that we have to determine. These coefficients are sometimes referred to as the principal component <strong>loadings</strong>, since <span class="math inline">\(v_j\)</span> expresses how much of <span class="math inline">\(\mathbf{X}_j\)</span> is added (“loaded”) to the principal component.</p>
@@ -341,26 +380,34 @@ div.csl-indent {
     \end{bmatrix}.
 \]</span> With this expression, <span class="math inline">\(\mathbf{Z}_1\)</span> can be written as a matrix-vector product: <span id="eq-first-pc"><span class="math display">\[
   \mathbf{Z}_1 = \mathbf{X} \mathbf{v}.
-\tag{1.1}\]</span></span> We will often use this way of expressing <span class="math inline">\(\mathbf{Z}_1\)</span> as a matrix-vector product, since it makes subsequent calculations easier.</p>
-<p>Before we go on to determine the loadings <span class="math inline">\(v_j\)</span>, let’s focus on the geometry behind <a href="#eq-first-pc">Equation&nbsp;<span>1.1</span></a>. Each component of <span class="math inline">\(\mathbf{Z}_1\)</span> can written as <span class="math display">\[
+\tag{3.1}\]</span></span> We will often use this way of expressing <span class="math inline">\(\mathbf{Z}_1\)</span> as a matrix-vector product, since it makes subsequent calculations easier.</p>
+<p>Before we go on to determine the loadings <span class="math inline">\(v_j\)</span>, let’s focus on the geometry behind <a href="#eq-first-pc" class="quarto-xref">Equation&nbsp;<span>3.1</span></a>. Each component of <span class="math inline">\(\mathbf{Z}_1\)</span> can written as <span class="math display">\[
   (\mathbf{Z}_1)_i = \mathbf{x}_i^T \mathbf{v}.
-\]</span> This is the dot product of the <span class="math inline">\(i\)</span>th observation <span class="math inline">\(\mathbf{x}_i\)</span> with the loadings vector <span class="math inline">\(\mathbf{v}\)</span>. This dot product tells us how much of the vector <span class="math inline">\(\mathbf{x}_i\)</span> is parallel to <span class="math inline">\(\mathbf{v}\)</span>, as shown in <a href="#fig-orthogonal-projection">Figure&nbsp;<span>1.1</span></a>. For example, a data point that is at right angles to <span class="math inline">\(\mathbf{v}\)</span> will have dot product 0 (no component at all along <span class="math inline">\(\mathbf{v}\)</span>), while one that is parallel to <span class="math inline">\(\mathbf{v}\)</span> will have a dot product that is maximal in magnitude.</p>
-<div id="fig-orthogonal-projection" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="./images/02-PCA/projection.svg" class="img-fluid figure-img"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;1.1: The <span class="math inline">\(i\)</span>th component of the first principal component <span class="math inline">\(\mathbf{Z}_1\)</span> is the length of the orthogonal projection of <span class="math inline">\(\mathbf{x}_i\)</span> onto the line in the direction of <span class="math inline">\(\mathbf{v}\)</span>.</figcaption><p></p>
+\]</span> This is the dot product of the <span class="math inline">\(i\)</span>th observation <span class="math inline">\(\mathbf{x}_i\)</span> with the loadings vector <span class="math inline">\(\mathbf{v}\)</span>. This dot product tells us how much of the vector <span class="math inline">\(\mathbf{x}_i\)</span> is parallel to <span class="math inline">\(\mathbf{v}\)</span>, as shown in <a href="#fig-orthogonal-projection" class="quarto-xref">Figure&nbsp;<span>3.1</span></a>. For example, a data point that is at right angles to <span class="math inline">\(\mathbf{v}\)</span> will have dot product 0 (no component at all along <span class="math inline">\(\mathbf{v}\)</span>), while one that is parallel to <span class="math inline">\(\mathbf{v}\)</span> will have a dot product that is maximal in magnitude.</p>
+<div id="fig-orthogonal-projection" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orthogonal-projection-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="./images/02-PCA/projection.svg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orthogonal-projection-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3.1: The <span class="math inline">\(i\)</span>th component of the first principal component <span class="math inline">\(\mathbf{Z}_1\)</span> is the length of the orthogonal projection of <span class="math inline">\(\mathbf{x}_i\)</span> onto the line in the direction of <span class="math inline">\(\mathbf{v}\)</span>.
+</figcaption>
 </figure>
 </div>
-<p>In other words, we obtain <span class="math inline">\(\mathbf{Z}_1\)</span> by taking a fixed vector <span class="math inline">\(\mathbf{v}\)</span> and projecting all of our data points on the line through the origin in the direction of <span class="math inline">\(\mathbf{v}\)</span>. If we choose another vector, <span class="math inline">\(\mathbf{w}\)</span>, we obtain a different projection, as indicated on <a href="#fig-max-variance-projection">Figure&nbsp;<span>1.2</span></a>.</p>
-<div id="fig-max-variance-projection" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="./images/02-PCA/max-variance-projection.svg" class="img-fluid figure-img"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;1.2: Two different projections, onto the loadings vector <span class="math inline">\(\mathbf{v}\)</span> (blue) and <span class="math inline">\(\mathbf{w}\)</span> (red).</figcaption><p></p>
+<p>In other words, we obtain <span class="math inline">\(\mathbf{Z}_1\)</span> by taking a fixed vector <span class="math inline">\(\mathbf{v}\)</span> and projecting all of our data points on the line through the origin in the direction of <span class="math inline">\(\mathbf{v}\)</span>. If we choose another vector, <span class="math inline">\(\mathbf{w}\)</span>, we obtain a different projection, as indicated on <a href="#fig-max-variance-projection" class="quarto-xref">Figure&nbsp;<span>3.2</span></a>.</p>
+<div id="fig-max-variance-projection" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-max-variance-projection-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="./images/02-PCA/max-variance-projection.svg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-max-variance-projection-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3.2: Two different projections, onto the loadings vector <span class="math inline">\(\mathbf{v}\)</span> (blue) and <span class="math inline">\(\mathbf{w}\)</span> (red).
+</figcaption>
 </figure>
 </div>
 <p>Our goal is now to find the loadings vector <span class="math inline">\(\mathbf{v}\)</span> so that the variance of the projected dataset is maximal. To make this problem well-posed, we will assume that <span class="math inline">\(\mathbf{v}\)</span> has unit norm: <span id="eq-unit-length"><span class="math display">\[
   \mathbf{v}^T \mathbf{v} = 1.
-\tag{1.2}\]</span></span> If we did not impose this constraint, we could increase the amount of variance simply by making <span class="math inline">\(\mathbf{v}\)</span> longer.</p>
+\tag{3.2}\]</span></span> If we did not impose this constraint, we could increase the amount of variance simply by making <span class="math inline">\(\mathbf{v}\)</span> longer.</p>
 <p>The mean of the projected data is given by <span class="math display">\[
   \bar{\mathbf{Z}}_1 = \frac{1}{N}\sum_{j=1}^N (\mathbf{Z}_1)_j
          = \frac{1}{N}\sum_{j=1}^N \mathbf{x}_j^T \mathbf{v}
@@ -376,13 +423,13 @@ div.csl-indent {
         \mathbf{\bar{x}}^T \mathbf{v}\right)^2.
 \]</span> This expression can be rewritten as a matrix product: <span id="eq-projected-variance"><span class="math display">\[
   \sigma^2 = \mathbf{v}^T \mathbf{S} \mathbf{v},
-\tag{1.3}\]</span></span> where <span class="math inline">\(\mathbf{S}\)</span> is the covariance matrix, given by <span id="eq-cov-matrix"><span class="math display">\[
+\tag{3.3}\]</span></span> where <span class="math inline">\(\mathbf{S}\)</span> is the covariance matrix, given by <span id="eq-cov-matrix"><span class="math display">\[
     \mathbf{S} = \frac{1}{N}
       \sum_{i = 1}^N \left(
       \mathbf{x}_i \mathbf{x}_i^T -
       \mathbf{\bar{x}}\mathbf{\bar{x}}^T \right).
-\tag{1.4}\]</span></span></p>
-<p>We are now ready to translate our problem into a mathematical form, so that we can solve it. To find the first principal component <span class="math inline">\(\mathbf{Z}_1\)</span>, we want to find a loadings vector <span class="math inline">\(\mathbf{v}\)</span> so that the projected variance <span class="math inline">\(\sigma^2\)</span>, given in <a href="#eq-projected-variance">Equation&nbsp;<span>1.3</span></a>, is maximized. In addition, we want <span class="math inline">\(\mathbf{v}\)</span> to have unit length, as in <a href="#eq-unit-length">Equation&nbsp;<span>1.2</span></a>. In mathematical terms: <span class="math display">\[
+\tag{3.4}\]</span></span></p>
+<p>We are now ready to translate our problem into a mathematical form, so that we can solve it. To find the first principal component <span class="math inline">\(\mathbf{Z}_1\)</span>, we want to find a loadings vector <span class="math inline">\(\mathbf{v}\)</span> so that the projected variance <span class="math inline">\(\sigma^2\)</span>, given in <a href="#eq-projected-variance" class="quarto-xref">Equation&nbsp;<span>3.3</span></a>, is maximized. In addition, we want <span class="math inline">\(\mathbf{v}\)</span> to have unit length, as in <a href="#eq-unit-length" class="quarto-xref">Equation&nbsp;<span>3.2</span></a>. In mathematical terms: <span class="math display">\[
   \mathbf{v} = \operatorname{argmax} \mathbf{v}^T \mathbf{S} \mathbf{v}, \quad
   \text{such that $\mathbf{v}^T \mathbf{v} = 1$}.
 \]</span></p>
@@ -393,33 +440,33 @@ div.csl-indent {
 \]</span></p>
 <p>A necessary condition for <span class="math inline">\(\mathbf{v}\)</span> to be a maximum of <span class="math inline">\(L\)</span> is that the gradient vanishes at <span class="math inline">\(\mathbf{v}\)</span>. Taking the gradient of <span class="math inline">\(L\)</span> with respect to <span class="math inline">\(\mathbf{v}\)</span> and setting the resulting expression equal to zero gives <span id="eq-ev-pca"><span class="math display">\[
     \mathbf{S} \mathbf{v} = \lambda \mathbf{v}.
-\tag{1.5}\]</span></span> This is a very important result: it tells us that the <span class="math inline">\(\mathbf{v}\)</span> we are looking for is an <strong>eigenvector</strong> of the matrix <span class="math inline">\(\mathbf{S}\)</span>, with corresponding <strong>eigenvalue</strong> <span class="math inline">\(\lambda\)</span>. This will hold true generally, not just for the first principal component: finding the principal components of a data set will involve solving an eigenvalue problem, and selecting the largest eigenvalues.</p>
-<p>Last, we have to find the Lagrange multiplier <span class="math inline">\(\lambda\)</span>. This can be done by multiplying <a href="#eq-ev-pca">Equation&nbsp;<span>1.5</span></a> from the left by <span class="math inline">\(\mathbf{v}^T\)</span> to get <span class="math display">\[
+\tag{3.5}\]</span></span> This is a very important result: it tells us that the <span class="math inline">\(\mathbf{v}\)</span> we are looking for is an <strong>eigenvector</strong> of the matrix <span class="math inline">\(\mathbf{S}\)</span>, with corresponding <strong>eigenvalue</strong> <span class="math inline">\(\lambda\)</span>. This will hold true generally, not just for the first principal component: finding the principal components of a data set will involve solving an eigenvalue problem, and selecting the largest eigenvalues.</p>
+<p>Last, we have to find the Lagrange multiplier <span class="math inline">\(\lambda\)</span>. This can be done by multiplying <a href="#eq-ev-pca" class="quarto-xref">Equation&nbsp;<span>3.5</span></a> from the left by <span class="math inline">\(\mathbf{v}^T\)</span> to get <span class="math display">\[
     \mathbf{v}^T \mathbf{S} \mathbf{v} = \lambda \mathbf{v}^T \mathbf{v} = \lambda,
-\]</span> where we have used the unit-length constraint <a href="#eq-unit-length">Equation&nbsp;<span>1.2</span></a>.</p>
+\]</span> where we have used the unit-length constraint <a href="#eq-unit-length" class="quarto-xref">Equation&nbsp;<span>3.2</span></a>.</p>
 <p>We see that the Lagrange multiplier <span class="math inline">\(\lambda\)</span> is precisely the variance <span class="math inline">\(\sigma^2\)</span> of the first principal component <span class="math inline">\(\mathbf{Z}_1\)</span>. For this reason, we will refer to the eigenvalue <span class="math inline">\(\lambda\)</span> as the amount of <em>retained variance</em>, since it expresses how much variance is captured by projecting the entire dataset onto the direction <span class="math inline">\(\mathbf{v}\)</span>.</p>
 <p>To sum up, the first principal component <span class="math inline">\(\mathbf{Z}_1\)</span> is a linear combination of the original features (columns) of our dataset, chosen so that the variance of <span class="math inline">\(\mathbf{Z}_1\)</span> is maximal. We can find <span class="math inline">\(\mathbf{Z}_1\)</span> by looking for the largest eigenvalue <span class="math inline">\(\lambda\)</span> of the covariance matrix, with unit length eigenvector <span class="math inline">\(\mathbf{v}\)</span>, and projecting the data matrix <span class="math inline">\(\mathbf{X}\)</span> onto <span class="math inline">\(\mathbf{v}\)</span>.</p>
 </section>
-<section id="the-remaining-principal-components" class="level3" data-number="1.2.2">
-<h3 data-number="1.2.2" class="anchored" data-anchor-id="the-remaining-principal-components"><span class="header-section-number">1.2.2</span> The remaining principal components</h3>
+<section id="the-remaining-principal-components" class="level3" data-number="3.2.2">
+<h3 data-number="3.2.2" class="anchored" data-anchor-id="the-remaining-principal-components"><span class="header-section-number">3.2.2</span> The remaining principal components</h3>
 <p>Now that we’ve computed the first principal component, how do we compute the others? It probably won’t come as a surprise that the next principal components, <span class="math inline">\(\mathbf{Z}_2\)</span>, <span class="math inline">\(\mathbf{Z}_3\)</span>, and so on, involve the amount of variation that is left in the data after <span class="math inline">\(\mathbf{Z}_1\)</span> has been removed, and that they involve the second, third, … largest eigenvalues.</p>
 <p>Assuming that we have computed <span class="math inline">\(\mathbf{Z}_1\)</span> as in the previous section, and denote the loadings vector by <span class="math inline">\(\mathbf{v}_1\)</span>. Recall that <span class="math inline">\(\mathbf{v}_1\)</span> points in the direction of the largest variance.</p>
 <p>To find the next principal component, we consider the variability in the dataset that is not already accounted for by <span class="math inline">\(\mathbf{Z}_1\)</span>. More precisely, we look for a loadings vector <span class="math inline">\(\mathbf{v}_2\)</span> which is orthogonal to <span class="math inline">\(\mathbf{v}_1\)</span>, has unit length, and maximizes the amount of variability <span class="math inline">\(\mathbf{v}_2^T \mathbf{S} \mathbf{v}_2\)</span>. By a similar reasoning as in the previous section, one can show that this <span class="math inline">\(\mathbf{v}_2\)</span> is an eigenvector associated with the second largest eigenvalue of <span class="math inline">\(\mathbf{S}\)</span>. The projection of the dataset onto this loadings vector then gives us the second principal component: <span class="math display">\[
   \mathbf{Z}_2 = \mathbf{X}\mathbf{v}_2.
 \]</span> This procedure can be applied to find all <span class="math inline">\(D\)</span> principal components and results in the following algorithm to compute the principal components:</p>
 <ol type="1">
-<li>Compute the sample covariance matrix <span class="math inline">\(\mathbf{S}\)</span> using <a href="#eq-cov-matrix">Equation&nbsp;<span>1.4</span></a>.</li>
+<li>Compute the sample covariance matrix <span class="math inline">\(\mathbf{S}\)</span> using <a href="#eq-cov-matrix" class="quarto-xref">Equation&nbsp;<span>3.4</span></a>.</li>
 <li>Compute the eigenvalues of <span class="math inline">\(\mathbf{S}\)</span> and order them from largest to smallest: <span class="math inline">\(\lambda_1 \ge \lambda_2 \ge \cdots \ge \lambda_D\)</span>.</li>
 <li>Find the corresponding eigenvectors <span class="math inline">\(\mathbf{v}_1, \mathbf{v}_2, \ldots, \mathbf{v}_D\)</span> and normalize them to unit length, if necessary. These vectors are the loading vectors and they point in the directions of highest variance.</li>
 <li>Project the dataset onto the loading vectors to obtain the principal components <span class="math inline">\(\mathbf{Z}_1, \mathbf{Z}_2, \ldots, \mathbf{Z}_D\)</span>.</li>
 </ol>
 <p>Typically, we do not have to compute the principal components by hand: most data analysis packages will do this for us, either via a builtin command, such as in <a href="https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/prcomp">R (prcomp)</a> or <a href="https://support.minitab.com/en-us/minitab/21/help-and-how-to/statistical-modeling/multivariate/how-to/principal-components/before-you-start/example/">minitab</a>, or via an extra package, such as <a href="https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html">scikit-learn (Python)</a> or <a href="https://help.xlstat.com/6776-principal-component-analysis-pca-excel">xlstat (Excel)</a>. It is instructive, however, to know the principles behind PCA, so that you can interpret and understand the results.</p>
-<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Note
 </div>
 </div>
@@ -428,8 +475,8 @@ Note
 </div>
 </div>
 </section>
-<section id="worked-out-example" class="level3" data-number="1.2.3">
-<h3 data-number="1.2.3" class="anchored" data-anchor-id="worked-out-example"><span class="header-section-number">1.2.3</span> Worked-out example</h3>
+<section id="worked-out-example" class="level3" data-number="3.2.3">
+<h3 data-number="3.2.3" class="anchored" data-anchor-id="worked-out-example"><span class="header-section-number">3.2.3</span> Worked-out example</h3>
 <p>For this example, we will calculate the principal components in two different ways. We will first compute the principal components by hand, by solving an eigenvalue problem. This is possible because the data are two-dimensional, and solving the characteristic equation for a two- or three-dimensional matrix can be done by hand. This is not practical for real-world datasets, which often contains dozens, thousands, or millions of features, and we will therefore also cover computing the principal components using R.</p>
 <p>Our dataset consists of 100 observations, where each observation has two components. The dataset is shown below and has been carefully constructed so that the covariance matrix <span class="math inline">\(\mathbf{S}\)</span> and mean <span class="math inline">\(\mathbf{\bar{x}}\)</span> are exactly equal to <span id="eq-cov-2x2"><span class="math display">\[
     \mathbf{S} =
@@ -443,9 +490,9 @@ Note
           1 \\
           1
         \end{bmatrix}.
-\tag{1.6}\]</span></span></p>
+\tag{3.6}\]</span></span></p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mvtnorm)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -477,13 +524,17 @@ Note
 <span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="pca_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="pca_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <p>To find the loading vectors, we must find the eigenvalues of <span class="math inline">\(\mathbf{S}\)</span>, which we can do via the characteristic equation: <span class="math display">\[
   \det(\mathbf{S} - \lambda \mathbf{I}) = 0.
 \]</span><br>
-Substituting the expression given in <a href="#eq-cov-2x2">Equation&nbsp;<span>1.6</span></a> for the covariance matrix and expanding the determinant gives <span class="math display">\[
+Substituting the expression given in <a href="#eq-cov-2x2" class="quarto-xref">Equation&nbsp;<span>3.6</span></a> for the covariance matrix and expanding the determinant gives <span class="math display">\[
   \det \begin{bmatrix}
             5 - \lambda &amp; 2 \\
             2 &amp; 2 - \lambda \\
@@ -495,9 +546,9 @@ Substituting the expression given in <a href="#eq-cov-2x2">Equation&nbsp;<span>1
     \mathbf{v}_2 = \frac{1}{\sqrt{5}} \begin{bmatrix}
         -1 \\ 2
     \end{bmatrix}.
-\]</span> These are our loading vectors, and they indicate the direction in which the data varies the most (for <span class="math inline">\(\mathbf{v}_1\)</span>) and the “second-most” (for <span class="math inline">\(\mathbf{v}_2\)</span>). Figure <a href="#fig-2d-dataset-pc">Figure&nbsp;<span>1.3</span></a> shows the dataset again, now with the two loading vectors superimposed. Each loading vector has been rescaled by multiplying it with the square root of the corresponding eigenvalue. Why the square root? The eigenvalue itself represents the <em>variance</em> in that direction, the square root the standard deviation.</p>
+\]</span> These are our loading vectors, and they indicate the direction in which the data varies the most (for <span class="math inline">\(\mathbf{v}_1\)</span>) and the “second-most” (for <span class="math inline">\(\mathbf{v}_2\)</span>). Figure <a href="#fig-2d-dataset-pc" class="quarto-xref">Figure&nbsp;<span>3.3</span></a> shows the dataset again, now with the two loading vectors superimposed. Each loading vector has been rescaled by multiplying it with the square root of the corresponding eigenvalue. Why the square root? The eigenvalue itself represents the <em>variance</em> in that direction, the square root the standard deviation.</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>vx <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">/</span><span class="dv">5</span><span class="sc">^</span><span class="fl">0.5</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>vy <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">5</span><span class="sc">^</span><span class="fl">0.5</span></span>
@@ -518,10 +569,14 @@ Substituting the expression given in <a href="#eq-cov-2x2">Equation&nbsp;<span>1
 <span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">6</span>)) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="fl">2.5</span>, <span class="fl">4.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-2d-dataset-pc" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="pca_files/figure-html/fig-2d-dataset-pc-1.png" class="img-fluid figure-img" width="1056"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;1.3: The dataset with the first loading vector (blue) and the second loading vector (orange) superimposed. Each loading vector has been rescaled by the square root of the corresponding eigenvalue, to give an indication of the variability in that direction.</figcaption><p></p>
+<div id="fig-2d-dataset-pc" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-2d-dataset-pc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="pca_files/figure-html/fig-2d-dataset-pc-1.png" class="img-fluid figure-img" width="1056">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-2d-dataset-pc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3.3: The dataset with the first loading vector (blue) and the second loading vector (orange) superimposed. Each loading vector has been rescaled by the square root of the corresponding eigenvalue, to give an indication of the variability in that direction.
+</figcaption>
 </figure>
 </div>
 </div>
@@ -540,12 +595,12 @@ X 0.8944272 -0.4472136
 Y 0.4472136  0.8944272</code></pre>
 </div>
 </div>
-<div class="callout-warning callout callout-style-default callout-captioned">
+<div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Warning
 </div>
 </div>
@@ -560,19 +615,19 @@ Warning
 </div>
 </div>
 </section>
-<section id="standardizing-the-predictors" class="level3" data-number="1.2.4">
-<h3 data-number="1.2.4" class="anchored" data-anchor-id="standardizing-the-predictors"><span class="header-section-number">1.2.4</span> Standardizing the predictors</h3>
+<section id="standardizing-the-predictors" class="level3" data-number="3.2.4">
+<h3 data-number="3.2.4" class="anchored" data-anchor-id="standardizing-the-predictors"><span class="header-section-number">3.2.4</span> Standardizing the predictors</h3>
 <p>Prior to doing principal component analysis, the data are often standardized by subtracting the mean for each feature and dividing by the standard deviation. If the original predictors in our dataset are given by <span class="math inline">\(\mathbf{X}_i\)</span>, <span class="math inline">\(i = 1, \ldots, D\)</span>, this means that we introduce standardized variables <span class="math inline">\(\mathbf{Y}_i\)</span>, given by <span class="math display">\[
   \mathbf{Y}_i = \frac{\mathbf{X}_i - \bar{\mathbf{X}}_i}{\sqrt{S^2_i}},
 \]</span> where <span class="math inline">\(S^2_i\)</span> is the variance of <span class="math inline">\(\mathbf{X}_i\)</span>. The resulting variables <span class="math inline">\(\mathbf{Y}_i\)</span> will have mean 0 and variance 1.</p>
 <p>Standardizing the predictors means that they will be comparable in magnitude: variables whose variance is small will gain in importance and large variables will decrease in importance, roughly speaking. This may change the PCA output significantly!</p>
 <p>As a rule of thumb, you should standardize variables that are measured in different units (e.g.&nbsp;seconds, meters, Watt, …), since the unit can be rescaled without affecting the physical meaning of the variable, or its relation to other variables (e.g., rescaling a variable expressed in meters by a factor of 1000 is the same as expressing that variable in kilometers). By contrast, variables that are measured in the same units or that are unitless should not be rescaled (or should be rescaled collectively).</p>
-<p>For an example of the latter, think about pixel intensities in an image dataset (such a dataset is in fact analyzed in <a href="pca-applications.html#sec-eigenfaces"><span>Section&nbsp;2.2</span></a>). Pixels near the edge of the image presumably are part of the background, don’t vary that much, and are relatively unimportant, whereas pixels in the center are likely to be part of the image subject, vary a lot, and carry a lot of information. Standardizing the pixels would make the pixels near the edge just as variable as the pixels in the center, which would greatly amplify the noise in the image at the expense of the useful information in it!</p>
+<p>For an example of the latter, think about pixel intensities in an image dataset (such a dataset is in fact analyzed in <a href="pca-applications.html#sec-eigenfaces" class="quarto-xref"><span>Section 4.2</span></a>). Pixels near the edge of the image presumably are part of the background, don’t vary that much, and are relatively unimportant, whereas pixels in the center are likely to be part of the image subject, vary a lot, and carry a lot of information. Standardizing the pixels would make the pixels near the edge just as variable as the pixels in the center, which would greatly amplify the noise in the image at the expense of the useful information in it!</p>
 <p>Standardizing the predictors is also referred to as <em>scaling</em>.</p>
 </section>
 </section>
-<section id="interpreting-the-pca-results" class="level2" data-number="1.3">
-<h2 data-number="1.3" class="anchored" data-anchor-id="interpreting-the-pca-results"><span class="header-section-number">1.3</span> Interpreting the PCA results</h2>
+<section id="interpreting-the-pca-results" class="level2" data-number="3.3">
+<h2 data-number="3.3" class="anchored" data-anchor-id="interpreting-the-pca-results"><span class="header-section-number">3.3</span> Interpreting the PCA results</h2>
 <p>In this section we will discuss a number of useful results that follow from PCA. We will use the bodyfat dataset as an illustration throughout.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>pc <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(bodyfat_predictors)</span>
@@ -599,12 +654,12 @@ Proportion of Variance 0.7872 0.2125 0.00027
 Cumulative Proportion  0.7872 0.9997 1.00000</code></pre>
 </div>
 </div>
-<section id="the-score-plot" class="level3" data-number="1.3.1">
-<h3 data-number="1.3.1" class="anchored" data-anchor-id="the-score-plot"><span class="header-section-number">1.3.1</span> The score plot</h3>
+<section id="the-score-plot" class="level3" data-number="3.3.1">
+<h3 data-number="3.3.1" class="anchored" data-anchor-id="the-score-plot"><span class="header-section-number">3.3.1</span> The score plot</h3>
 <p>Perhaps the most useful visualization of the PCA is the so-called <strong>score plot</strong>, which is nothing but a scatter plot of the first two principal components. It often happens that the score plot is sufficient to discern patterns in the data, such as clusters.</p>
-<p><a href="#fig-score-plot">Figure&nbsp;<span>1.4</span></a> shows a score plot for the bodyfat dataset. While no obvious patterns in this dataset stand out, the plot does show that the principal components are uncorrelated, and this is a good confirmation of what we already know on theoretical grounds. It is customary to put the percentages of variance explained on the axis labels of the score plot, so that the person interpreting it can have an idea of how well the first two principal components describe the data.</p>
+<p><a href="#fig-score-plot" class="quarto-xref">Figure&nbsp;<span>3.4</span></a> shows a score plot for the bodyfat dataset. While no obvious patterns in this dataset stand out, the plot does show that the principal components are uncorrelated, and this is a good confirmation of what we already know on theoretical grounds. It is customary to put the percentages of variance explained on the axis labels of the score plot, so that the person interpreting it can have an idea of how well the first two principal components describe the data.</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Explained variation for first and second component</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>total_var <span class="ot">&lt;-</span> <span class="fu">sum</span>(pc<span class="sc">$</span>sdev<span class="sc">^</span><span class="dv">2</span>)</span>
@@ -618,10 +673,14 @@ Cumulative Proportion  0.7872 0.9997 1.00000</code></pre>
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="fu">paste0</span>(<span class="st">"PC2 ("</span>, <span class="fu">round</span>(pct_var_2 <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">2</span>), <span class="st">"% var. explained)"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-score-plot" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="pca_files/figure-html/fig-score-plot-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;1.4: Score plot for the body fat dataset.</figcaption><p></p>
+<div id="fig-score-plot" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-score-plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="pca_files/figure-html/fig-score-plot-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-score-plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3.4: Score plot for the body fat dataset.
+</figcaption>
 </figure>
 </div>
 </div>
@@ -630,17 +689,17 @@ Cumulative Proportion  0.7872 0.9997 1.00000</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cov</span>(pc<span class="sc">$</span>x[,<span class="dv">1</span>], pc<span class="sc">$</span>x[,<span class="dv">2</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -2.604824e-16</code></pre>
+<pre><code>[1] 3.238883e-15</code></pre>
 </div>
 </div>
 </section>
-<section id="the-loadings-plot" class="level3" data-number="1.3.2">
-<h3 data-number="1.3.2" class="anchored" data-anchor-id="the-loadings-plot"><span class="header-section-number">1.3.2</span> The loadings plot</h3>
+<section id="the-loadings-plot" class="level3" data-number="3.3.2">
+<h3 data-number="3.3.2" class="anchored" data-anchor-id="the-loadings-plot"><span class="header-section-number">3.3.2</span> The loadings plot</h3>
 <p>A <strong>loadings plot</strong> shows the relations of the original variables and the principal components. This is often a useful visualization to see how each variable contributes to the principal components. Moreover, one can show that the loadings are proportional to the Pearson correlations between the principal components and the variables. Hence, if a loading is positive (negative), that variable will be positively (negatively) correlated with that principal component.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
-<p>At the beginning of this chapter we hypothesized that the variables <code>thigh.circumference</code> and <code>triceps.skinfold.thickness</code> would contribute about equally to the first principal component. From <a href="#fig-pca-loadings">Figure&nbsp;<span>1.5</span></a> we see that this is indeed the case: both variables have loadings approximately equal to <span class="math inline">\(0.7\)</span>, when we consider the first principal component. We also see that the second principal component is mostly made up of the variable <code>midarm.circumference</code>.</p>
+<p>At the beginning of this chapter we hypothesized that the variables <code>thigh.circumference</code> and <code>triceps.skinfold.thickness</code> would contribute about equally to the first principal component. From <a href="#fig-pca-loadings" class="quarto-xref">Figure&nbsp;<span>3.5</span></a> we see that this is indeed the case: both variables have loadings approximately equal to <span class="math inline">\(0.7\)</span>, when we consider the first principal component. We also see that the second principal component is mostly made up of the variable <code>midarm.circumference</code>.</p>
 <p>Unfortunately there is no command in base R or ggplot to create a loadings plot – you have to make one yourself.</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
@@ -659,17 +718,21 @@ Cumulative Proportion  0.7872 0.9997 1.00000</code></pre>
 <span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Variable"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-pca-loadings" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="pca_files/figure-html/fig-pca-loadings-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;1.5: The loadings plot shows how the original variables are related to the principal components.</figcaption><p></p>
+<div id="fig-pca-loadings" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pca-loadings-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="pca_files/figure-html/fig-pca-loadings-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pca-loadings-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3.5: The loadings plot shows how the original variables are related to the principal components.
+</figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="the-number-of-principal-components" class="level3" data-number="1.3.3">
-<h3 data-number="1.3.3" class="anchored" data-anchor-id="the-number-of-principal-components"><span class="header-section-number">1.3.3</span> The number of principal components</h3>
+<section id="the-number-of-principal-components" class="level3" data-number="3.3.3">
+<h3 data-number="3.3.3" class="anchored" data-anchor-id="the-number-of-principal-components"><span class="header-section-number">3.3.3</span> The number of principal components</h3>
 <p>We now know how to calculate the <span class="math inline">\(D\)</span> principal components for a given <span class="math inline">\(D\)</span>-dimensional dataset, and we’ve seen that the principal components correspond to the directions in which the dataset varies the most. The real power of PCA, and the reason why it is so ubiquitous in data analysis, is that we can now selectively discard principal components that are not informative. By doing this, we obtain a dataset with fewer features, which is hence easier to analyze, and where the discarded features do not contribute too much to the expressivity of the data. This is what makes PCA into a <em>dimensionality reduction</em> method.</p>
 <p>The question remains what principal components to discard. There are no universally accepted rules for this, but there are a couple of rules of thumb that can help us make an informed choice. Most of these rules take into account the total amount of variance retained by the first <span class="math inline">\(K\)</span> principal components, defined as <span class="math display">\[
   S_K = \frac{\sum_{i=1}^K\lambda_i}{\sum_{j=1}^D \lambda_j},
@@ -710,14 +773,14 @@ Cumulative Proportion  0.7872 0.9997 1.00000</code></pre>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="pca_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">A scree plot made with the base R <code>screeplot</code> command.</figcaption><p></p>
+<figcaption>A scree plot made with the base R <code>screeplot</code> command.</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>With a bit more work, you can build your own scree plot, which is often preferable if you want to customize the plot, to include for example the cumulative variance, as in figure <a href="#fig-scree-bodyfat">Figure&nbsp;<span>1.6</span></a>.</p>
+<p>With a bit more work, you can build your own scree plot, which is often preferable if you want to customize the plot, to include for example the cumulative variance, as in figure <a href="#fig-scree-bodyfat" class="quarto-xref">Figure&nbsp;<span>3.6</span></a>.</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>gg_screeplot <span class="ot">&lt;-</span> <span class="cf">function</span>(pc, <span class="at">n =</span> <span class="fu">length</span>(pc<span class="sc">$</span>sdev)) {</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  sdev <span class="ot">=</span> pc<span class="sc">$</span>sdev[<span class="dv">1</span><span class="sc">:</span>n]</span>
@@ -745,26 +808,34 @@ Cumulative Proportion  0.7872 0.9997 1.00000</code></pre>
 <span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a><span class="fu">gg_screeplot</span>(pc)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-scree-bodyfat" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="pca_files/figure-html/fig-scree-bodyfat-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;1.6: A scree plot for the body fat dataset confirms that the first two principal components explain almost all of the variance in the data.</figcaption><p></p>
+<div id="fig-scree-bodyfat" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-scree-bodyfat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="pca_files/figure-html/fig-scree-bodyfat-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-scree-bodyfat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3.6: A scree plot for the body fat dataset confirms that the first two principal components explain almost all of the variance in the data.
+</figcaption>
 </figure>
 </div>
 </div>
 </div>
 <p>Scree plots are often also referred to as “elbow plots”, since the plot typically (but not always) shows an “elbow” where the explained variance levels off. However, spotting the exact location of the elbow is very subjective, and it is typically more appropriate to take the point where the remaining principal components only contribute some small percentage of variation, for example 5%.</p>
 </section>
-<section id="biplots" class="level3" data-number="1.3.4">
-<h3 data-number="1.3.4" class="anchored" data-anchor-id="biplots"><span class="header-section-number">1.3.4</span> Biplots</h3>
+<section id="biplots" class="level3" data-number="3.3.4">
+<h3 data-number="3.3.4" class="anchored" data-anchor-id="biplots"><span class="header-section-number">3.3.4</span> Biplots</h3>
 <p>The <strong>biplot</strong> consists of a loadings plot overlaid on a score plot. By default, it shows the first two principal components as a scatter plot, together with a set of vectors, one for each original variable, showing the contribution of that variable to the first two principal components. Biplots are relatively complex, but it is worth understanding what they encode.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">biplot</span>(pc)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div id="fig-biplot-R" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="pca_files/figure-html/fig-biplot-R-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;1.7: The biplot provides information about the transformed data and the loadings.</figcaption><p></p>
+<div id="fig-biplot-R" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-biplot-R-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="pca_files/figure-html/fig-biplot-R-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-biplot-R-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3.7: The biplot provides information about the transformed data and the loadings.
+</figcaption>
 </figure>
 </div>
 </div>
@@ -773,8 +844,8 @@ Cumulative Proportion  0.7872 0.9997 1.00000</code></pre>
 <p>At one glance, we see that <code>triceps.skinfold</code> and <code>thigh.circumference</code> are the most important contributors to the first principal component, and that the second principal component is almost entirely made up by <code>midarm.circumference</code>. This confirms our intuition from the beginning of this chapter, as well as the conclusions that we drew from the loadings plot.</p>
 </section>
 </section>
-<section id="principal-component-regression" class="level2" data-number="1.4">
-<h2 data-number="1.4" class="anchored" data-anchor-id="principal-component-regression"><span class="header-section-number">1.4</span> Principal component regression</h2>
+<section id="principal-component-regression" class="level2" data-number="3.4">
+<h2 data-number="3.4" class="anchored" data-anchor-id="principal-component-regression"><span class="header-section-number">3.4</span> Principal component regression</h2>
 <p>Once we have performed PCA, we can build a linear model using the principal components that we have chosen to retain. This is known as <em>principal component regression</em>. Let’s see this in action for the bodyfat dataset. We start from a model where we include the first principal component only:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>pc1 <span class="ot">&lt;-</span> pc<span class="sc">$</span>x[, <span class="st">"PC1"</span>]</span>
@@ -862,12 +933,16 @@ bodyfat    74.97    78.01    80.14</code></pre>
 </div>
 <p>There are various rules to select the optimal number of components to consider. One such rule is the “1-sigma rule” <span class="citation" data-cites="hastie2009elements">(<a href="references.html#ref-hastie2009elements" role="doc-biblioref">Hastie, Tibshirani, and Friedman 2009</a>)</span> which considers the model with the least number of components whose cross-validation error is at most one standard deviation away from the optimal model. In our case, this again results in a model with only one predictor.</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">selectNcomp</span>(pcr_model, <span class="at">method =</span> <span class="st">"onesigma"</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="pca_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="pca_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 1</code></pre>
@@ -875,11 +950,11 @@ bodyfat    74.97    78.01    80.14</code></pre>
 </div>
 
 
-<div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography" style="display: none">
-<div id="ref-bishopPatternRecognitionMachine2006" class="csl-entry" role="doc-biblioentry">
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-bishopPatternRecognitionMachine2006" class="csl-entry" role="listitem">
 Bishop, Christopher M. 2006. <em>Pattern Recognition and Machine Learning</em>. Vol. 2. Information <span>Science</span> and <span>Statistics</span>. <span>Springer, New York</span>.
 </div>
-<div id="ref-hastie2009elements" class="csl-entry" role="doc-biblioentry">
+<div id="ref-hastie2009elements" class="csl-entry" role="listitem">
 Hastie, T., R. Tibshirani, and J. H. Friedman. 2009. <em>The Elements of Statistical Learning: <span>Data</span> Mining, Inference, and Prediction</em>. Springer Series in Statistics. <span>Springer</span>.
 </div>
 </div>
@@ -892,7 +967,7 @@ Hastie, T., R. Tibshirani, and J. H. Friedman. 2009. <em>The Elements of Statist
 </ol>
 </section>
 
-<p>These coures notes are made available under the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons BY-NC-SA 4.0</a> license.</p></main> <!-- /main -->
+<p>These course notes are made available under the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons BY-NC-SA 4.0</a> license.</p></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -920,9 +995,23 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     icon: icon
   };
   anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
   const clipboard = new window.ClipboardJS('.code-copy-button', {
-    target: function(trigger) {
-      return trigger.previousElementSibling;
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
     }
   });
   clipboard.on('success', function(e) {
@@ -934,17 +1023,33 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     button.classList.add('code-copy-button-checked');
     var currentTitle = button.getAttribute("title");
     button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
     setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
       button.setAttribute("title", currentTitle);
       button.classList.remove('code-copy-button-checked');
     }, 1000);
     // clear code selection
     e.clearSelection();
   });
-  function tippyHover(el, contentFn) {
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -954,8 +1059,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -970,40 +1084,291 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
   var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
   for (var i=0; i<bibliorefs.length; i++) {
     const ref = bibliorefs[i];
-    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
-    tippyHover(ref, function() {
-      var popup = window.document.createElement('div');
-      cites.forEach(function(cite) {
-        var citeDiv = window.document.createElement('div');
-        citeDiv.classList.add('hanging-indent');
-        citeDiv.classList.add('csl-entry');
-        var biblioDiv = window.document.getElementById('ref-' + cite);
-        if (biblioDiv) {
-          citeDiv.innerHTML = biblioDiv.innerHTML;
-        }
-        popup.appendChild(citeDiv);
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
       });
-      return popup.innerHTML;
-    });
+    }
   }
 });
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./index.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Preface</span>
+      <a href="./regression.html" class="pagination-link" aria-label="Regression analysis">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Regression analysis</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./pca-applications.html" class="pagination-link">
-        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Applications of principal component analysis</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./pca-applications.html" class="pagination-link" aria-label="Applications of principal component analysis">
+        <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Applications of principal component analysis</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
 </div> <!-- /content -->
+
 
 
 

@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.1.251">
+<meta name="generator" content="quarto-1.4.550">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Statistical Modelling - 2&nbsp; Applications of principal component analysis</title>
+<title>Introduction to Statistical Modelling - 4&nbsp; Applications of principal component analysis</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -17,11 +17,12 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1.6em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -46,48 +47,20 @@ pre.numberSource code > span > a:first-child::before
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
     padding: 0 4px; width: 4em;
-    color: #aaaaaa;
   }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
 div.sourceCode
   {   }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+/* CSS for citations */
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
+  margin-bottom: 0em;
 }
-.hanging div.csl-entry {
+.hanging-indent div.csl-entry {
   margin-left:2em;
   text-indent:-2em;
 }
@@ -101,8 +74,7 @@ div.csl-right-inline {
 }
 div.csl-indent {
   margin-left: 2em;
-}
-</style>
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -129,7 +101,13 @@ div.csl-indent {
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -138,12 +116,42 @@ div.csl-indent {
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -151,11 +159,16 @@ div.csl-indent {
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
-    <div class="container-fluid d-flex justify-content-between">
-      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Applications of principal component analysis</span></h1>
-      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
-        <i class="bi bi-chevron-right"></i>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./pca-applications.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Applications of principal component analysis</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
       </button>
     </div>
   </nav>
@@ -163,50 +176,68 @@ div.csl-indent {
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Introduction to Statistical Modelling</a> 
     </div>
       </div>
-      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
         <div id="quarto-search" class="" title="Search"></div>
         </div>
-      </div>
+        </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link">Preface</a>
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./pca.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Principal component analysis</span></a>
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./pca-applications.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Applications of principal component analysis</span></a>
+  <a href="./regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Regression analysis</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./references.html" class="sidebar-item-text sidebar-link">References</a>
+  <a href="./pca.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Principal component analysis</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pca-applications.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Applications of principal component analysis</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">Appendices</a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./datasets.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Datasets</span></a>
+  <a href="./datasets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Datasets</span></span></a>
   </div>
 </li>
       </ul>
@@ -214,21 +245,23 @@ div.csl-indent {
     </ul>
     </div>
 </nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#adulteration-of-olive-oil" id="toc-adulteration-of-olive-oil" class="nav-link active" data-scroll-target="#adulteration-of-olive-oil"><span class="toc-section-number">2.1</span>  Adulteration of olive oil</a>
+  <li><a href="#adulteration-of-olive-oil" id="toc-adulteration-of-olive-oil" class="nav-link active" data-scroll-target="#adulteration-of-olive-oil"><span class="header-section-number">4.1</span> Adulteration of olive oil</a>
   <ul class="collapse">
-  <li><a href="#problem-statement" id="toc-problem-statement" class="nav-link" data-scroll-target="#problem-statement"><span class="toc-section-number">2.1.1</span>  Problem statement</a></li>
-  <li><a href="#inspecting-the-spectral-plots" id="toc-inspecting-the-spectral-plots" class="nav-link" data-scroll-target="#inspecting-the-spectral-plots"><span class="toc-section-number">2.1.2</span>  Inspecting the spectral plots</a></li>
-  <li><a href="#computing-the-principal-components" id="toc-computing-the-principal-components" class="nav-link" data-scroll-target="#computing-the-principal-components"><span class="toc-section-number">2.1.3</span>  Computing the principal components</a></li>
-  <li><a href="#predicting-the-percentage-of-adulteration" id="toc-predicting-the-percentage-of-adulteration" class="nav-link" data-scroll-target="#predicting-the-percentage-of-adulteration"><span class="toc-section-number">2.1.4</span>  Predicting the percentage of adulteration</a></li>
-  <li><a href="#a-cautionary-note" id="toc-a-cautionary-note" class="nav-link" data-scroll-target="#a-cautionary-note"><span class="toc-section-number">2.1.5</span>  A cautionary note</a></li>
+  <li><a href="#problem-statement" id="toc-problem-statement" class="nav-link" data-scroll-target="#problem-statement"><span class="header-section-number">4.1.1</span> Problem statement</a></li>
+  <li><a href="#inspecting-the-spectral-plots" id="toc-inspecting-the-spectral-plots" class="nav-link" data-scroll-target="#inspecting-the-spectral-plots"><span class="header-section-number">4.1.2</span> Inspecting the spectral plots</a></li>
+  <li><a href="#computing-the-principal-components" id="toc-computing-the-principal-components" class="nav-link" data-scroll-target="#computing-the-principal-components"><span class="header-section-number">4.1.3</span> Computing the principal components</a></li>
+  <li><a href="#predicting-the-percentage-of-adulteration" id="toc-predicting-the-percentage-of-adulteration" class="nav-link" data-scroll-target="#predicting-the-percentage-of-adulteration"><span class="header-section-number">4.1.4</span> Predicting the percentage of adulteration</a></li>
+  <li><a href="#optimal-number-of-components" id="toc-optimal-number-of-components" class="nav-link" data-scroll-target="#optimal-number-of-components"><span class="header-section-number">4.1.5</span> Optimal number of components</a></li>
+  <li><a href="#a-cautionary-note" id="toc-a-cautionary-note" class="nav-link" data-scroll-target="#a-cautionary-note"><span class="header-section-number">4.1.6</span> A cautionary note</a></li>
   </ul></li>
-  <li><a href="#sec-eigenfaces" id="toc-sec-eigenfaces" class="nav-link" data-scroll-target="#sec-eigenfaces"><span class="toc-section-number">2.2</span>  Eigenfaces</a></li>
+  <li><a href="#sec-eigenfaces" id="toc-sec-eigenfaces" class="nav-link" data-scroll-target="#sec-eigenfaces"><span class="header-section-number">4.2</span> Eigenfaces</a></li>
   </ul>
 </nav>
     </div>
@@ -237,7 +270,7 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Applications of principal component analysis</span></h1>
+<h1 class="title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Applications of principal component analysis</span></h1>
 </div>
 
 
@@ -245,20 +278,23 @@ div.csl-indent {
 <div class="quarto-title-meta">
 
     
+  
     
   </div>
   
 
+
 </header>
+
 
 <p>Principal component analysis is often a necessary first step when there are a large number of independent variables that need to be analyze simultaneously. Many devices in a modern lab produce this kind of high-dimensional data: for example, a reading for a single sample obtained via gas chromatography-mass spectrometry (GC-MS) or hyperspectral imagining (HSI) is a vector with 100s of entries, and with the number of samples often running in the 100s as well, we need a technique like PCA to find the needle in the haystack.</p>
 <p>In this chapter we consider a number of real-world examples, from the life sciences and beyond, where PCA and dimensionality reduction prove to be essential.</p>
-<div class="callout-warning callout callout-style-default callout-captioned">
+<div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Warning
 </div>
 </div>
@@ -266,41 +302,53 @@ Warning
 <p>Given that the examples in this chapter deal with real-world data, which is often large and messy, the R code is at times a bit more complex than in the previous chapter. The underlying principles remain the same, however.</p>
 </div>
 </div>
-<section id="adulteration-of-olive-oil" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="adulteration-of-olive-oil"><span class="header-section-number">2.1</span> Adulteration of olive oil</h2>
+<section id="adulteration-of-olive-oil" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="adulteration-of-olive-oil"><span class="header-section-number">4.1</span> Adulteration of olive oil</h2>
 <p>This case study is a simplified version of an analysis done by the group of Prof.&nbsp;Van Haute of the Centre for Food Chemistry and Technology at GUGC to determine the adulteration of extra-virgin olive oil through the use of hyperspectral imaging data. The full analysis can be found in <span class="citation" data-cites="2023-malavi-HyperspectralImagingChemometrics">(<a href="references.html#ref-2023-malavi-HyperspectralImagingChemometrics" role="doc-biblioref">Malavi et al. 2023</a>)</span>. My thanks go to Prof.&nbsp;Van Haute for making the data available and for in-depth discussions regarding the analysis.</p>
-<section id="problem-statement" class="level3" data-number="2.1.1">
-<h3 data-number="2.1.1" class="anchored" data-anchor-id="problem-statement"><span class="header-section-number">2.1.1</span> Problem statement</h3>
+<section id="problem-statement" class="level3" data-number="4.1.1">
+<h3 data-number="4.1.1" class="anchored" data-anchor-id="problem-statement"><span class="header-section-number">4.1.1</span> Problem statement</h3>
 <p>Extra-virgin olive oil (EVOO) is a type of oil that is made by cold-pressing the fruit of the olive tree without the use of chemicals or heat. It is considered the highest quality and most flavorful type of olive oil and is widely used in cooking and as a dressing for salads and other dishes. Extra-virgin olive is packed with antioxidants and healthy fats, making it a popular choice among health-conscious consumers. Due to its high quality and health benefits, extra-virgin olive oil is often more expensive than other types of olive oil.</p>
 <p>Extra-virgin olive oil is sometimes adulterated, either accidentally, or deliberately, by the addition of other, cheaper vegetable oils. This is misleading to the customer and can pose health risks, for example through the introduction of allergens. As a result, manufacturers and food safety agencies have an interest in determining whether a given EVOO sample has been adulterated, and if so, to what degree.</p>
-<p>One way to determine the chemical composition of an oil sample is through hyperspectral imaging (HSI). A hyperspectral imaging system will shine infrared light onto the sample and measure the reflection off the sample at different wavelengths. We will not go into the details of how this signal is acquired, but what is important is that the system outputs for each sample a so-called <em>spectral curve</em> describing the average reflectance at different wavelengths. By inspecting the spectral curve, we can establish whether the sample absorbs light of a specific wavelength, and this can point towards the presence of particular chemical structures that characterize the sample. An example of a spectral curve is shown in figure <a href="#fig-hsi">Figure&nbsp;<span>2.1</span></a>.</p>
+<p>One way to determine the chemical composition of an oil sample is through hyperspectral imaging (HSI). A hyperspectral imaging system will shine infrared light onto the sample and measure the reflection off the sample at different wavelengths. We will not go into the details of how this signal is acquired, but what is important is that the system outputs for each sample a so-called <em>spectral curve</em> describing the average reflectance at different wavelengths. By inspecting the spectral curve, we can establish whether the sample absorbs light of a specific wavelength, and this can point towards the presence of particular chemical structures that characterize the sample. An example of a spectral curve is shown in figure <a href="#fig-hsi" class="quarto-xref">Figure&nbsp;<span>4.1</span></a>.</p>
 <p>In our case study we want to determine whether hyperspectral imaging can be used to detect the adulteration of extra-virgin olive oil. More precisely, we have the following research questions:</p>
 <ol type="1">
 <li><em>Can hyperspectral imaging be used to detect whether olive oil has been adulterated with other kinds of oils?</em></li>
 <li><em>If so, can the amount of adulteration be quantified (e.g.&nbsp;as a percentage)?</em></li>
 </ol>
 <p>To investigate these research questions, <span class="citation" data-cites="2023-malavi-HyperspectralImagingChemometrics">Malavi et al. (<a href="references.html#ref-2023-malavi-HyperspectralImagingChemometrics" role="doc-biblioref">2023</a>)</span> acquired readings from 13 different kinds of unadulterated EVOO, together with readings from 42 adulterated mixtures. Each adulterated mixture was prepared by taking olive oil and adding one of 6 different vegetable oils at 7 different percentages (ranging from 1% to 20% adulterant). Each sample was prepared and imagined in triplicate, resulting in 183 spectra. Each spectrum is a vector of length 224, describing the reflectance at 224 equally distributed wavelengths from 700 to 1800 nm.</p>
-<div id="fig-hsi" class="quarto-layout-panel" data-align="center">
-<figure class="figure">
+<div id="fig-hsi" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-hsi-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="quarto-layout-row quarto-layout-valign-center">
-<div class="quarto-layout-cell quarto-layout-cell-subref" style="flex-basis: 50.0%;justify-content: center;">
-<div id="fig-hyperspectral-system" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="./images/02-PCA/hyperspectral.png" class="img-fluid figure-img" data-ref-parent="fig-hsi"></p>
-<p></p><figcaption class="figure-caption">(a)</figcaption><p></p>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-hsi" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-hyperspectral-system" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-hyperspectral-system-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="./images/02-PCA/hyperspectral.png" id="fig-hyperspectral-system" class="img-fluid figure-img" data-ref-parent="fig-hsi">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-hyperspectral-system-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a)
+</figcaption>
 </figure>
 </div>
 </div>
-<div class="quarto-layout-cell quarto-layout-cell-subref" style="flex-basis: 50.0%;justify-content: center;">
-<div id="fig-typical-spectra" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="./images/02-PCA/hsi-spectra.png" class="img-fluid figure-img" data-ref-parent="fig-hsi"></p>
-<p></p><figcaption class="figure-caption">(b)</figcaption><p></p>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-hsi" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-typical-spectra" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-typical-spectra-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="./images/02-PCA/hsi-spectra.png" id="fig-typical-spectra" class="img-fluid figure-img" data-ref-parent="fig-hsi">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-typical-spectra-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b)
+</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p></p><figcaption class="figure-caption">Figure&nbsp;2.1: Hyperspectral imaging system (left) and typical output spectra (right). Figure source: <span class="citation" data-cites="2023-malavi-HyperspectralImagingChemometrics">Malavi et al. (<a href="references.html#ref-2023-malavi-HyperspectralImagingChemometrics" role="doc-biblioref">2023</a>)</span>.</figcaption><p></p>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-hsi-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4.1: Hyperspectral imaging system (left) and typical output spectra (right). Figure source: <span class="citation" data-cites="2023-malavi-HyperspectralImagingChemometrics">Malavi et al. (<a href="references.html#ref-2023-malavi-HyperspectralImagingChemometrics" role="doc-biblioref">2023</a>)</span>.
+</figcaption>
 </figure>
 </div>
 <p>Below, we read in the dataset and we print out the first 6 columns of a random sample of 10 rows (the full dataset is too large to display in its entirety). Note that the dataset has 228 columns: 4 of these are metadata variables described below and the remaining 224 columns describe the spectrum for each sample. The metadata variables are:</p>
@@ -311,7 +359,7 @@ Warning
 <li><code>% Adulteration</code>: The percentage of food oil added to the mixture. For pure EVOO this is 0, while for pure food oil it is 100%. For the other mixtures, it is one of 1%, 2%, 4%, 8%, 12%, 16%, or 20%.</li>
 </ul>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -333,28 +381,27 @@ Warning
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 10 × 6
-   `Sample ID/Wavelength`       Sample Classification % Adulte…¹ 938.9…² 942.4…³
-   &lt;chr&gt;                         &lt;dbl&gt; &lt;chr&gt;               &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
- 1 EVOO flavored with Chilli        28 Olive                   0   0.638   0.643
- 2 Olive Oil/Corn Oil 99/1          80 Olive                   1   0.649   0.655
- 3 Olive Oil/Sunflower Oil 96/4    150 Olive                   4   0.659   0.664
- 4 Olive Oil/Soybean Oil 99/1      101 Olive                   1   0.609   0.613
- 5 Olive Oil/Soybean Oil 92/8      111 Olive                   8   0.632   0.636
- 6 Olive Oil/Canola Oil 84/16      137 Olive                  16   0.652   0.657
- 7 Olive Oil/Canola Oil 88/12      133 Olive                  12   0.655   0.660
- 8 Olive Oil/Sesame Oil 98/2       166 Olive                   2   0.652   0.657
- 9 Olive Oil/Sunflower Oil 99/1    144 Olive                   1   0.652   0.657
-10 Olive Oil/Canola Oil 92/8       132 Olive                   8   0.654   0.660
-# … with abbreviated variable names ¹​`% Adulteration`, ²​`938.94000200000005`,
-#   ³​`942.45001200000002`</code></pre>
+   `Sample ID/Wavelength`       Sample Classification `% Adulteration`
+   &lt;chr&gt;                         &lt;dbl&gt; &lt;chr&gt;                     &lt;dbl&gt;
+ 1 EVOO flavored with Chilli        28 Olive                         0
+ 2 Olive Oil/Corn Oil 99/1          80 Olive                         1
+ 3 Olive Oil/Sunflower Oil 96/4    150 Olive                         4
+ 4 Olive Oil/Soybean Oil 99/1      101 Olive                         1
+ 5 Olive Oil/Soybean Oil 92/8      111 Olive                         8
+ 6 Olive Oil/Canola Oil 84/16      137 Olive                        16
+ 7 Olive Oil/Canola Oil 88/12      133 Olive                        12
+ 8 Olive Oil/Sesame Oil 98/2       166 Olive                         2
+ 9 Olive Oil/Sunflower Oil 99/1    144 Olive                         1
+10 Olive Oil/Canola Oil 92/8       132 Olive                         8
+# ℹ 2 more variables: `938.94000200000005` &lt;dbl&gt;, `942.45001200000002` &lt;dbl&gt;</code></pre>
 </div>
 </div>
 </section>
-<section id="inspecting-the-spectral-plots" class="level3" data-number="2.1.2">
-<h3 data-number="2.1.2" class="anchored" data-anchor-id="inspecting-the-spectral-plots"><span class="header-section-number">2.1.2</span> Inspecting the spectral plots</h3>
+<section id="inspecting-the-spectral-plots" class="level3" data-number="4.1.2">
+<h3 data-number="4.1.2" class="anchored" data-anchor-id="inspecting-the-spectral-plots"><span class="header-section-number">4.1.2</span> Inspecting the spectral plots</h3>
 <p>As a first step in our analysis, let’s compare the typical spectrum of EVOO with that of the other 6 vegetable oils. We see that overall the spectra are quite similar (they are all oils, after all) but that there are small differences between the different kinds of oil. On the other hand, if we are given a new, unlabeled spectrum, it would be quite difficult to “guess” just by looking what type of oil it is. This is where dimensionality reduction will help us!</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep only EVOO and pure vegetable oil, and compute mean reflectivity across </span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the 3 replicates</span></span>
@@ -373,14 +420,14 @@ Warning
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="pca-applications_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Typical spectra of EVOO and different types of vegetable oils. Note the similarity with figure <a href="#fig-typical-spectra">Figure&nbsp;<span>2.1 (b)</span></a>.</figcaption><p></p>
+<figcaption>Typical spectra of EVOO and different types of vegetable oils. Note the similarity with figure <a href="#fig-typical-spectra" class="quarto-xref">Figure&nbsp;<span>4.1 (b)</span></a>.</figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="computing-the-principal-components" class="level3" data-number="2.1.3">
-<h3 data-number="2.1.3" class="anchored" data-anchor-id="computing-the-principal-components"><span class="header-section-number">2.1.3</span> Computing the principal components</h3>
+<section id="computing-the-principal-components" class="level3" data-number="4.1.3">
+<h3 data-number="4.1.3" class="anchored" data-anchor-id="computing-the-principal-components"><span class="header-section-number">4.1.3</span> Computing the principal components</h3>
 <p>We are now in a position to compute the principal components, and to figure out what they tell us about olive and other oils. Two issues to keep in mind:</p>
 <ol type="1">
 <li>Our dataset contains both metadata and spectral data: we want to make sure to compute the principal components only for the columns containing spectral data!</li>
@@ -393,7 +440,7 @@ Warning
 </div>
 <p>The first two principal components explain more than 90% of the variance in the data, as shown below.</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>pca_oils <span class="sc">%&gt;%</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  broom<span class="sc">::</span><span class="fu">tidy</span>(<span class="at">matrix =</span> <span class="st">"eigenvalues"</span>) <span class="sc">%&gt;%</span></span>
@@ -411,14 +458,14 @@ Warning
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="pca-applications_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Percentage of variance explained by the first 10 principal components. The first two principal components explain 94% of the variance in the data.</figcaption><p></p>
+<figcaption>Percentage of variance explained by the first 10 principal components. The first two principal components explain 94% of the variance in the data.</figcaption>
 </figure>
 </div>
 </div>
 </div>
 <p>The loadings for the first two principal components tell us something about what the spectra look like overall, and what variations between the individual spectra look like. This is of course an extremely coarse perspective, given that we only consider two principal components.</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>loadings <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(pca_oils<span class="sc">$</span>rotation)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>loadings<span class="sc">$</span>wavelength <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">rownames</span>(loadings))</span>
@@ -435,7 +482,7 @@ Warning
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="pca-applications_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Loadings for the first two principal components.</figcaption><p></p>
+<figcaption>Loadings for the first two principal components.</figcaption>
 </figure>
 </div>
 </div>
@@ -443,7 +490,7 @@ Warning
 <p>We started this section with the observation that there are minute differences between the spectra of different oils, but we admitted that it would be quite difficult to tell two spectra apart just by eye. We are now in a position where we can solve this issue: by considering only the first few principal components we get a reduced number of variables that (hopefully) can be used to tell the spectra apart.</p>
 <p>Below we have a scatterplot of the first two principal components. The EVOO samples are round dots, and the adulterated oils are triangles colored by the percentage of adulteration. The EVOO samples are clearly distinct from the adulterated oils (they are separated by the second principal component). This answers our first research question with a “yes”: we can clearly tell pure and adulterated oils apart.</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>pdata <span class="ot">&lt;-</span> pca_oils <span class="sc">%&gt;%</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  broom<span class="sc">::</span><span class="fu">augment</span>(oils) <span class="sc">%&gt;%</span></span>
@@ -463,21 +510,25 @@ Warning
 <span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_shape_discrete</span>(<span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Pure"</span>, <span class="st">"Adulterated"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-pc-plot-oils" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="pca-applications_files/figure-html/fig-pc-plot-oils-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;2.2: Principal component plot for the EVOO and adulterated oil samples. Pure vegetable oil samples are not shown.</figcaption><p></p>
+<div id="fig-pc-plot-oils" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pc-plot-oils-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="pca-applications_files/figure-html/fig-pc-plot-oils-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pc-plot-oils-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4.2: Principal component plot for the EVOO and adulterated oil samples. Pure vegetable oil samples are not shown.
+</figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="predicting-the-percentage-of-adulteration" class="level3" data-number="2.1.4">
-<h3 data-number="2.1.4" class="anchored" data-anchor-id="predicting-the-percentage-of-adulteration"><span class="header-section-number">2.1.4</span> Predicting the percentage of adulteration</h3>
-<p>Now that we are able to tell EVOO and adulterated samples apart, it is time to consider our second research question: given an adulterated oil sample, can we predict the percentage of vegetable oil that was added? Looking at <a href="#fig-pc-plot-oils">Figure&nbsp;<span>2.2</span></a>, it looks like we’ll need more than two principal components: we see no clear pattern in the percentage adulteration that we or a linear model could exploit.</p>
+<section id="predicting-the-percentage-of-adulteration" class="level3" data-number="4.1.4">
+<h3 data-number="4.1.4" class="anchored" data-anchor-id="predicting-the-percentage-of-adulteration"><span class="header-section-number">4.1.4</span> Predicting the percentage of adulteration</h3>
+<p>Now that we are able to tell EVOO and adulterated samples apart, it is time to consider our second research question: given an adulterated oil sample, can we predict the percentage of vegetable oil that was added? Looking at <a href="#fig-pc-plot-oils" class="quarto-xref">Figure&nbsp;<span>4.2</span></a>, it looks like we’ll need more than two principal components: we see no clear pattern in the percentage adulteration that we or a linear model could exploit.</p>
 <p>Before building our model, we need to do some data preparation. We select from our dataset only those rows that contain adulterated oils, and we split the resulting dataset into a <em>training dataset</em> (containing 80% of the data) and a <em>test dataset</em> (containing the remaining 20%). The idea is that we set apart the test dataset and build our model using only the training dataset. The test dataset is used to evaluate how well the model performs on data that it has never seen before. Using the full dataset to build the model and evaluate it would result in an overly optimistic estimate of the predictive capabilities of our model.</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># for the adulterated oils, predict the percentage of adulteration</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>adulterated <span class="ot">&lt;-</span> oils <span class="sc">%&gt;%</span></span>
@@ -497,7 +548,7 @@ Warning
 <div class="cell-output cell-output-stderr">
 <pre><code>Number of rows in the training dataset: 101</code></pre>
 </div>
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Number of rows in the test dataset: "</span>, <span class="fu">nrow</span>(adulterated_test))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
@@ -526,7 +577,7 @@ Warning
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>pls_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(pls_model, adulterated_test, <span class="at">ncomp =</span> <span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot both results together</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
@@ -543,12 +594,51 @@ Warning
 <span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">color =</span> <span class="st">"Method"</span>, <span class="at">x =</span> <span class="st">"Measured"</span>, <span class="at">y =</span> <span class="st">"Predicted"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="pca-applications_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="pca-applications_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
-<section id="a-cautionary-note" class="level3" data-number="2.1.5">
-<h3 data-number="2.1.5" class="anchored" data-anchor-id="a-cautionary-note"><span class="header-section-number">2.1.5</span> A cautionary note</h3>
+<section id="optimal-number-of-components" class="level3" data-number="4.1.5">
+<h3 data-number="4.1.5" class="anchored" data-anchor-id="optimal-number-of-components"><span class="header-section-number">4.1.5</span> Optimal number of components</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">selectNcomp</span>(pcr_model, <span class="at">method =</span> <span class="st">"onesigma"</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="pca-applications_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 7</code></pre>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">selectNcomp</span>(pls_model, <span class="at">method =</span> <span class="st">"onesigma"</span>, <span class="at">plot =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="pca-applications_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 9</code></pre>
+</div>
+</div>
+</section>
+<section id="a-cautionary-note" class="level3" data-number="4.1.6">
+<h3 data-number="4.1.6" class="anchored" data-anchor-id="a-cautionary-note"><span class="header-section-number">4.1.6</span> A cautionary note</h3>
 <p>In our model building procedure we have glossed over a few critical steps that may cause doubt on the validity of the model or the conclusions that we can draw from our analysis.</p>
 <ul>
 <li><p>Chiefly among these is the splitting into training and test data. We did that correctly to train our model, but everything that came before it (including the exploratory data analysis) used the entire data set. To build a model that is not overly optimistic, you should set aside some data to serve as test data at the beginning of your analysis, and then use only the training data to determine the appropriate number principal components, to classify oils into adulterated and pure, and so on. <em>Your model should never “see” the test data, until the very end.</em></p></li>
@@ -558,127 +648,147 @@ Warning
 <p>A more complete model that addresses all of these concerns (and more) can be found in <span class="citation" data-cites="2023-malavi-HyperspectralImagingChemometrics">(<a href="references.html#ref-2023-malavi-HyperspectralImagingChemometrics" role="doc-biblioref">Malavi et al. 2023</a>)</span>.</p>
 </section>
 </section>
-<section id="sec-eigenfaces" class="level2" data-number="2.2">
-<h2 data-number="2.2" class="anchored" data-anchor-id="sec-eigenfaces"><span class="header-section-number">2.2</span> Eigenfaces</h2>
+<section id="sec-eigenfaces" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="sec-eigenfaces"><span class="header-section-number">4.2</span> Eigenfaces</h2>
 <p>Our last example is not life sciences based, but serves as an illustration to show that PCA is a powerful technique in data analysis, which can be used to reduce the number of degrees of freedom in a large dataset.</p>
-<p>We use the Olivetti dataset of human faces, which contains 400 frontal photographs of human faces. Each face is a grayscale image of 64 by 64 pixels, where the intensity of each pixel is a value between 0 (completely black) to 255 (completely white). Each image can be represented as a <span class="math inline">\(64 \times 64\)</span> matrix, but it will be more convenient to take the columns of this matrix and lay them out one after the other to obtain a vector with <span class="math inline">\(64 \times 64 = 4096\)</span> entries, as in <a href="#fig-image-unroll">Figure&nbsp;<span>2.3</span></a>.</p>
-<div id="fig-image-unroll" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="images/02-PCA/image-unroll.svg" class="img-fluid figure-img"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;2.3: An image that is <span class="math inline">\(N\)</span> pixels high and <span class="math inline">\(M\)</span> pixels wide can be viewed as a matrix with <span class="math inline">\(N\)</span> rows and <span class="math inline">\(M\)</span> columns, or as a vector with <span class="math inline">\(N \times M\)</span> elements. Here, <span class="math inline">\(N\)</span> and <span class="math inline">\(M\)</span> are both equal to 3.</figcaption><p></p>
+<p>We use the Olivetti dataset of human faces, which contains 400 frontal photographs of human faces. Each face is a grayscale image of 64 by 64 pixels, where the intensity of each pixel is a value between 0 (completely black) to 255 (completely white). Each image can be represented as a <span class="math inline">\(64 \times 64\)</span> matrix, but it will be more convenient to take the columns of this matrix and lay them out one after the other to obtain a vector with <span class="math inline">\(64 \times 64 = 4096\)</span> entries, as in <a href="#fig-image-unroll" class="quarto-xref">Figure&nbsp;<span>4.3</span></a>.</p>
+<div id="fig-image-unroll" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-image-unroll-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/02-PCA/image-unroll.svg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-image-unroll-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4.3: An image that is <span class="math inline">\(N\)</span> pixels high and <span class="math inline">\(M\)</span> pixels wide can be viewed as a matrix with <span class="math inline">\(N\)</span> rows and <span class="math inline">\(M\)</span> columns, or as a vector with <span class="math inline">\(N \times M\)</span> elements. Here, <span class="math inline">\(N\)</span> and <span class="math inline">\(M\)</span> are both equal to 3.
+</figcaption>
 </figure>
 </div>
 <p>First, we load the dataset. Note that the dataset comes as a data matrix with 4096 rows and 400 columns.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(loon.data)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(faces)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(faces)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(loon.data)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(faces)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(faces)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 4096  400</code></pre>
 </div>
 </div>
-<p>Each column in the data matrix represents a face, laid out as a column vector with 4096 as in <a href="#fig-image-unroll">Figure&nbsp;<span>2.3</span></a>. We can assemble these vectors back into images and visualize them. This requires some R commands that we haven’t covered; you don’t have to understand what this code does.</p>
+<p>Each column in the data matrix represents a face, laid out as a column vector with 4096 as in <a href="#fig-image-unroll" class="quarto-xref">Figure&nbsp;<span>4.3</span></a>. We can assemble these vectors back into images and visualize them. This requires some R commands that we haven’t covered; you don’t have to understand what this code does.</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>show_image <span class="ot">&lt;-</span> <span class="cf">function</span>(imgdata, <span class="at">title =</span> <span class="cn">NULL</span>) {</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  m <span class="ot">&lt;-</span> <span class="fu">matrix</span>(imgdata, <span class="at">nrow =</span> <span class="dv">64</span>, <span class="at">ncol =</span> <span class="dv">64</span>, <span class="at">byrow =</span> F)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  m <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(m, <span class="dv">2</span>, rev))</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">image</span>(m, <span class="at">axes =</span> <span class="cn">FALSE</span>, <span class="at">col=</span><span class="fu">grey</span>(<span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="at">length=</span><span class="dv">256</span>)),</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">main =</span> title)</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>), <span class="at">mar=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>) {</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">show_image</span>(faces[,<span class="dv">10</span><span class="sc">*</span>i], <span class="fu">paste0</span>(<span class="st">"Face #"</span>, <span class="dv">10</span><span class="sc">*</span>i))</span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>show_image <span class="ot">&lt;-</span> <span class="cf">function</span>(imgdata, <span class="at">title =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  m <span class="ot">&lt;-</span> <span class="fu">matrix</span>(imgdata, <span class="at">nrow =</span> <span class="dv">64</span>, <span class="at">ncol =</span> <span class="dv">64</span>, <span class="at">byrow =</span> F)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  m <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(m, <span class="dv">2</span>, rev))</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">image</span>(m, <span class="at">axes =</span> <span class="cn">FALSE</span>, <span class="at">col=</span><span class="fu">grey</span>(<span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="at">length=</span><span class="dv">256</span>)),</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">main =</span> title)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>), <span class="at">mar=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>) {</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">show_image</span>(faces[,<span class="dv">10</span><span class="sc">*</span>i], <span class="fu">paste0</span>(<span class="st">"Face #"</span>, <span class="dv">10</span><span class="sc">*</span>i))</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-olivetti-faces" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="pca-applications_files/figure-html/fig-olivetti-faces-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;2.4: Six faces from the Olivetti dataset.</figcaption><p></p>
+<div id="fig-olivetti-faces" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-olivetti-faces-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="pca-applications_files/figure-html/fig-olivetti-faces-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-olivetti-faces-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4.4: Six faces from the Olivetti dataset.
+</figcaption>
 </figure>
 </div>
 </div>
 </div>
 <p>Doing a principal component analysis is a simple matter of running <code>prcomp</code>. Despite the size of the dataset, this component should not take more than a second to run.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>pc_olivetti <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(faces)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>pc_olivetti <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(faces)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Note that there are 400 principal components in this dataset. We can visualize their relative importance via a scree plot, which we limit to the first 50 components for clarity, since the remaining 350 components contribute almost no variance. This indicates that we can probably discard most of the principal components without losing much of the expressivity of our dataset. We will see further down that this is indeed the case!</p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gg_screeplot</span>(pc_olivetti, <span class="at">n =</span> <span class="dv">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gg_screeplot</span>(pc_olivetti, <span class="at">n =</span> <span class="dv">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="pca-applications_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>One of the advantages of the faces dataset is that the loadings vectors can be represented graphically, and that we can reason about them. <a href="#fig-olivetti-pc">Figure&nbsp;<span>2.5</span></a> shows the first 8 loadings vectors, represented as images. How should we interpret these images? Each loadings vector represents a particular <em>pattern</em> in the dataset of all faces: the first loadings vector, for example, captures the overall structure of a human face, while the second represents the illumination from right to left. Probably there were some photos in the dataset that were illuminated from the left or the right. Loadings vector three does the same for the top-down illumination, and loadings vectors four through eight capture particular patterns involving the eyes or the eyebrows. <em>By selectively “mixing” all 400 loadings vectors, we can recreate any face in the dataset.</em></p>
-<div class="cell">
-<details>
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>normalize <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ensure that PC components are between 0 and 255,</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># for visualization</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="dv">255</span> <span class="sc">*</span> (x <span class="sc">-</span> <span class="fu">min</span>(x)) <span class="sc">/</span> (<span class="fu">max</span>(x) <span class="sc">-</span> <span class="fu">min</span>(x))</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>), <span class="at">mar=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>) {</span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">show_image</span>(<span class="fu">normalize</span>(pc_olivetti<span class="sc">$</span>x[,i]), </span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>             <span class="fu">paste0</span>(<span class="st">"PC "</span>, i))</span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output-display">
-<div id="fig-olivetti-pc" class="quarto-figure quarto-figure-center anchored">
+<div>
 <figure class="figure">
-<p><img src="pca-applications_files/figure-html/fig-olivetti-pc-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;2.5: The first 8 loadings vectors of the Olivetti dataset represent particularly expressive patterns in the dataset.</figcaption><p></p>
+<p><img src="pca-applications_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>To finish, let’s also investigate how well PCA performs as a data reduction method. By retaining only a limited number of principal components, we can build “compressed” versions of the images that contain less information but are comparable to the eye. <a href="#fig-pca-reduced">Figure&nbsp;<span>2.6</span></a> shows two original faces from the dataset (left), together with compressed versions involving the first 10, 40, and 80 most significant principal components. The version that uses only 10 components is quite generic and it is difficult even to distinguish the male and female face. The version with 80 components, on the other hand, is very close to the original.</p>
+<p>One of the advantages of the faces dataset is that the loadings vectors can be represented graphically, and that we can reason about them. <a href="#fig-olivetti-pc" class="quarto-xref">Figure&nbsp;<span>4.5</span></a> shows the first 8 loadings vectors, represented as images. How should we interpret these images? Each loadings vector represents a particular <em>pattern</em> in the dataset of all faces: the first loadings vector, for example, captures the overall structure of a human face, while the second represents the illumination from right to left. Probably there were some photos in the dataset that were illuminated from the left or the right. Loadings vector three does the same for the top-down illumination, and loadings vectors four through eight capture particular patterns involving the eyes or the eyebrows. <em>By selectively “mixing” all 400 loadings vectors, we can recreate any face in the dataset.</em></p>
 <div class="cell">
-<details>
+<details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>project_data <span class="ot">&lt;-</span> <span class="cf">function</span>(pc, n_retain) {</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">t</span>(<span class="fu">t</span>(pc<span class="sc">$</span>x[,<span class="dv">1</span><span class="sc">:</span>n_retain] <span class="sc">%*%</span> <span class="fu">t</span>(pc<span class="sc">$</span>rotation)[<span class="dv">1</span><span class="sc">:</span>n_retain,]) <span class="sc">+</span> pc<span class="sc">$</span>center)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>), <span class="at">mar=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(faces[,<span class="dv">70</span>], <span class="st">"Original"</span>)</span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(<span class="fu">project_data</span>(pc_olivetti, <span class="dv">10</span>)[,<span class="dv">70</span>], <span class="st">"10 PCs"</span>)</span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(<span class="fu">project_data</span>(pc_olivetti, <span class="dv">40</span>)[,<span class="dv">70</span>], <span class="st">"40 PCs"</span>)</span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(<span class="fu">project_data</span>(pc_olivetti, <span class="dv">80</span>)[,<span class="dv">70</span>], <span class="st">"80 PCs"</span>)</span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(faces[,<span class="dv">80</span>], <span class="st">"Original"</span>)</span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(<span class="fu">project_data</span>(pc_olivetti, <span class="dv">10</span>)[,<span class="dv">80</span>], <span class="st">"10 PCs"</span>)</span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(<span class="fu">project_data</span>(pc_olivetti, <span class="dv">40</span>)[,<span class="dv">80</span>], <span class="st">"40 PCs"</span>)</span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(<span class="fu">project_data</span>(pc_olivetti, <span class="dv">80</span>)[,<span class="dv">80</span>], <span class="st">"80 PCs"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>normalize <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ensure that PC components are between 0 and 255,</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># for visualization</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="dv">255</span> <span class="sc">*</span> (x <span class="sc">-</span> <span class="fu">min</span>(x)) <span class="sc">/</span> (<span class="fu">max</span>(x) <span class="sc">-</span> <span class="fu">min</span>(x))</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>), <span class="at">mar=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>) {</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">show_image</span>(<span class="fu">normalize</span>(pc_olivetti<span class="sc">$</span>x[,i]), </span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>             <span class="fu">paste0</span>(<span class="st">"PC "</span>, i))</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-pca-reduced" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="pca-applications_files/figure-html/fig-pca-reduced-1.png" class="img-fluid figure-img" width="672"></p>
-<p></p><figcaption class="figure-caption">Figure&nbsp;2.6: Original images (left), and 3 PCA-reduced images with increasing numbers of principal components.</figcaption><p></p>
+<div id="fig-olivetti-pc" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-olivetti-pc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="pca-applications_files/figure-html/fig-olivetti-pc-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-olivetti-pc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4.5: The first 8 loadings vectors of the Olivetti dataset represent particularly expressive patterns in the dataset.
+</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>It is worth realizing the amount of data compression realized by using PCA. The original images had 4096 degrees of freedom, whereas the rightmost versions in <a href="#fig-pca-reduced">Figure&nbsp;<span>2.6</span></a> are described by the coefficients of 80 loadings vectors, more than a 50-fold reduction in degrees of freedom! Clearly there are some visual artifacts that appear in the compressed versions, but the faces are clearly distinguishable, and it seems very reasonable at this point that a machine learning algorithm (for example, to classify the faces, or to do segmentation) could take these compressed images as input and still perform well.</p>
+<p>To finish, let’s also investigate how well PCA performs as a data reduction method. By retaining only a limited number of principal components, we can build “compressed” versions of the images that contain less information but are comparable to the eye. <a href="#fig-pca-reduced" class="quarto-xref">Figure&nbsp;<span>4.6</span></a> shows two original faces from the dataset (left), together with compressed versions involving the first 10, 40, and 80 most significant principal components. The version that uses only 10 components is quite generic and it is difficult even to distinguish the male and female face. The version with 80 components, on the other hand, is very close to the original.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>project_data <span class="ot">&lt;-</span> <span class="cf">function</span>(pc, n_retain) {</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">t</span>(<span class="fu">t</span>(pc<span class="sc">$</span>x[,<span class="dv">1</span><span class="sc">:</span>n_retain] <span class="sc">%*%</span> <span class="fu">t</span>(pc<span class="sc">$</span>rotation)[<span class="dv">1</span><span class="sc">:</span>n_retain,]) <span class="sc">+</span> pc<span class="sc">$</span>center)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>), <span class="at">mar=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(faces[,<span class="dv">70</span>], <span class="st">"Original"</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(<span class="fu">project_data</span>(pc_olivetti, <span class="dv">10</span>)[,<span class="dv">70</span>], <span class="st">"10 PCs"</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(<span class="fu">project_data</span>(pc_olivetti, <span class="dv">40</span>)[,<span class="dv">70</span>], <span class="st">"40 PCs"</span>)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(<span class="fu">project_data</span>(pc_olivetti, <span class="dv">80</span>)[,<span class="dv">70</span>], <span class="st">"80 PCs"</span>)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(faces[,<span class="dv">80</span>], <span class="st">"Original"</span>)</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(<span class="fu">project_data</span>(pc_olivetti, <span class="dv">10</span>)[,<span class="dv">80</span>], <span class="st">"10 PCs"</span>)</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(<span class="fu">project_data</span>(pc_olivetti, <span class="dv">40</span>)[,<span class="dv">80</span>], <span class="st">"40 PCs"</span>)</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a><span class="fu">show_image</span>(<span class="fu">project_data</span>(pc_olivetti, <span class="dv">80</span>)[,<span class="dv">80</span>], <span class="st">"80 PCs"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-pca-reduced" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pca-reduced-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="pca-applications_files/figure-html/fig-pca-reduced-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pca-reduced-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4.6: Original images (left), and 3 PCA-reduced images with increasing numbers of principal components.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>It is worth realizing the amount of data compression realized by using PCA. The original images had 4096 degrees of freedom, whereas the rightmost versions in <a href="#fig-pca-reduced" class="quarto-xref">Figure&nbsp;<span>4.6</span></a> are described by the coefficients of 80 loadings vectors, more than a 50-fold reduction in degrees of freedom! Clearly there are some visual artifacts that appear in the compressed versions, but the faces are clearly distinguishable, and it seems very reasonable at this point that a machine learning algorithm (for example, to classify the faces, or to do segmentation) could take these compressed images as input and still perform well.</p>
 
 
-<div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography" style="display: none">
-<div id="ref-2023-malavi-HyperspectralImagingChemometrics" class="csl-entry" role="doc-biblioentry">
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-2023-malavi-HyperspectralImagingChemometrics" class="csl-entry" role="listitem">
 Malavi, Derick, Amin Nikkhah, Katleen Raes, and Sam Van Haute. 2023. <span>“Hyperspectral <span>Imaging</span> and <span>Chemometrics</span> for <span>Authentication</span> of <span>Extra Virgin Olive Oil</span>: <span>A Comparative Approach</span> with <span>FTIR</span>, <span>UV-VIS</span>, <span>Raman</span>, and <span>GC-MS</span>.”</span> <em>Foods</em> 12 (3): 429. <a href="https://doi.org/10.3390/foods12030429">https://doi.org/10.3390/foods12030429</a>.
 </div>
 </div>
 </section>
 
-<p>These coures notes are made available under the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons BY-NC-SA 4.0</a> license.</p></main> <!-- /main -->
+<p>These course notes are made available under the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons BY-NC-SA 4.0</a> license.</p></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -706,9 +816,23 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     icon: icon
   };
   anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
   const clipboard = new window.ClipboardJS('.code-copy-button', {
-    target: function(trigger) {
-      return trigger.previousElementSibling;
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
     }
   });
   clipboard.on('success', function(e) {
@@ -720,17 +844,33 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     button.classList.add('code-copy-button-checked');
     var currentTitle = button.getAttribute("title");
     button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
     setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
       button.setAttribute("title", currentTitle);
       button.classList.remove('code-copy-button-checked');
     }, 1000);
     // clear code selection
     e.clearSelection();
   });
-  function tippyHover(el, contentFn) {
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -740,8 +880,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -756,40 +905,291 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
   var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
   for (var i=0; i<bibliorefs.length; i++) {
     const ref = bibliorefs[i];
-    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
-    tippyHover(ref, function() {
-      var popup = window.document.createElement('div');
-      cites.forEach(function(cite) {
-        var citeDiv = window.document.createElement('div');
-        citeDiv.classList.add('hanging-indent');
-        citeDiv.classList.add('csl-entry');
-        var biblioDiv = window.document.getElementById('ref-' + cite);
-        if (biblioDiv) {
-          citeDiv.innerHTML = biblioDiv.innerHTML;
-        }
-        popup.appendChild(citeDiv);
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
       });
-      return popup.innerHTML;
-    });
+    }
   }
 });
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./pca.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Principal component analysis</span></span>
+      <a href="./pca.html" class="pagination-link" aria-label="Principal component analysis">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Principal component analysis</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./references.html" class="pagination-link">
+      <a href="./references.html" class="pagination-link" aria-label="References">
         <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
 </div> <!-- /content -->
+
 
 
 
