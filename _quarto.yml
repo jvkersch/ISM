@@ -11,6 +11,7 @@ book:
     - regression.qmd
     - pca.qmd
     - pca-applications.qmd
+    - logistic-regression.qmd
     #- dimensionality-reduction-other.qmd
     #- nonlinear.qmd
     - references.qmd

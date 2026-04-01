@@ -15,7 +15,7 @@ bdiag <- read_csv("datasets/02-logistic-regression/bdiag.csv") |>
 
 In the previous chapters, the outcome variable was always continuous: body fat percentage, CWD basal area, and so on. In many problems, however, the outcome is a **categorical** variable. For example, we might want to figure out whether a genetic mutation is deleterious (yes/no) based on DNA sequencing data, predict the outcome of surgery (success/failure) for patients with ovarian cancer based on patient characteristics, or classify iris varieties given the dimensions of their leaves. These problems are examples of **classification** problems, and they require different techniques than the regression methods we have seen so far.
 
-There are many techniques for classification, including logistic regression, K-nearest neighbors, linear discriminant analysis, support vector classification, and decision trees, each with their own advantages and disadvantages. In this chapter, we will focus on **logistic regression** and **K-nearest neighbors** (KNN). The main reference for this chapter is *An Introduction to Statistical Learning* (@jamesIntroductionStatisticalLearning2021, sections 4.1--4.3).
+There are many techniques for classification, including logistic regression, K-nearest neighbors, linear discriminant analysis, support vector classification, decision trees, and neural networks, each with their own advantages and disadvantages. In this chapter, we will focus on **logistic regression** and **K-nearest neighbors** (KNN). The main reference for this chapter is *An Introduction to Statistical Learning* (@jamesIntroductionStatisticalLearning2021, sections 4.1--4.3).
 
 ## Dataset {#sec-bdiag-dataset}
 
@@ -26,6 +26,7 @@ Throughout this chapter, we will use the Wisconsin breast cancer diagnostic data
 We split the dataset into a training set (80% of the data) and a test set (20%), so that we can later evaluate how well our models generalize to unseen data.
 
 ```{r}
+#| code-fold: show
 set.seed(1234)
 
 train_size <- 0.80 * nrow(bdiag)
@@ -68,15 +69,15 @@ Before turning to logistic regression, we consider a simpler classification meth
 
 ![Illustration of K-nearest neighbors classification with $K = 5$. Of the five nearest neighbors, three are benign (B) and two are malignant (M), so the new observation is classified as benign.](./images/02-logistic-regression/knearest){#fig-knearest}
 
-More precisely, KNN estimates the probability that $x$ belongs to class $j$ as
+More precisely, KNN estimates the probability that $x$ belongs to class $y$ as
 $$
-  P(Y = j | X = x) = \frac{1}{K} \sum_{i = 1}^{K} I(y_i = j),
+  P(Y = y \mid X = x) = \frac{1}{K} \sum_{i = 1}^{K} I(y_i = y),
 $$
-where the sum is over the $K$ nearest data points $y_1, \ldots, y_K$ to $x$, and $I(y_i = j)$ equals 1 if $y_i = j$ and 0 otherwise. For example, in @fig-knearest, with $K = 5$ neighbors, the estimated probabilities are $P(Y = B \mid X = x) = 3/5 = 60\%$ and $P(Y = M \mid X = x) = 2/5 = 40\%$.
+where the sum is over the $K$ data points $y_1, \ldots, y_K$ that are nearest to $x$, and $I(y_i = y)$ equals 1 if $y_i = y$ and 0 otherwise. For example, in @fig-knearest, with $K = 5$ neighbors, the estimated probabilities are $P(Y = B \mid X = x) = 3/5 = 60\%$ and $P(Y = M \mid X = x) = 2/5 = 40\%$.
 
-KNN has a number of attractive properties: it requires no explicit training phase, is robust to outliers, and can easily handle more than two classes. On the other hand, it is not very interpretable---it is hard to understand *why* a particular classification was made---and it can be memory-intensive, since all training data must be stored.
+KNN has a number of attractive properties: it requires no explicit training phase, is robust to outliers, and can easily handle more than two classes. On the other hand, it is not very interpretable: it is hard to understand *why* a particular classification was made. KNN also tends to be relatively memory-intensive, since all training data must be stored in memory when making predictions.
 
-The plot below shows the decision boundary for a KNN classifier with $K = 5$ on the breast cancer dataset. The background color indicates the predicted class at each point, with the intensity reflecting the confidence of the prediction.
+The plot below shows the decision boundary for a KNN classifier with $K = 5$ on the breast cancer dataset. The background color indicates the predicted class at each point, with the intensity reflecting the confidence of the prediction. The points of the decision boundary have equal probability of belonging to either class.
 
 ```{r}
 #| label: fig-knn-decision-boundary
@@ -144,7 +145,7 @@ $$
   \mathcal{L}(\pi)
     = \prod_{i = 1}^n P(Y = y_i)
     = \pi^{n\bar{Y}} (1 - \pi)^{n(1 - \bar{Y})},
-$$
+$$ {#eq-likelihood-binomial}
 where $\bar{Y}$ denotes the sample mean. The log-likelihood is
 $$
   \ell(\pi) = n \bar{Y} \ln \pi + n(1-\bar{Y})\ln(1 - \pi).
@@ -153,7 +154,12 @@ Setting the derivative to zero gives
 $$
   \frac{d \ell}{d \pi} = \frac{n \bar{Y}}{\pi} - \frac{n(1 - \bar{Y})}{1 - \pi} = 0,
 $$
-which simplifies to $\hat{\pi} = \bar{Y}$. In other words, the maximum likelihood estimate for the probability of success is simply the proportion of successes in the data---a reassuring result.
+which simplifies to $\hat{\pi} = \bar{Y}$. In other words, the maximum likelihood estimate for the probability of success is simply the proportion of successes in the data. We already knew this from semester 1, but it's reassuring that this new method gives the same result.
+
+:::{.callout-tip collapse="false"}
+## Exercise: Likelihood
+Fill in the missing steps to show that the second equality in @eq-likelihood-binomial holds.
+:::
 
 
 ## Odds, odds ratios, and logits {#sec-odds-logits}
@@ -229,7 +235,7 @@ $$
 
 ### Estimating the parameters
 
-The parameters $\alpha$ and $\beta$ are estimated using maximum likelihood, as described in @sec-mle. The likelihood function is the probability of observing the data given the parameters:
+The parameters $\alpha$ and $\beta$ are estimated using maximum likelihood, as described in @sec-mle. Recall that te likelihood function is the probability of observing the data given the parameters:
 $$
   \mathcal{L}(\alpha, \beta) = \prod_{i = 1}^n P(Y = Y_i \mid X = X_i),
 $$
@@ -253,7 +259,11 @@ m_simple <- glm(diagnosis ~ radius_mean, data = train, family = "binomial")
 summary(m_simple)
 ```
 
-The contour plot below shows the log-likelihood as a function of $\alpha$ and $\beta$, with the maximum likelihood estimate marked.
+::: {.callout-warning}
+Note that you **must** specify `family = "binomial"` in the call to `glm`. If you omit this parameter, R will silently fit a different, inappropriate model.
+:::
+
+Given that we have only two parameters, it is also instructive to look at the graph of the log-likelihood as a surface in 3D. Minima on this surface correspond to the maximum likelihood estimate $(\hat{\alpha}, \hat{\beta})$. Note that there is a unique minimum. This is a consequence of the fact that the log-likelihood function is convex.
 
 ```{r}
 #| label: fig-log-likelihood-contour
@@ -320,18 +330,8 @@ We can also include interaction terms between variables. For the breast cancer d
 #| code-fold: false
 m_inter <- glm(diagnosis ~ radius_mean * texture_mean,
                data = train, family = "binomial")
+summary(m_inter)
 ```
-
-| Coefficient               | Estimate | SE         | z value | p value  |
-|---------------------------|---------:|-----------:|--------:|---------:|
-| (Intercept)               |  -8.3046 |     7.4554 |  -1.114 |   0.2653 |
-| radius                    |   0.2182 |     0.5288 |   0.413 |   0.6798 |
-| texture                   |  -0.4133 |     0.3855 |  -1.072 |   0.2836 |
-| radius:texture            |   0.0455 |     0.0276 |   1.647 |   0.0995 |
-
-: Coefficients for the model with interaction term. {#tbl-interaction-coefficients}
-
-The interaction between radius and texture is not significant.
 
 ### Making predictions
 
@@ -381,6 +381,8 @@ plogis(pred$fit)
 ```
 
 The predicted probability that a tumor of radius 13 mm is malignant is 12.5% (95% CI: [8.6%, 17.7%]).
+
+With R, we don't have to limit ourselves to making single predictions at a time. We can make predictions for a range of values of `radius_mean`, and plot these predictions as a function of the input variable. This gives a so-called *prediction plot*, which is often a useful diagnostic for logistic regression models with one predictor.
 
 ```{r}
 #| label: fig-logistic-fit
@@ -459,15 +461,12 @@ To test whether a model coefficient $\beta$ is significantly different from zero
 $$
   z = \frac{\hat{\beta}}{SE(\beta)},
 $$
-which follows a standard normal distribution under the null hypothesis $H_0: \beta = 0$. This test is reported directly in the R regression output (`summary`).
+which follows a standard normal distribution under the null hypothesis $H_0: \beta = 0$. This test is reported directly in the R regression output:
+```{r}
+summary(m_multi)
+```
 
-| Coefficient   | Estimate | SE | z value | p value      |
-|---------------|---------:|-----------:|--------:|-------------:|
-| (Intercept)   | -20.5169 |     2.0473 | -10.021 |   < 2e-16    |
-| radius_mean   |   1.0954 |     0.1173 |   9.341 |   < 2e-16    |
-| texture_mean |   0.2175 |     0.0403 |   5.391  |   7.01e-08   |
 
-: Wald test results for the multiple logistic regression model. {#tbl-wald-test}
 
 #### Likelihood ratio test
 
@@ -493,7 +492,7 @@ In R, the likelihood ratio test is performed using the `anova` command:
 ```{r}
 #| echo: true
 #| code-fold: false
-anova(m_simple, m_multi)
+anova(m_simple, m_multi, test = "Chisq")
 ```
 
 The test can also be used to compare models that differ by more than one variable. For example, we can test whether adding `concavity_mean` and `symmetry_mean` to the model with `radius_mean` and `texture_mean` leads to a significant improvement:
@@ -501,17 +500,20 @@ The test can also be used to compare models that differ by more than one variabl
 ```{r}
 #| echo: true
 #| code-fold: false
-m_multi_4 <- glm(
-  diagnosis ~ radius_mean + texture_mean + concavity_mean + symmetry_mean,
-               data = train, family = "binomial")
+m_multi_4 <- glm(diagnosis ~ radius_mean + texture_mean + concavity_mean + symmetry_mean,
+                 data = train, family = "binomial")
 
-anova(m_multi, m_multi_4)
+anova(m_multi, m_multi_4, test = "Chisq")
 ```
 
-The deviance should be compared with the critical value $\chi^2_{2; 0.95} = 5.991$ to draw a conclusion.
+The deviance should be compared with the critical value $\chi^2_{2; 0.95} = 5.991$ to draw a conclusion. R does that for us through the `test = "Chisq"` argument.
 
 
 ## Classification {#sec-classification}
+
+::: {.callout-important}
+In this section we will talk about *negative* observations (for which the outcome is $Y = 0$) and *positive* observations ($Y = 1$). When considering a concrete example, for example the breast cancer dataset, where we classify tumors as benign or malignant, it is important to be clear about which class corresponds to the positive/negative label. We will use the convention that a **malignant tumor corresponds to the positive class** while a benign tumor corresponds to the negative class.
+:::
 
 ### Decision boundaries
 
@@ -533,7 +535,7 @@ For a model without interaction terms, the decision boundary is a straight line 
 #| fig-cap: "Decision boundary for the logistic regression model without interaction terms (left) and with interaction terms (right)."
 #| fig-align: center
 
-plot_decision_boundary <- function(model, data, n = 100, n_classes = 2) {
+plot_decision_boundary <- function(model, data, n = 100, n_classes = 2, title = NULL) {
   xgrid <- with(data, expand_grid(
     radius_mean = seq(0.95 * min(radius_mean), 1.05 * max(radius_mean), length.out = n),
     texture_mean = seq(0.95 * min(texture_mean), 1.05 * max(texture_mean), length.out = n)))
@@ -555,11 +557,12 @@ plot_decision_boundary <- function(model, data, n = 100, n_classes = 2) {
                pch = 21, color = "black", size = 2, alpha = 1) +
     scale_x_continuous(expand = c(0, 0)) +
     scale_y_continuous(expand = c(0, 0)) +
-    theme(legend.position = "none")
+    theme(legend.position = "none") +
+    ggtitle(title)  
 }
 
-p1 <- plot_decision_boundary(m_multi, train)
-p2 <- plot_decision_boundary(m_inter, train)
+p1 <- plot_decision_boundary(m_multi, train, title = "No interaction")
+p2 <- plot_decision_boundary(m_inter, train, title = "Interaction")
 
 grid.arrange(p1, p2, nrow = 1)
 ```
@@ -568,7 +571,7 @@ grid.arrange(p1, p2, nrow = 1)
 
 By comparing the labels assigned by our model with the actual labels, we can evaluate the performance of the classifier. The results are summarized in a **confusion matrix**.
 
-![The confusion matrix summarizes the performance of a classifier by counting true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN).](./images/02-logistic-regression/confusion_matrix.png){#fig-confusion-matrix}
+![The confusion matrix summarizes the performance of a classifier by counting true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN). Figure taken from Wikipedia (https://en.wikipedia.org/wiki/Confusion_matrix)](./images/02-logistic-regression/confusion_matrix.png){#fig-confusion-matrix}
 
 From the confusion matrix, several performance metrics can be derived:
 
@@ -599,24 +602,30 @@ print(conf_matrix)
 
 ### Trading sensitivity and specificity
 
-The choice of threshold $C$ determines the trade-off between sensitivity and specificity. In a diagnostic test, we typically want high **sensitivity** (we don't want to tell patients with a tumor that they are healthy), which means choosing a low threshold. In a spam filter, on the other hand, we want high **specificity** (we don't want to put regular email in the spam folder), which calls for a high threshold.
+The choice of threshold $C$ determines the trade-off between sensitivity and specificity and is problem-specific. In a diagnostic test, we typically want high **sensitivity** (we don't want to tell patients with a tumor that they are healthy), which means choosing a low threshold. In a spam filter, on the other hand, we want high **specificity** (we don't want to put regular email in the spam folder), which calls for a high threshold.
 
 ::: {.callout-note}
 ## Breast cancer dataset
 
-- For $C = 0.5$: sensitivity 0.67
+When the threshold is $C = 0.5$, the sensitivity is 26/39 = 0.67 and the specificity is 70/75 = 0.93.
 
-| Prediction \ Reference | B  | M  |
-|------------------------|----|----|
-| B                      | 70 | **13** |
-| M                      | 5  | 26 |
+|                         | Actual B     | Actual M      |
+|-------------------------|--------------|---------------|
+| Predicted B             | 70           | 13            |
+| Predicted M             | 5            | 26            |
 
-- For $C = 0.2$: sensitivity **0.85**
 
-| Prediction \ Reference | B  | M  |
-|------------------------|----|----|
-| B                      | 64 | **6**  |
-| M                      | 11 | 33 |
+When we lower the threshold to $C = 0.2$, we become less discriminating in what we call a malignant tumor. Consequently we catch more actual tumors (true positives increases from 26 to 33) but we also classify a few more benign tumors as malign (false positives goes from 5 to 11, and true negatives decreases from 70 to 64). This is reflected in the sensitivity, which increases to 33/39 = 0.85, while the specificity decreases to 64/75 = 0.85.
+
+|                        | Actual B  | Actual M      |
+|------------------------|-----------|---------------|
+| Predicted B            | 64        | 6             |
+| Predicted M            | 11        | 33            |
+:::
+
+:::{.callout-tip collapse="false"}
+## Exercise: FP vs TN
+Convince yourself that when the number of false positives (FP) decreases, the number of true negatives (TN) must necessarily increase, and vice versa.
 :::
 
 The plot below shows how sensitivity and specificity change as the threshold varies from 0 to 1. As the threshold increases, sensitivity decreases (fewer true positives) while specificity increases (fewer false positives).
@@ -625,6 +634,7 @@ The plot below shows how sensitivity and specificity change as the threshold var
 #| label: fig-sensitivity-specificity
 #| fig-cap: "Sensitivity and specificity as a function of the classification threshold $C$."
 #| fig-align: center
+#| warning: false
 
 pred_test <- predict(m_simple, test, type="response")
 se_sp_for_C <- function(C) {
@@ -650,12 +660,13 @@ se_sp_curves |>
 
 ### ROC curve and AUC
 
-By varying $C$ from 0 to 1, sensitivity and specificity change continuously and trace out the **Receiver Operating Characteristic (ROC) curve**. The closer the ROC curve sticks to the upper left corner, the better the classifier performs. The ROC curve can also be used to compare different classifiers.
+Rather than plotting the sensitivity and specificity as a function of the threshold $C$, we can make a special plot where specificity is on the x-axis and sensitivity on the y-axis. By varying $C$ from 0 to 1, sensitivity and specificity then trace out the **Receiver Operating Characteristic (ROC) curve**. The closer the ROC curve sticks to the upper left corner, the better the classifier performs. The ROC curve can also be used to compare different classifiers.
 
 ```{r}
 #| label: fig-roc-curve
 #| fig-cap: "ROC curves for the logistic regression model and the KNN classifier ($K = 5$)."
 #| fig-align: center
+#| warning: false
 
 pred_test_logis <- predict(m_simple, test, type="response")
 roc_logis <- roc(test$diagnosis_binary, pred_test_logis)
@@ -680,3 +691,5 @@ The ROC curve and AUC are frequently reported in clinical research. @fig-di-donn
 ![ROC curves comparing different scoring systems for predicting complete cytoreduction in women with advanced ovarian cancer.](./images/02-logistic-regression/di-donna-roc.png){#fig-di-donna-roc fig-align="center" width="75%"}
 
 ![AUC values for the scoring systems shown above.](./images/02-logistic-regression/di-donna-auc.png){#fig-di-donna-auc fig-align="center" width="75%"}
+
+We end with a warning: the ROC curve and the AUC can give a misleading impression of the performance of an classifier on unbalanced data (i.e. for which the number of positive and negative observations are very different). For such classifiers, other diagnostics exist (e.g. the precision-recall curve), but we will not consider those here.
