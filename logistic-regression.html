@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>5&nbsp; Logistic regression and classification – Introduction to Statistical Modelling</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./references.html" rel="next">
+<link href="./pca-applications.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-485d01fc63b59abcd3ee1bf1e8e2748d.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./logistic-regression.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Logistic regression and classification</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Introduction to Statistical Modelling</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Regression analysis</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pca.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Principal component analysis</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pca-applications.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Applications of principal component analysis</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./logistic-regression.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Logistic regression and classification</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./datasets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Datasets</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-bdiag-dataset" id="toc-sec-bdiag-dataset" class="nav-link active" data-scroll-target="#sec-bdiag-dataset"><span class="header-section-number">5.1</span> Dataset</a></li>
+  <li><a href="#k-nearest-neighbors-classification" id="toc-k-nearest-neighbors-classification" class="nav-link" data-scroll-target="#k-nearest-neighbors-classification"><span class="header-section-number">5.2</span> K-nearest neighbors classification</a></li>
+  <li><a href="#sec-mle" id="toc-sec-mle" class="nav-link" data-scroll-target="#sec-mle"><span class="header-section-number">5.3</span> Maximum likelihood estimation</a>
+  <ul class="collapse">
+  <li><a href="#example-mle-for-a-binomial-variable" id="toc-example-mle-for-a-binomial-variable" class="nav-link" data-scroll-target="#example-mle-for-a-binomial-variable"><span class="header-section-number">5.3.1</span> Example: MLE for a binomial variable</a></li>
+  </ul></li>
+  <li><a href="#sec-odds-logits" id="toc-sec-odds-logits" class="nav-link" data-scroll-target="#sec-odds-logits"><span class="header-section-number">5.4</span> Odds, odds ratios, and logits</a></li>
+  <li><a href="#logistic-regression" id="toc-logistic-regression" class="nav-link" data-scroll-target="#logistic-regression"><span class="header-section-number">5.5</span> Logistic regression</a>
+  <ul class="collapse">
+  <li><a href="#why-not-linear-regression" id="toc-why-not-linear-regression" class="nav-link" data-scroll-target="#why-not-linear-regression"><span class="header-section-number">5.5.1</span> Why not linear regression?</a></li>
+  <li><a href="#the-logistic-regression-model" id="toc-the-logistic-regression-model" class="nav-link" data-scroll-target="#the-logistic-regression-model"><span class="header-section-number">5.5.2</span> The logistic regression model</a></li>
+  <li><a href="#estimating-the-parameters" id="toc-estimating-the-parameters" class="nav-link" data-scroll-target="#estimating-the-parameters"><span class="header-section-number">5.5.3</span> Estimating the parameters</a></li>
+  <li><a href="#multiple-logistic-regression" id="toc-multiple-logistic-regression" class="nav-link" data-scroll-target="#multiple-logistic-regression"><span class="header-section-number">5.5.4</span> Multiple logistic regression</a></li>
+  <li><a href="#making-predictions" id="toc-making-predictions" class="nav-link" data-scroll-target="#making-predictions"><span class="header-section-number">5.5.5</span> Making predictions</a></li>
+  <li><a href="#quantifying-and-testing-associations" id="toc-quantifying-and-testing-associations" class="nav-link" data-scroll-target="#quantifying-and-testing-associations"><span class="header-section-number">5.5.6</span> Quantifying and testing associations</a></li>
+  </ul></li>
+  <li><a href="#sec-classification" id="toc-sec-classification" class="nav-link" data-scroll-target="#sec-classification"><span class="header-section-number">5.6</span> Classification</a>
+  <ul class="collapse">
+  <li><a href="#decision-boundaries" id="toc-decision-boundaries" class="nav-link" data-scroll-target="#decision-boundaries"><span class="header-section-number">5.6.1</span> Decision boundaries</a></li>
+  <li><a href="#confusion-matrix-and-performance-metrics" id="toc-confusion-matrix-and-performance-metrics" class="nav-link" data-scroll-target="#confusion-matrix-and-performance-metrics"><span class="header-section-number">5.6.2</span> Confusion matrix and performance metrics</a></li>
+  <li><a href="#trading-sensitivity-and-specificity" id="toc-trading-sensitivity-and-specificity" class="nav-link" data-scroll-target="#trading-sensitivity-and-specificity"><span class="header-section-number">5.6.3</span> Trading sensitivity and specificity</a></li>
+  <li><a href="#roc-curve-and-auc" id="toc-roc-curve-and-auc" class="nav-link" data-scroll-target="#roc-curve-and-auc"><span class="header-section-number">5.6.4</span> ROC curve and AUC</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Logistic regression and classification</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>In the previous chapters, the outcome variable was always continuous: body fat percentage, CWD basal area, and so on. In many problems, however, the outcome is a <strong>categorical</strong> variable. For example, we might want to figure out whether a genetic mutation is deleterious (yes/no) based on DNA sequencing data, predict the outcome of surgery (success/failure) for patients with ovarian cancer based on patient characteristics, or classify iris varieties given the dimensions of their leaves. These problems are examples of <strong>classification</strong> problems, and they require different techniques than the regression methods we have seen so far.</p>
+<p>There are many techniques for classification, including logistic regression, K-nearest neighbors, linear discriminant analysis, support vector classification, decision trees, and neural networks, each with their own advantages and disadvantages. In this chapter, we will focus on <strong>logistic regression</strong> and <strong>K-nearest neighbors</strong> (KNN). The main reference for this chapter is <em>An Introduction to Statistical Learning</em> (<span class="citation" data-cites="jamesIntroductionStatisticalLearning2021">James et al. (<a href="references.html#ref-jamesIntroductionStatisticalLearning2021" role="doc-biblioref">2021</a>)</span>, sections 4.1–4.3).</p>
+<section id="sec-bdiag-dataset" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="sec-bdiag-dataset"><span class="header-section-number">5.1</span> Dataset</h2>
+<p>Throughout this chapter, we will use the Wisconsin breast cancer diagnostic dataset (<code>bdiag</code>), described in <span class="citation" data-cites="1993-street-NuclearFeatureExtraction">Street, Wolberg, and Mangasarian (<a href="references.html#ref-1993-street-NuclearFeatureExtraction" role="doc-biblioref">1993</a>)</span>. This dataset contains measurements on cell nuclei from 569 tumor samples, each classified as either malignant (M) or benign (B). The features we will use are the mean radius of the cell nucleus and the texture, defined as the variance of gray-scale values in the cell image.</p>
+<div id="fig-ductal-carcinoma" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ductal-carcinoma-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="./images/02-logistic-regression/Invasive_Ductal_Carcinoma_40x.jpg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ductal-carcinoma-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.1: Histological image of invasive ductal carcinoma.
+</figcaption>
+</figure>
+</div>
+<p>We split the dataset into a training set (80% of the data) and a test set (20%), so that we can later evaluate how well our models generalize to unseen data.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>train_size <span class="ot">&lt;-</span> <span class="fl">0.80</span> <span class="sc">*</span> <span class="fu">nrow</span>(bdiag)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>train_ind <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(bdiag)),</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                    <span class="at">size =</span> train_size)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> bdiag[train_ind, ]</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>test <span class="ot">&lt;-</span> bdiag[<span class="sc">-</span>train_ind, ]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>A first look at the data reveals that malignant tumors tend to have a larger mean radius and a somewhat higher texture than benign tumors, though the two classes overlap considerably.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>p_scatter <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(train,</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">aes</span>(<span class="at">x =</span> radius_mean, <span class="at">y =</span> texture_mean, <span class="at">color =</span> diagnosis)) <span class="sc">+</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>p_box_radius <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(train,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">aes</span>(<span class="at">y =</span> radius_mean, <span class="at">x =</span> diagnosis, <span class="at">fill =</span> diagnosis)) <span class="sc">+</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"radius"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">""</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="cn">NULL</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>p_box_texture <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(train,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>                        <span class="fu">aes</span>(<span class="at">y =</span> texture_mean, <span class="at">x =</span> diagnosis, <span class="at">fill =</span> diagnosis)) <span class="sc">+</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"texture"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">""</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="cn">NULL</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.arrange</span>(p_scatter, p_box_radius, p_box_texture, <span class="at">nrow =</span> <span class="dv">1</span>, <span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-bdiag-first-look" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-bdiag-first-look-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="logistic-regression_files/figure-html/fig-bdiag-first-look-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bdiag-first-look-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.2: Scatter plot of the breast cancer diagnostic dataset, with box plots for the two features. Malignant tumors tend to have a larger radius and higher texture.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="k-nearest-neighbors-classification" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="k-nearest-neighbors-classification"><span class="header-section-number">5.2</span> K-nearest neighbors classification</h2>
+<p>Before turning to logistic regression, we consider a simpler classification method: K-nearest neighbors (KNN). The idea is straightforward: to classify a new observation <span class="math inline">\(x\)</span>, find the <span class="math inline">\(K\)</span> nearest data points in the training set and assign <span class="math inline">\(x\)</span> to the class that is most common among those neighbors.</p>
+<div id="fig-knearest" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-knearest-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="./images/02-logistic-regression/knearest.svg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-knearest-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.3: Illustration of K-nearest neighbors classification with <span class="math inline">\(K = 5\)</span>. Of the five nearest neighbors, three are benign (B) and two are malignant (M), so the new observation is classified as benign.
+</figcaption>
+</figure>
+</div>
+<p>More precisely, KNN estimates the probability that <span class="math inline">\(x\)</span> belongs to class <span class="math inline">\(y\)</span> as <span class="math display">\[
+  P(Y = y \mid X = x) = \frac{1}{K} \sum_{i = 1}^{K} I(y_i = y),
+\]</span> where the sum is over the <span class="math inline">\(K\)</span> data points <span class="math inline">\(y_1, \ldots, y_K\)</span> that are nearest to <span class="math inline">\(x\)</span>, and <span class="math inline">\(I(y_i = y)\)</span> equals 1 if <span class="math inline">\(y_i = y\)</span> and 0 otherwise. For example, in <a href="#fig-knearest" class="quarto-xref">Figure&nbsp;<span>5.3</span></a>, with <span class="math inline">\(K = 5\)</span> neighbors, the estimated probabilities are <span class="math inline">\(P(Y = B \mid X = x) = 3/5 = 60\%\)</span> and <span class="math inline">\(P(Y = M \mid X = x) = 2/5 = 40\%\)</span>.</p>
+<p>KNN has a number of attractive properties: it requires no explicit training phase, is robust to outliers, and can easily handle more than two classes. On the other hand, it is not very interpretable: it is hard to understand <em>why</em> a particular classification was made. KNN also tends to be relatively memory-intensive, since all training data must be stored in memory when making predictions.</p>
+<p>The plot below shows the decision boundary for a KNN classifier with <span class="math inline">\(K = 5\)</span> on the breast cancer dataset. The background color indicates the predicted class at each point, with the intensity reflecting the confidence of the prediction. The points of the decision boundary have equal probability of belonging to either class.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>model_knn_5 <span class="ot">&lt;-</span> <span class="fu">knn3</span>(diagnosis <span class="sc">~</span> radius_mean <span class="sc">+</span> texture_mean, <span class="at">data =</span> train, <span class="at">k =</span> <span class="dv">5</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> model_knn_5</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> train</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>n_classes <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>xgrid <span class="ot">&lt;-</span> <span class="fu">with</span>(data, <span class="fu">expand_grid</span>(</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">radius_mean =</span> <span class="fu">seq</span>(<span class="fl">0.95</span> <span class="sc">*</span> <span class="fu">min</span>(radius_mean), <span class="fl">1.05</span> <span class="sc">*</span> <span class="fu">max</span>(radius_mean), <span class="at">length.out =</span> n),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">texture_mean =</span> <span class="fu">seq</span>(<span class="fl">0.95</span> <span class="sc">*</span> <span class="fu">min</span>(texture_mean), <span class="fl">1.05</span> <span class="sc">*</span> <span class="fu">max</span>(texture_mean), <span class="at">length.out =</span> n)))</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>y_class_probs <span class="ot">&lt;-</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> xgrid, <span class="at">type =</span> <span class="st">"prob"</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>y_max_prob <span class="ot">&lt;-</span> <span class="fu">apply</span>(y_class_probs, <span class="dv">1</span>, max)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>y_max_i <span class="ot">&lt;-</span> <span class="fu">apply</span>(y_class_probs, <span class="dv">1</span>, which.max)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>bg_cols <span class="ot">&lt;-</span> <span class="fu">hue_pal</span>()(n_classes)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(xgrid, <span class="fu">aes</span>(<span class="at">x =</span> radius_mean, <span class="at">y =</span> texture_mean)) <span class="sc">+</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_raster</span>(<span class="fu">aes</span>(<span class="at">fill =</span> y_max_i), <span class="at">alpha =</span> y_max_prob) <span class="sc">+</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradientn</span>(<span class="at">colours=</span>bg_cols,</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>                       <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> data, <span class="fu">aes</span>(<span class="at">x =</span> radius_mean, <span class="at">y =</span> texture_mean, <span class="at">fill =</span> <span class="fu">as.numeric</span>(diagnosis)),</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>             <span class="at">pch =</span> <span class="dv">21</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-knn-decision-boundary" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-knn-decision-boundary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="logistic-regression_files/figure-html/fig-knn-decision-boundary-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-knn-decision-boundary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.4: Decision boundary for the KNN classifier with <span class="math inline">\(K = 5\)</span>.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-mle" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="sec-mle"><span class="header-section-number">5.3</span> Maximum likelihood estimation</h2>
+<p>Before we can develop logistic regression, we need to introduce a general method for estimating the parameters of a statistical model: <strong>maximum likelihood estimation</strong> (MLE). The core idea is to find the parameter values that make the observed data most likely to occur. MLE is used in many settings, including finding the mean and variance of a normal distribution and determining regression coefficients.</p>
+<p>Suppose we have <span class="math inline">\(n\)</span> independent observations <span class="math inline">\(y_1, \ldots, y_n\)</span> drawn from a distribution <span class="math inline">\(\mathcal{D}\)</span> with unknown parameter(s) <span class="math inline">\(\theta\)</span>. The <strong>likelihood function</strong> is defined as the probability of observing the data, viewed as a function of the parameters: <span id="eq-likelihood"><span class="math display">\[
+  \mathcal{L}(\theta) = P(y_1, \ldots, y_n \mid \theta)
+                      = P(y_1 \mid \theta) \cdots P(y_n \mid \theta).
+\tag{5.1}\]</span></span> The second equality follows from the assumption that the observations are independent. In practice, it is often more convenient to work with the <strong>log-likelihood</strong>: <span id="eq-log-likelihood"><span class="math display">\[
+  \ell(\theta) = \ln \mathcal{L}(\theta) = \sum_{i=1}^n \ln P(y_i \mid \theta).
+\tag{5.2}\]</span></span> Since the logarithm is a monotonically increasing function, maximizing the log-likelihood is equivalent to maximizing the likelihood itself.</p>
+<p>To find the maximum likelihood estimate <span class="math inline">\(\hat{\theta}\)</span>, we set the partial derivatives of the log-likelihood to zero and solve for <span class="math inline">\(\theta\)</span>: <span class="math display">\[
+  \frac{\partial \ell}{\partial \theta}(\hat{\theta}) = 0.
+\]</span> Sometimes this equation can be solved analytically; most of the time, however, numerical methods are required.</p>
+<section id="example-mle-for-a-binomial-variable" class="level3" data-number="5.3.1">
+<h3 data-number="5.3.1" class="anchored" data-anchor-id="example-mle-for-a-binomial-variable"><span class="header-section-number">5.3.1</span> Example: MLE for a binomial variable</h3>
+<p>As an illustration, suppose we have <span class="math inline">\(n\)</span> observations from a binomial distribution with unknown probability <span class="math inline">\(\pi = P(Y = 1)\)</span>: <span class="math display">\[
+  Y = (0, 0, 1, 0, 1, 0, \ldots, 1, 1, 0, 0, 1).
+\]</span> The likelihood is given by <span id="eq-likelihood-binomial"><span class="math display">\[
+  \mathcal{L}(\pi)
+    = \prod_{i = 1}^n P(Y = y_i)
+    = \pi^{n\bar{Y}} (1 - \pi)^{n(1 - \bar{Y})},
+\tag{5.3}\]</span></span> where <span class="math inline">\(\bar{Y}\)</span> denotes the sample mean. The log-likelihood is <span class="math display">\[
+  \ell(\pi) = n \bar{Y} \ln \pi + n(1-\bar{Y})\ln(1 - \pi).
+\]</span> Setting the derivative to zero gives <span class="math display">\[
+  \frac{d \ell}{d \pi} = \frac{n \bar{Y}}{\pi} - \frac{n(1 - \bar{Y})}{1 - \pi} = 0,
+\]</span> which simplifies to <span class="math inline">\(\hat{\pi} = \bar{Y}\)</span>. In other words, the maximum likelihood estimate for the probability of success is simply the proportion of successes in the data. We already knew this from semester 1, but it’s reassuring that this new method gives the same result.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Exercise: Likelihood
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<p>Fill in the missing steps to show that the second equality in <a href="#eq-likelihood-binomial" class="quarto-xref">Equation&nbsp;<span>5.3</span></a> holds.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="sec-odds-logits" class="level2" data-number="5.4">
+<h2 data-number="5.4" class="anchored" data-anchor-id="sec-odds-logits"><span class="header-section-number">5.4</span> Odds, odds ratios, and logits</h2>
+<p>Before introducing logistic regression, it is helpful to define a few quantities that will appear throughout.</p>
+<p>If <span class="math inline">\(\pi\)</span> is the probability of some event (say, having a malignant tumor), then the <strong>odds</strong> are defined as <span class="math display">\[
+  \text{Odds} = \frac{\pi}{1 - \pi}.
+\]</span> For example, if <span class="math inline">\(\pi = 0.8\)</span> then the odds are <span class="math inline">\(0.8/0.2 = 4\)</span>, meaning that for every benign tumor there are 4 malignant ones (on average). Odds range from 0 (impossible event) to <span class="math inline">\(+\infty\)</span> (almost certain event).</p>
+<p>The <strong>odds ratio</strong> (OR) indicates by how much the odds change between two groups or treatments. For instance, suppose that in the treatment group the probability of a malignant tumor drops to <span class="math inline">\(\pi_T = 0.75\)</span>, compared to <span class="math inline">\(\pi_C = 0.8\)</span> in the untreated group. Then <span class="math display">\[
+  \text{OR} = \frac{\text{Odds}(T)}{\text{Odds}(C)} = \frac{0.75/0.25}{0.8/0.2} = \frac{3}{4} = 0.75.
+\]</span> An odds ratio less than 1 indicates that the odds decrease for the first group relative to the second; an odds ratio greater than 1 indicates that the odds increase.</p>
+<p>Often it is convenient to work with the logarithm of the odds, known as the <strong>logit</strong>: <span class="math display">\[
+  \text{logit}(\pi) =
+    \ln \text{Odds} =
+    \ln \left( \frac{\pi}{1 - \pi} \right).
+\]</span> The logit transformation maps probabilities from the interval <span class="math inline">\([0, 1]\)</span> to the entire real line: <span class="math inline">\(\text{logit} \to -\infty\)</span> as <span class="math inline">\(\pi \to 0\)</span> and <span class="math inline">\(\text{logit} \to +\infty\)</span> as <span class="math inline">\(\pi \to 1\)</span>. To convert back from logits to probabilities, we use the <strong>logistic function</strong> (also called the inverse logit): <span id="eq-logistic-function"><span class="math display">\[
+  \pi = \frac{1}{1 + e^{-\text{logit}}}.
+\tag{5.4}\]</span></span></p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">tibble</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>, <span class="at">length.out =</span> <span class="dv">100</span>)), <span class="fu">aes</span>(x)) <span class="sc">+</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_function</span>(<span class="at">fun =</span> plogis) <span class="sc">+</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Logit"</span>) <span class="sc">+</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Probability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-logistic-function" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-logistic-function-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="logistic-regression_files/figure-html/fig-logistic-function-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-logistic-function-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.5: The logistic function maps logits (on the real line) to probabilities (between 0 and 1).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="logistic-regression" class="level2" data-number="5.5">
+<h2 data-number="5.5" class="anchored" data-anchor-id="logistic-regression"><span class="header-section-number">5.5</span> Logistic regression</h2>
+<section id="why-not-linear-regression" class="level3" data-number="5.5.1">
+<h3 data-number="5.5.1" class="anchored" data-anchor-id="why-not-linear-regression"><span class="header-section-number">5.5.1</span> Why not linear regression?</h3>
+<p>Suppose we want to predict whether a tumor is malignant (<span class="math inline">\(Y = 1\)</span>) or benign (<span class="math inline">\(Y = 0\)</span>) based on a single predictor <span class="math inline">\(X\)</span> (say, <code>radius_mean</code>). We model <span class="math inline">\(Y_i\)</span> as a Bernoulli random variable with probability <span class="math inline">\(\pi(X_i)\)</span>, and we need to determine how <span class="math inline">\(\pi(X)\)</span> depends on <span class="math inline">\(X\)</span>.</p>
+<p>A first idea would be to use linear regression, assuming <span class="math inline">\(\pi(X) = \alpha + \beta X\)</span> and estimating <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> by ordinary least squares.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(train, <span class="fu">aes</span>(<span class="at">x =</span> radius_mean, <span class="at">y =</span> diagnosis_binary)) <span class="sc">+</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> diagnosis)) <span class="sc">+</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_smooth</span>(<span class="at">method=</span><span class="st">"lm"</span>, <span class="at">se=</span><span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"gray40"</span>) <span class="sc">+</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Probability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div id="fig-linear-regression-bad" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-linear-regression-bad-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="logistic-regression_files/figure-html/fig-linear-regression-bad-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-linear-regression-bad-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.6: Fitting a linear regression model to binary outcome data. The fitted probabilities can fall outside the interval <span class="math inline">\([0, 1]\)</span>, which is problematic.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>As <a href="#fig-linear-regression-bad" class="quarto-xref">Figure&nbsp;<span>5.6</span></a> shows, this approach has problems: the fitted probabilities can take on values outside the interval <span class="math inline">\([0, 1]\)</span>, which makes no sense for a probability. Moreover, the linear model does not easily generalize to more than two classes.</p>
+</section>
+<section id="the-logistic-regression-model" class="level3" data-number="5.5.2">
+<h3 data-number="5.5.2" class="anchored" data-anchor-id="the-logistic-regression-model"><span class="header-section-number">5.5.2</span> The logistic regression model</h3>
+<p>A better approach is to let <span class="math inline">\(\pi(X)\)</span> depend on <span class="math inline">\(X\)</span> through the logistic function (<a href="#eq-logistic-function" class="quarto-xref">Equation&nbsp;<span>5.4</span></a>): <span id="eq-logistic-regression"><span class="math display">\[
+  \pi(X) = \frac{1}{1 + \exp(-(\alpha + \beta X))}.
+\tag{5.5}\]</span></span> This is a <strong>nonlinear</strong> model in the parameters <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span>, but it guarantees that the predicted probabilities lie between 0 and 1. Equivalently, we can apply the logit transformation to obtain a model that is linear in the logits: <span class="math display">\[
+  \text{logit}(\pi) = \alpha + \beta X.
+\]</span></p>
+</section>
+<section id="estimating-the-parameters" class="level3" data-number="5.5.3">
+<h3 data-number="5.5.3" class="anchored" data-anchor-id="estimating-the-parameters"><span class="header-section-number">5.5.3</span> Estimating the parameters</h3>
+<p>The parameters <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> are estimated using maximum likelihood, as described in <a href="#sec-mle" class="quarto-xref"><span>Section 5.3</span></a>. Recall that te likelihood function is the probability of observing the data given the parameters: <span class="math display">\[
+  \mathcal{L}(\alpha, \beta) = \prod_{i = 1}^n P(Y = Y_i \mid X = X_i),
+\]</span> where <span class="math display">\[
+  P(Y = Y_i \mid X = X_i) = \pi(X_i)^{Y_i}(1 - \pi(X_i))^{1 - Y_i}
+\]</span> is the probability of observing a single data point <span class="math inline">\((X_i, Y_i)\)</span>. In practice, we work with the log-likelihood <span class="math inline">\(\ell(\alpha, \beta) = \ln \mathcal{L}(\alpha, \beta)\)</span>.</p>
+<p>The maximum likelihood estimates are found by setting the partial derivatives (score functions) equal to zero: <span class="math display">\[
+  \frac{\partial \ell}{\partial \alpha} = 0, \quad
+  \frac{\partial \ell}{\partial \beta} = 0.
+\]</span> Unlike in linear regression, these equations cannot be solved analytically. Numerical optimization methods are used instead, which R handles automatically through the <code>glm</code> command.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>m_simple <span class="ot">&lt;-</span> <span class="fu">glm</span>(diagnosis <span class="sc">~</span> radius_mean, <span class="at">data =</span> train, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m_simple)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = diagnosis ~ radius_mean, family = "binomial", data = train)
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -15.8086     1.5310 -10.326   &lt;2e-16 ***
+radius_mean   1.0662     0.1066   9.998   &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 604.40  on 454  degrees of freedom
+Residual deviance: 256.54  on 453  degrees of freedom
+AIC: 260.54
+
+Number of Fisher Scoring iterations: 6</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Note that you <strong>must</strong> specify <code>family = "binomial"</code> in the call to <code>glm</code>. If you omit this parameter, R will silently fit a different, inappropriate model.</p>
+</div>
+</div>
+<p>Given that we have only two parameters, it is also instructive to look at the graph of the log-likelihood as a surface in 3D. Minima on this surface correspond to the maximum likelihood estimate <span class="math inline">\((\hat{\alpha}, \hat{\beta})\)</span>. Note that there is a unique minimum. This is a consequence of the fact that the log-likelihood function is convex.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>log_lh <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y, alpha, beta) {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  lp <span class="ot">&lt;-</span> alpha <span class="sc">+</span> beta <span class="sc">*</span> x</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  px <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>lp))</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  llh <span class="ot">&lt;-</span> <span class="fu">log</span>(px)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  llh[y <span class="sc">==</span> <span class="dv">0</span>] <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">-</span> px[y <span class="sc">==</span> <span class="dv">0</span>])</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>(llh)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">20</span>, <span class="sc">-</span><span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">20</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>beta <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">2</span>, <span class="at">length.out =</span> <span class="dv">20</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> train<span class="sc">$</span>radius_mean</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> train<span class="sc">$</span>diagnosis_binary</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>llh <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="at">nrow =</span> <span class="fu">length</span>(alpha), <span class="at">ncol =</span> <span class="fu">length</span>(beta))</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(alpha)) {</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_along</span>(beta)) {</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    llh[i, j] <span class="ot">&lt;-</span> <span class="fu">log_lh</span>(x, y, alpha[[i]], beta[[j]])</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="fu">filled.contour</span>(alpha, beta, llh,</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>               <span class="at">xlab =</span> <span class="st">"alpha"</span>,</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>               <span class="at">ylab =</span> <span class="st">"beta"</span>,</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>               <span class="at">plot.axes =</span> {</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">axis</span>(<span class="dv">1</span>)</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">axis</span>(<span class="dv">2</span>)</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">points</span>(<span class="sc">-</span><span class="fl">15.8086</span>, <span class="fl">1.0662</span>, <span class="at">pch =</span> <span class="st">"x"</span>, <span class="at">cex =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"white"</span>)</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>               })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-log-likelihood-contour" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-log-likelihood-contour-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="logistic-regression_files/figure-html/fig-log-likelihood-contour-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-log-likelihood-contour-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.7: Contour plot of the log-likelihood as a function of the regression parameters <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span>. The maximum likelihood estimate is marked with an x.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The value of the log-likelihood at the MLE is <span class="math inline">\(\ell = -128.2701\)</span>. R reports the residual deviance, which is <span class="math inline">\(D = -2 \times \ell = 256.54\)</span>.</p>
+</section>
+<section id="multiple-logistic-regression" class="level3" data-number="5.5.4">
+<h3 data-number="5.5.4" class="anchored" data-anchor-id="multiple-logistic-regression"><span class="header-section-number">5.5.4</span> Multiple logistic regression</h3>
+<p>Just as in linear regression, the outcome <span class="math inline">\(Y\)</span> is often influenced by several predictors <span class="math inline">\(X_1, X_2, \ldots, X_p\)</span>. For example, the diagnosis may depend on both <code>radius_mean</code> and <code>texture_mean</code>: <span class="math display">\[
+  \text{logit}(\pi) =
+  \alpha +
+  \beta_1 \cdot \mathtt{radius\_mean} +
+  \beta_2 \cdot \mathtt{texture\_mean}.
+\]</span> The parameters <span class="math inline">\(\alpha, \beta_1, \ldots, \beta_p\)</span> are again determined through maximum likelihood estimation.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>m_multi <span class="ot">&lt;-</span> <span class="fu">glm</span>(diagnosis <span class="sc">~</span> radius_mean <span class="sc">+</span> texture_mean,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">data =</span> train, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m_multi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = diagnosis ~ radius_mean + texture_mean, family = "binomial", 
+    data = train)
+
+Coefficients:
+              Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)  -20.51694    2.04729 -10.021  &lt; 2e-16 ***
+radius_mean    1.09536    0.11727   9.341  &lt; 2e-16 ***
+texture_mean   0.21749    0.04034   5.391 7.01e-08 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 604.40  on 454  degrees of freedom
+Residual deviance: 223.68  on 452  degrees of freedom
+AIC: 229.68
+
+Number of Fisher Scoring iterations: 7</code></pre>
+</div>
+</div>
+<p>We can also include interaction terms between variables. For the breast cancer dataset, including an interaction between radius and texture gives the following:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>m_inter <span class="ot">&lt;-</span> <span class="fu">glm</span>(diagnosis <span class="sc">~</span> radius_mean <span class="sc">*</span> texture_mean,</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">data =</span> train, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m_inter)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = diagnosis ~ radius_mean * texture_mean, family = "binomial", 
+    data = train)
+
+Coefficients:
+                         Estimate Std. Error z value Pr(&gt;|z|)  
+(Intercept)              -8.30457    7.45536  -1.114   0.2653  
+radius_mean               0.21824    0.52876   0.413   0.6798  
+texture_mean             -0.41329    0.38547  -1.072   0.2836  
+radius_mean:texture_mean  0.04552    0.02764   1.647   0.0995 .
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 604.40  on 454  degrees of freedom
+Residual deviance: 220.72  on 451  degrees of freedom
+AIC: 228.72
+
+Number of Fisher Scoring iterations: 7</code></pre>
+</div>
+</div>
+</section>
+<section id="making-predictions" class="level3" data-number="5.5.5">
+<h3 data-number="5.5.5" class="anchored" data-anchor-id="making-predictions"><span class="header-section-number">5.5.5</span> Making predictions</h3>
+<p>Once we have a fitted logistic regression model, we can use it to predict the probability that a new observation belongs to the positive class. For instance, what is the probability that a tumor with a radius of 13 mm is malignant? Using the simple model with <code>radius_mean</code> as the only predictor, we compute <span class="math display">\[
+\pi(\mathtt{radius\_mean} = 13)
+     = \frac{1}{1 + \exp(15.8086 - 1.0662 \times 13)}
+     = 0.125.
+\]</span></p>
+<p>In R, we can compute this prediction directly:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">predict</span>(m_simple,</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">newdata =</span> <span class="fu">data.frame</span>(<span class="at">radius_mean =</span> <span class="dv">13</span>),</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">"response"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        1 
+0.1247961 </code></pre>
+</div>
+</div>
+<p>To compute a confidence interval for the predicted probability, we proceed in three steps:</p>
+<ol type="1">
+<li>Make a prediction on the <strong>logit</strong> scale (<code>type = "link"</code>).</li>
+<li>Compute the confidence interval on the logit scale using the standard error.</li>
+<li>Map the confidence interval back to the probability scale using the <code>plogis</code> function (which computes the logistic function <a href="#eq-logistic-function" class="quarto-xref">Equation&nbsp;<span>5.4</span></a>).</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Prediction on the logit scale</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(m_simple,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">newdata =</span> <span class="fu">data.frame</span>(<span class="at">radius_mean =</span> <span class="dv">13</span>),</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="st">"link"</span>, <span class="at">se.fit =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: CI on the logit scale</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>ci_logits <span class="ot">&lt;-</span> <span class="fu">c</span>(pred<span class="sc">$</span>fit <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>               pred<span class="sc">$</span>fit <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>ci_logits</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        1         1 
+-2.358216 -1.537335 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: CI on the probability scale</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>ci_probs <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">plogis</span>(ci_logits[<span class="dv">1</span>]), <span class="fu">plogis</span>(ci_logits[<span class="dv">2</span>]))</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>ci_probs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         1          1 
+0.08641491 0.17692307 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Original prediction on the probability scale</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plogis</span>(pred<span class="sc">$</span>fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        1 
+0.1247961 </code></pre>
+</div>
+</div>
+<p>The predicted probability that a tumor of radius 13 mm is malignant is 12.5% (95% CI: [8.6%, 17.7%]).</p>
+<p>With R, we don’t have to limit ourselves to making single predictions at a time. We can make predictions for a range of values of <code>radius_mean</code>, and plot these predictions as a function of the input variable. This gives a so-called <em>prediction plot</em>, which is often a useful diagnostic for logistic regression models with one predictor.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(train, <span class="fu">aes</span>(<span class="at">x =</span> radius_mean, <span class="at">y =</span> diagnosis_binary)) <span class="sc">+</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">13</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray60"</span>) <span class="sc">+</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.1247961</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray60"</span>) <span class="sc">+</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> diagnosis)) <span class="sc">+</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_smooth</span>(<span class="at">method=</span><span class="st">"glm"</span>, <span class="at">se=</span><span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"gray40"</span>,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">method.args =</span> <span class="fu">list</span>(<span class="at">family=</span>binomial))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div id="fig-logistic-fit" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-logistic-fit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="logistic-regression_files/figure-html/fig-logistic-fit-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-logistic-fit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.8: Logistic regression fit for the simple model with <code>radius_mean</code> as predictor. The dashed lines indicate the predicted probability for a tumor with radius 13 mm.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="quantifying-and-testing-associations" class="level3" data-number="5.5.6">
+<h3 data-number="5.5.6" class="anchored" data-anchor-id="quantifying-and-testing-associations"><span class="header-section-number">5.5.6</span> Quantifying and testing associations</h3>
+<section id="odds-ratios" class="level4" data-number="5.5.6.1">
+<h4 data-number="5.5.6.1" class="anchored" data-anchor-id="odds-ratios"><span class="header-section-number">5.5.6.1</span> Odds ratios</h4>
+<p>The logistic regression model can be written in terms of odds as <span class="math display">\[
+  \text{logit}(\pi) = \ln \text{Odds} =
+  \alpha + \beta X.
+\]</span> From this it follows that <span class="math display">\[
+  e^\beta = \frac{\text{Odds}(X + 1)}{\text{Odds}(X)}.
+\]</span> In other words, <span class="math inline">\(e^\beta\)</span> is the odds ratio associated with a 1-unit increase in <span class="math inline">\(X\)</span>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Breast cancer dataset
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For the simple model, <span class="math inline">\(\beta = 1.0662\)</span>, so <span class="math inline">\(\text{OR} = \exp(1.0662) = 2.90\)</span>. An increase of 1 mm in tumor radius is associated with odds that are 2.90 times higher.</p>
+</div>
+</div>
+<p>A <span class="math inline">\((1 - \alpha) \times 100\%\)</span> confidence interval for the odds ratio is given by <span class="math display">\[
+  \exp\left( \hat{\beta} \pm z_{1 - \alpha/2} \cdot SE(\beta) \right).
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Breast cancer dataset
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The 95% confidence interval for <span class="math inline">\(\text{OR}_{\mathtt{radius\_mean}}\)</span> in the multiple model is <span class="math display">\[
+  \exp(1.095 \pm 1.96 \times 0.117)
+    = [\exp(0.866), \exp(1.324)]
+    = [2.377, 3.759].
+\]</span></p>
+</div>
+</div>
+</section>
+<section id="confidence-intervals-for-regression-parameters" class="level4" data-number="5.5.6.2">
+<h4 data-number="5.5.6.2" class="anchored" data-anchor-id="confidence-intervals-for-regression-parameters"><span class="header-section-number">5.5.6.2</span> Confidence intervals for regression parameters</h4>
+<p>A Wald-type approximate <span class="math inline">\((1 - \alpha) \times 100\%\)</span> confidence interval for a regression coefficient <span class="math inline">\(\beta\)</span> is given by <span class="math display">\[
+  \hat{\beta} \pm z_{1 - \alpha/2} \cdot SE(\beta).
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Breast cancer dataset
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The 95% confidence interval for <span class="math inline">\(\beta_{\mathtt{radius\_mean}}\)</span> in the multiple model is <span class="math display">\[
+  1.095 \pm 1.96 \times 0.117 = [0.866, 1.324].
+\]</span></p>
+</div>
+</div>
+<p>In R, confidence intervals can be computed using the <code>confint</code> function, which uses the profile likelihood method (slightly different from the Wald method, but generally preferred):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confint</span>(m_multi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Waiting for profiling to be done...</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                   2.5 %      97.5 %
+(Intercept)  -24.8846042 -16.8233485
+radius_mean    0.8840034   1.3456187
+texture_mean   0.1405734   0.2993915</code></pre>
+</div>
+</div>
+</section>
+<section id="wald-test" class="level4" data-number="5.5.6.3">
+<h4 data-number="5.5.6.3" class="anchored" data-anchor-id="wald-test"><span class="header-section-number">5.5.6.3</span> Wald test</h4>
+<p>To test whether a model coefficient <span class="math inline">\(\beta\)</span> is significantly different from zero, the Wald test uses the test statistic <span class="math display">\[
+  z = \frac{\hat{\beta}}{SE(\beta)},
+\]</span> which follows a standard normal distribution under the null hypothesis <span class="math inline">\(H_0: \beta = 0\)</span>. This test is reported directly in the R regression output:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m_multi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = diagnosis ~ radius_mean + texture_mean, family = "binomial", 
+    data = train)
+
+Coefficients:
+              Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)  -20.51694    2.04729 -10.021  &lt; 2e-16 ***
+radius_mean    1.09536    0.11727   9.341  &lt; 2e-16 ***
+texture_mean   0.21749    0.04034   5.391 7.01e-08 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 604.40  on 454  degrees of freedom
+Residual deviance: 223.68  on 452  degrees of freedom
+AIC: 229.68
+
+Number of Fisher Scoring iterations: 7</code></pre>
+</div>
+</div>
+</section>
+<section id="likelihood-ratio-test" class="level4" data-number="5.5.6.4">
+<h4 data-number="5.5.6.4" class="anchored" data-anchor-id="likelihood-ratio-test"><span class="header-section-number">5.5.6.4</span> Likelihood ratio test</h4>
+<p>The likelihood ratio test is useful for comparing nested models and generally has more power than the Wald test. To test the null hypothesis that a simpler model is equivalent to a more complex one, we compute the <strong>deviance</strong>: <span class="math display">\[
+  D = -2 \ln \frac{\mathcal{L}(\text{simple})}{\mathcal{L}(\text{complex})}
+    = -2 \ell(\text{simple}) + 2 \ell(\text{complex}).
+\]</span> Under <span class="math inline">\(H_0\)</span>, <span class="math inline">\(D\)</span> follows a <span class="math inline">\(\chi^2_k\)</span> distribution, where <span class="math inline">\(k\)</span> is the number of extra parameters in the complex model.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Breast cancer dataset
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Consider the simple model (with <code>radius_mean</code> only) and the complex model (with both <code>radius_mean</code> and <code>texture_mean</code>). From the R output:</p>
+<ul>
+<li><span class="math inline">\(-2\ell(\text{simple}) = 256.54\)</span></li>
+<li><span class="math inline">\(-2\ell(\text{complex}) = 223.68\)</span></li>
+</ul>
+<p>Hence <span class="math inline">\(D = 256.54 - 223.68 = 32.86 &gt; 3.841 = \chi^2_{1; 0.95}\)</span>. We reject <span class="math inline">\(H_0\)</span> at the 5% significance level and conclude that the complex model is significantly better.</p>
+</div>
+</div>
+<p>In R, the likelihood ratio test is performed using the <code>anova</code> command:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m_simple, m_multi, <span class="at">test =</span> <span class="st">"Chisq"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Deviance Table
+
+Model 1: diagnosis ~ radius_mean
+Model 2: diagnosis ~ radius_mean + texture_mean
+  Resid. Df Resid. Dev Df Deviance  Pr(&gt;Chi)    
+1       453     256.54                          
+2       452     223.68  1   32.864 9.882e-09 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>The test can also be used to compare models that differ by more than one variable. For example, we can test whether adding <code>concavity_mean</code> and <code>symmetry_mean</code> to the model with <code>radius_mean</code> and <code>texture_mean</code> leads to a significant improvement:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>m_multi_4 <span class="ot">&lt;-</span> <span class="fu">glm</span>(diagnosis <span class="sc">~</span> radius_mean <span class="sc">+</span> texture_mean <span class="sc">+</span> concavity_mean <span class="sc">+</span> symmetry_mean,</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">data =</span> train, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m_multi, m_multi_4, <span class="at">test =</span> <span class="st">"Chisq"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Deviance Table
+
+Model 1: diagnosis ~ radius_mean + texture_mean
+Model 2: diagnosis ~ radius_mean + texture_mean + concavity_mean + symmetry_mean
+  Resid. Df Resid. Dev Df Deviance  Pr(&gt;Chi)    
+1       452     223.68                          
+2       450     129.99  2   93.686 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>The deviance should be compared with the critical value <span class="math inline">\(\chi^2_{2; 0.95} = 5.991\)</span> to draw a conclusion. R does that for us through the <code>test = "Chisq"</code> argument.</p>
+</section>
+</section>
+</section>
+<section id="sec-classification" class="level2" data-number="5.6">
+<h2 data-number="5.6" class="anchored" data-anchor-id="sec-classification"><span class="header-section-number">5.6</span> Classification</h2>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In this section we will talk about <em>negative</em> observations (for which the outcome is <span class="math inline">\(Y = 0\)</span>) and <em>positive</em> observations (<span class="math inline">\(Y = 1\)</span>). When considering a concrete example, for example the breast cancer dataset, where we classify tumors as benign or malignant, it is important to be clear about which class corresponds to the positive/negative label. We will use the convention that a <strong>malignant tumor corresponds to the positive class</strong> while a benign tumor corresponds to the negative class.</p>
+</div>
+</div>
+<section id="decision-boundaries" class="level3" data-number="5.6.1">
+<h3 data-number="5.6.1" class="anchored" data-anchor-id="decision-boundaries"><span class="header-section-number">5.6.1</span> Decision boundaries</h3>
+<p>Once we have a logistic regression model for <span class="math inline">\(\pi(X)\)</span>, we can use it to classify new observations as negative (<span class="math inline">\(Y = 0\)</span>) or positive (<span class="math inline">\(Y = 1\)</span>) by comparing <span class="math inline">\(\pi(X)\)</span> with a fixed threshold <span class="math inline">\(C\)</span>: <span class="math display">\[
+  Y = 1 \quad \text{if } \pi(X) &gt; C, \quad \text{otherwise } Y = 0.
+\]</span> The performance of the classifier depends on the choice of <span class="math inline">\(C\)</span>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Breast cancer dataset
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>We computed earlier that <span class="math inline">\(\pi(\mathtt{radius\_mean} = 13) = 0.12\)</span>. If the threshold for classifying a sample as malignant is <span class="math inline">\(C = 0.5\)</span>, this sample would be classified as <strong>benign</strong>.</p>
+</div>
+</div>
+<p>For a model without interaction terms, the decision boundary is a straight line in the feature space. When interaction terms are included, the decision boundary becomes curved.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>plot_decision_boundary <span class="ot">&lt;-</span> <span class="cf">function</span>(model, data, <span class="at">n =</span> <span class="dv">100</span>, <span class="at">n_classes =</span> <span class="dv">2</span>, <span class="at">title =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  xgrid <span class="ot">&lt;-</span> <span class="fu">with</span>(data, <span class="fu">expand_grid</span>(</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">radius_mean =</span> <span class="fu">seq</span>(<span class="fl">0.95</span> <span class="sc">*</span> <span class="fu">min</span>(radius_mean), <span class="fl">1.05</span> <span class="sc">*</span> <span class="fu">max</span>(radius_mean), <span class="at">length.out =</span> n),</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">texture_mean =</span> <span class="fu">seq</span>(<span class="fl">0.95</span> <span class="sc">*</span> <span class="fu">min</span>(texture_mean), <span class="fl">1.05</span> <span class="sc">*</span> <span class="fu">max</span>(texture_mean), <span class="at">length.out =</span> n)))</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  y_response <span class="ot">&lt;-</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> xgrid, <span class="at">type =</span> <span class="st">"response"</span>)</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>  y_class_probs <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="dv">1</span> <span class="sc">-</span> y_response, y_response)</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(y_class_probs) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"B"</span>, <span class="st">"M"</span>)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>  y_max_prob <span class="ot">&lt;-</span> <span class="fu">apply</span>(y_class_probs, <span class="dv">1</span>, max)</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>  y_max_i <span class="ot">&lt;-</span> <span class="fu">apply</span>(y_class_probs, <span class="dv">1</span>, which.max)</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>  bg_cols <span class="ot">&lt;-</span> <span class="fu">hue_pal</span>()(n_classes)</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(xgrid, <span class="fu">aes</span>(<span class="at">x =</span> radius_mean, <span class="at">y =</span> texture_mean)) <span class="sc">+</span></span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_raster</span>(<span class="fu">aes</span>(<span class="at">fill =</span> y_max_i), <span class="at">alpha =</span> y_max_prob) <span class="sc">+</span></span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_gradientn</span>(<span class="at">colours=</span>bg_cols,</span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>                         <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> data, <span class="fu">aes</span>(<span class="at">x =</span> radius_mean, <span class="at">y =</span> texture_mean, <span class="at">fill =</span> <span class="fu">as.numeric</span>(diagnosis)),</span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>               <span class="at">pch =</span> <span class="dv">21</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggtitle</span>(title)  </span>
+<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">plot_decision_boundary</span>(m_multi, train, <span class="at">title =</span> <span class="st">"No interaction"</span>)</span>
+<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">plot_decision_boundary</span>(m_inter, train, <span class="at">title =</span> <span class="st">"Interaction"</span>)</span>
+<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.arrange</span>(p1, p2, <span class="at">nrow =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-decision-boundary-logistic" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-decision-boundary-logistic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="logistic-regression_files/figure-html/fig-decision-boundary-logistic-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-decision-boundary-logistic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.9: Decision boundary for the logistic regression model without interaction terms (left) and with interaction terms (right).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="confusion-matrix-and-performance-metrics" class="level3" data-number="5.6.2">
+<h3 data-number="5.6.2" class="anchored" data-anchor-id="confusion-matrix-and-performance-metrics"><span class="header-section-number">5.6.2</span> Confusion matrix and performance metrics</h3>
+<p>By comparing the labels assigned by our model with the actual labels, we can evaluate the performance of the classifier. The results are summarized in a <strong>confusion matrix</strong>.</p>
+<div id="fig-confusion-matrix" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-confusion-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="./images/02-logistic-regression/confusion_matrix.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-confusion-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.10: The confusion matrix summarizes the performance of a classifier by counting true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN). Figure taken from Wikipedia (https://en.wikipedia.org/wiki/Confusion_matrix)
+</figcaption>
+</figure>
+</div>
+<p>From the confusion matrix, several performance metrics can be derived:</p>
+<div id="tbl-performance-metrics" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-performance-metrics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;5.1: Common classification performance metrics.
+</figcaption>
+<div aria-describedby="tbl-performance-metrics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Accuracy</td>
+<td>(TP + TN) / (P + N)</td>
+</tr>
+<tr class="even">
+<td>Sensitivity (recall)</td>
+<td>TP / P</td>
+</tr>
+<tr class="odd">
+<td>Specificity</td>
+<td>TN / N</td>
+</tr>
+<tr class="even">
+<td>PPV (precision)</td>
+<td>TP / PP</td>
+</tr>
+<tr class="odd">
+<td>NPV</td>
+<td>TN / PN</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Which metric is most relevant depends on the problem at hand. Metrics can also give surprising results in the case of unbalanced data, where one class is much more frequent than the other.</p>
+<p>In R, the confusion matrix and associated metrics can be computed using the <code>confusionMatrix</code> function from the <code>caret</code> package:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>pred_test <span class="ot">&lt;-</span> <span class="fu">predict</span>(m_simple, test, <span class="at">type=</span><span class="st">"response"</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>class_test <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(pred_test <span class="sc">&gt;=</span> <span class="fl">0.2</span>, <span class="st">"M"</span>, <span class="st">"B"</span>)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>conf_matrix <span class="ot">&lt;-</span> <span class="fu">confusionMatrix</span>(<span class="fu">as.factor</span>(class_test), test<span class="sc">$</span>diagnosis, <span class="at">positive =</span> <span class="st">"M"</span>)</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(conf_matrix)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Confusion Matrix and Statistics
+
+          Reference
+Prediction  B  M
+         B 64  6
+         M 11 33
+                                         
+               Accuracy : 0.8509         
+                 95% CI : (0.772, 0.9107)
+    No Information Rate : 0.6579         
+    P-Value [Acc &gt; NIR] : 3.039e-06      
+                                         
+                  Kappa : 0.6786         
+                                         
+ Mcnemar's Test P-Value : 0.332          
+                                         
+            Sensitivity : 0.8462         
+            Specificity : 0.8533         
+         Pos Pred Value : 0.7500         
+         Neg Pred Value : 0.9143         
+             Prevalence : 0.3421         
+         Detection Rate : 0.2895         
+   Detection Prevalence : 0.3860         
+      Balanced Accuracy : 0.8497         
+                                         
+       'Positive' Class : M              
+                                         </code></pre>
+</div>
+</div>
+</section>
+<section id="trading-sensitivity-and-specificity" class="level3" data-number="5.6.3">
+<h3 data-number="5.6.3" class="anchored" data-anchor-id="trading-sensitivity-and-specificity"><span class="header-section-number">5.6.3</span> Trading sensitivity and specificity</h3>
+<p>The choice of threshold <span class="math inline">\(C\)</span> determines the trade-off between sensitivity and specificity and is problem-specific. In a diagnostic test, we typically want high <strong>sensitivity</strong> (we don’t want to tell patients with a tumor that they are healthy), which means choosing a low threshold. In a spam filter, on the other hand, we want high <strong>specificity</strong> (we don’t want to put regular email in the spam folder), which calls for a high threshold.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Breast cancer dataset
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>When the threshold is <span class="math inline">\(C = 0.5\)</span>, the sensitivity is 26/39 = 0.67 and the specificity is 70/75 = 0.93.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th></th>
+<th>Actual B</th>
+<th>Actual M</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Predicted B</td>
+<td>70</td>
+<td>13</td>
+</tr>
+<tr class="even">
+<td>Predicted M</td>
+<td>5</td>
+<td>26</td>
+</tr>
+</tbody>
+</table>
+<p>When we lower the threshold to <span class="math inline">\(C = 0.2\)</span>, we become less discriminating in what we call a malignant tumor. Consequently we catch more actual tumors (true positives increases from 26 to 33) but we also classify a few more benign tumors as malign (false positives goes from 5 to 11, and true negatives decreases from 70 to 64). This is reflected in the sensitivity, which increases to 33/39 = 0.85, while the specificity decreases to 64/75 = 0.85.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th></th>
+<th>Actual B</th>
+<th>Actual M</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Predicted B</td>
+<td>64</td>
+<td>6</td>
+</tr>
+<tr class="even">
+<td>Predicted M</td>
+<td>11</td>
+<td>33</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Exercise: FP vs TN
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-10" class="callout-10-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<p>Convince yourself that when the number of false positives (FP) decreases, the number of true negatives (TN) must necessarily increase, and vice versa.</p>
+</div>
+</div>
+</div>
+<p>The plot below shows how sensitivity and specificity change as the threshold varies from 0 to 1. As the threshold increases, sensitivity decreases (fewer true positives) while specificity increases (fewer false positives).</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>pred_test <span class="ot">&lt;-</span> <span class="fu">predict</span>(m_simple, test, <span class="at">type=</span><span class="st">"response"</span>)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>se_sp_for_C <span class="ot">&lt;-</span> <span class="cf">function</span>(C) {</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  class_test <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(pred_test <span class="sc">&gt;=</span> C, <span class="st">"M"</span>, <span class="st">"B"</span>)</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  conf_matrix <span class="ot">&lt;-</span> <span class="fu">confusionMatrix</span>(<span class="fu">as.factor</span>(class_test), test<span class="sc">$</span>diagnosis, <span class="at">positive =</span> <span class="st">"M"</span>)</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">C =</span> C,</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">se =</span> conf_matrix[[<span class="st">"byClass"</span>]][[<span class="st">"Sensitivity"</span>]],</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">sp =</span> conf_matrix[[<span class="st">"byClass"</span>]][[<span class="st">"Specificity"</span>]])</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>se_sp_curves <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">50</span>) <span class="sc">|&gt;</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span>(se_sp_for_C) <span class="sc">|&gt;</span></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list_rbind</span>()</span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>se_sp_curves <span class="sc">|&gt;</span></span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>  reshape2<span class="sc">::</span><span class="fu">melt</span>(<span class="at">id.var =</span> <span class="st">"C"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> C, <span class="at">y =</span> value, <span class="at">color =</span> variable)) <span class="sc">+</span></span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"C (Threshold)"</span>) <span class="sc">+</span></span>
+<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_hue</span>(<span class="at">labels =</span> <span class="fu">c</span>(<span class="at">se =</span> <span class="st">"Sensitivity"</span>, <span class="at">sp =</span> <span class="st">"Specificity"</span>), <span class="at">name =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-sensitivity-specificity" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sensitivity-specificity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="logistic-regression_files/figure-html/fig-sensitivity-specificity-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sensitivity-specificity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.11: Sensitivity and specificity as a function of the classification threshold <span class="math inline">\(C\)</span>.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="roc-curve-and-auc" class="level3" data-number="5.6.4">
+<h3 data-number="5.6.4" class="anchored" data-anchor-id="roc-curve-and-auc"><span class="header-section-number">5.6.4</span> ROC curve and AUC</h3>
+<p>Rather than plotting the sensitivity and specificity as a function of the threshold <span class="math inline">\(C\)</span>, we can make a special plot where specificity is on the x-axis and sensitivity on the y-axis. By varying <span class="math inline">\(C\)</span> from 0 to 1, sensitivity and specificity then trace out the <strong>Receiver Operating Characteristic (ROC) curve</strong>. The closer the ROC curve sticks to the upper left corner, the better the classifier performs. The ROC curve can also be used to compare different classifiers.</p>
+<div class="cell" data-layout-align="center">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>pred_test_logis <span class="ot">&lt;-</span> <span class="fu">predict</span>(m_simple, test, <span class="at">type=</span><span class="st">"response"</span>)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>roc_logis <span class="ot">&lt;-</span> <span class="fu">roc</span>(test<span class="sc">$</span>diagnosis_binary, pred_test_logis)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>pred_test_knn <span class="ot">&lt;-</span> <span class="fu">predict</span>(model_knn_5, <span class="at">newdata =</span> test, <span class="at">type =</span> <span class="st">"prob"</span>)[, <span class="dv">2</span>]</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>roc_knn <span class="ot">&lt;-</span> <span class="fu">roc</span>(test<span class="sc">$</span>diagnosis_binary, pred_test_knn)</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggroc</span>(<span class="fu">list</span>(<span class="at">knn=</span>roc_knn, <span class="at">logis=</span>roc_logis)) <span class="sc">+</span></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_hue</span>(<span class="at">labels =</span> <span class="fu">c</span>(<span class="at">knn =</span> <span class="st">"KNN"</span>, <span class="at">logis =</span> <span class="st">"Logistic regression"</span>), <span class="at">name =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-roc-curve" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-roc-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="logistic-regression_files/figure-html/fig-roc-curve-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-roc-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.12: ROC curves for the logistic regression model and the KNN classifier (<span class="math inline">\(K = 5\)</span>).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The performance of a classifier can be summarized by a single number: the <strong>Area Under the ROC Curve</strong> (AUC). An AUC of 1.0 means the classifier distinguishes perfectly between the two classes, while an AUC of 0.5 means the classifier is no better than random guessing.</p>
+<p>The AUC has an intuitive interpretation as the <strong>concordance probability</strong>: the probability that the classifier will assign a lower predicted probability to a randomly chosen negative sample than to a randomly chosen positive sample: <span class="math display">\[
+  \text{AUC} = P(\pi(x_{\text{neg}}) \le \pi(x_{\text{pos}})).
+\]</span> This makes the AUC useful for model calibration: even if we don’t care about the absolute value of <span class="math inline">\(\pi\)</span>, we want negative samples to consistently receive lower predicted probabilities than positive samples.</p>
+<p>The ROC curve and AUC are frequently reported in clinical research. <a href="#fig-di-donna-roc" class="quarto-xref">Figure&nbsp;<span>5.13</span></a> shows an example from <span class="citation" data-cites="2023-didonna-ConcordanceRadiologicalLaparoscopic">Di Donna et al. (<a href="references.html#ref-2023-didonna-ConcordanceRadiologicalLaparoscopic" role="doc-biblioref">2023</a>)</span>, where different scoring systems are compared using their ROC curves and AUC values.</p>
+<div id="fig-di-donna-roc" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-di-donna-roc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="./images/02-logistic-regression/di-donna-roc.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:75.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-di-donna-roc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.13: ROC curves comparing different scoring systems for predicting complete cytoreduction in women with advanced ovarian cancer.
+</figcaption>
+</figure>
+</div>
+<div id="fig-di-donna-auc" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-di-donna-auc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="./images/02-logistic-regression/di-donna-auc.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:75.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-di-donna-auc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.14: AUC values for the scoring systems shown above.
+</figcaption>
+</figure>
+</div>
+<p>We end with a warning: the ROC curve and the AUC can give a misleading impression of the performance of an classifier on unbalanced data (i.e.&nbsp;for which the number of positive and negative observations are very different). For such classifiers, other diagnostics exist (e.g.&nbsp;the precision-recall curve), but we will not consider those here.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-2023-didonna-ConcordanceRadiologicalLaparoscopic" class="csl-entry" role="listitem">
+Di Donna, Mariano Catello, Giuseppe Cucinella, Giulia Zaccaria, Giuseppe Lo Re, Agata Crapanzano, Sergio Salerno, Vincenzo Giallombardo, et al. 2023. <span>“Concordance of <span>Radiological</span>, <span>Laparoscopic</span> and <span>Laparotomic Scoring</span> to <span>Predict Complete Cytoreduction</span> in <span>Women</span> with <span>Advanced Ovarian Cancer</span>.”</span> <em>Cancers</em> 15 (2): 500. <a href="https://doi.org/10.3390/cancers15020500">https://doi.org/10.3390/cancers15020500</a>.
+</div>
+<div id="ref-jamesIntroductionStatisticalLearning2021" class="csl-entry" role="listitem">
+James, Gareth, Daniela Witten, Trevor Hastie, and Robert Tibshirani. 2021. <em>An Introduction to Statistical Learning: With Applications in <span>R</span></em>. 2nd ed. New York: <span>Springer</span>. <a href="https://doi.org/10.1007/978-1-0716-1418-1">https://doi.org/10.1007/978-1-0716-1418-1</a>.
+</div>
+<div id="ref-1993-street-NuclearFeatureExtraction" class="csl-entry" role="listitem">
+Street, W. Nick, W. H. Wolberg, and O. L. Mangasarian. 1993. <span>“Nuclear Feature Extraction for Breast Tumor Diagnosis.”</span> In <em>Biomedical <span>Image Processing</span> and <span>Biomedical Visualization</span></em>, 1905:861–70. SPIE. <a href="https://doi.org/10.1117/12.148698">https://doi.org/10.1117/12.148698</a>.
+</div>
+</div>
+</section>
+</section>
+
+<p>These course notes are made available under the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons BY-NC-SA 4.0</a> license.</p></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./pca-applications.html" class="pagination-link" aria-label="Applications of principal component analysis">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Applications of principal component analysis</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./references.html" class="pagination-link" aria-label="References">
+        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
