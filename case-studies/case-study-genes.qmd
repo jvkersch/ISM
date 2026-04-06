@@ -4,7 +4,7 @@ title: "Gene expression profiles: supervised PCA"
 
 ## Problem statement
 
-In this case study, we will perform PCA on a large dataset obtained in the analysis of 4 different types of small, round blue cell tumors (SRBCTs). Khan et al (2001) obtained gene expression data from a cDNA microarray experiment of 2308 genes in 83 patients. The data is provided us through the `ISLR2` package; our job is to identify which genes, if any, are associated with any of the four tumor types.
+In this case study, we will perform PCA on a large dataset obtained in the analysis of 4 different types of small, round blue cell tumors (SRBCTs). Khan et al (2001) obtained gene expression data from a cDNA microarray experiment of 2308 genes in 83 patients. The data is provided through the `ISLR2` package; our job is to see if there is a genetic basis for this disease, and to identify which genes, if any, are associated with any of the four tumor types.
 
 ::: {.callout-note}
 The figures in this notebook were made with ggplot2, which we do not cover in this course. If you wish to re-run the analysis, you should install the `tidyverse` package.
@@ -158,6 +158,20 @@ ggplot(pc_train, aes(x = pc1, y = pc2, color = y)) +
 
 ```
 
+Let's take a look at the top 5 genes that constitute the first 2 PCs.
+
+```{r}
+top_n_genes <- function(comp, n = 5) {
+  order(abs(pc$rotation[, comp]), decreasing = TRUE)[1:n]
+}
+
+top_n_genes("PC1")
+```
+
+```{r}
+top_n_genes("PC2")
+```
+
 ## Unbiased evaluation on the test data
 
 It is very easy to make the performance of an algorithm look good, by evaluating it on the same data that it was trained on. This is the equivalent of me giving you the exam questions beforehand and then evaluating you on questions that you have already solved.
@@ -201,5 +215,29 @@ ggplot(pc_all, aes(x = pc1, y = pc2, color = y, shape = set)) +
   geom_point(size = 3) +
   scale_shape_manual(values = c("test" = 15, "train" = 8))
 
+```
+
+## More advanced dimensionality reduction methods
+
+For this section, you need to install the `Rtsne` package. t-Distributed Stochastic Neighborhood Embedding (t-SNE) is a non-linear alternative to PCA that does dimensionality reduction by approximately preserving local structures so that similar datapoints cluster together. Here we use it to reduce the gene expression profiles.
+
+```{r}
+library(Rtsne)
+
+tsne <- Rtsne(xtrain, dims = 2, perplexity = 5, verbose = TRUE, max_iter = 1500)
+```
+
+It's important to keep in mind that t-SNE is an unsupervised technique: all it sees are the gene expression profiles, the labels (which tumor the sample came from) are not taken into account. This is similar to PCA but quite different from supervised PCA. 
+
+t-SNE will discover clusters of similar samples in the data. We can then plot these clusters and give them a color based on the type of tumor. 
+
+```{r}
+tsne_df <- tibble(
+  y = ytrain,
+  x1 = tsne$Y[, 1],
+  x2 = tsne$Y[, 2])
+
+ggplot(tsne_df, aes(x = x1, y = x2, color = y)) +
+  geom_point(size = 3)
 ```
 
